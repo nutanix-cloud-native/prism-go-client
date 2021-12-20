@@ -14,13 +14,13 @@ Before submitting an issue, please search for similar ones in the [closed issues
 
 Pull requests approvals go through the following steps:
 
-1. A GitHub action may be triggered to lint and test the chart's installation.
+1. A GitHub action may be triggered to lint and test.
 2. A maintainer reviews the changes. Any change requires at least one review.
 3. The pull request can be merged when at least one maintainer approves it.
 
 ## Contributor License Agreement
 
-Keep in mind that before you submit your pull request, you'll need to sign the [Nutanix Contributor License Agreement (CLA)](https://www.nutanix.dev/cla/). The CLA must be agreed to by all contributors who are not Nutanix Full-time Employees (FTE) or interns prior to the contribution being merged into the project codebase. The CLA is substantially similar to the Apache Contributor License Agreement, which is the industry standard CLA.
+Before you submit your pull request, you'll need to sign the [Nutanix Contributor License Agreement (CLA)](https://www.nutanix.dev/cla/). The CLA must be agreed to by all contributors who are not Nutanix Full-time Employees (FTE) or interns prior to the contribution being merged into the project codebase. The CLA is substantially similar to the Apache Contributor License Agreement, which is the industry standard CLA.
 
 For more information about CLAs, please check out Alex Russell's excellent post,
 ["Why Do I Need to Sign This?"](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
