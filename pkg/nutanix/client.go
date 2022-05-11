@@ -253,8 +253,11 @@ func CheckResponse(r *http.Response) error {
 		return nil
 	}
 
-	pretty, _ := json.MarshalIndent(errRes, "", "  ")
-	return fmt.Errorf("error: %s", string(pretty))
+	pretty, err := json.MarshalIndent(errRes, "", "  ")
+	if err != nil {
+		return fmt.Errorf("status: %s, error-response: %+v, marshal error: %v", r.Status, errRes, err)
+	}
+	return fmt.Errorf("status: %s, error-response: %s", r.Status, string(pretty))
 }
 
 // ErrorResponse ...
@@ -270,7 +273,7 @@ type ErrorResponse struct {
 type MessageResource struct {
 
 	// Custom key-value details relevant to the status.
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details interface{} `json:"details,omitempty"`
 
 	// If state is ERROR, a message describing the error.
 	Message string `json:"message"`
