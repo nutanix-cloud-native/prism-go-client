@@ -294,7 +294,7 @@ type VMIntentInput struct {
 type MessageResource struct {
 
 	// Custom key-value details relevant to the status.
-	Details map[string]string `json:"details,omitempty"`
+	Details interface{} `json:"details,omitempty"`
 
 	// If state is ERROR, a message describing the error.
 	Message *string `json:"message"`
