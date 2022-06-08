@@ -1,52 +1,43 @@
 package v3
 
 import (
-	"reflect"
 	"testing"
 
 	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
 )
 
 func TestNewV3Client(t *testing.T) {
-	cred := client.Credentials{URL: "foo.com", Username: "username", Password: "password", Port: "", Endpoint: "", Insecure: true}
-	c, _ := NewV3Client(cred, false)
-
-	cred2 := client.Credentials{URL: "^^^", Username: "username", Password: "password", Port: "", Endpoint: "", Insecure: true}
-	c2, _ := NewV3Client(cred2, false)
-
-	type args struct {
-		credentials client.Credentials
+	// verifies positive client creation
+	cred := client.Credentials{
+		URL:                "foo.com",
+		Username:           "username",
+		Password:           "password",
+		Port:               "",
+		Endpoint:           "0.0.0.0",
+		Insecure:           true,
+		FoundationEndpoint: "10.0.0.0",
+		FoundationPort:     "8000",
+		RequiredFields:     nil,
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *Client
-		wantErr bool
-	}{
-		{
-			"test one",
-			args{cred},
-			c,
-			false,
-		},
-		{
-			"test one",
-			args{cred2},
-			c2,
-			true,
+	_, err := NewV3Client(cred)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	// verify missing client scenario
+	cred2 := client.Credentials{
+		URL:      "foo.com",
+		Insecure: true,
+		RequiredFields: map[string][]string{
+			"prism_central": {"username", "password", "endpoint"},
 		},
 	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewV3Client(tt.args.credentials, false)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewV3Client() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewV3Client() = %v, want %v", got, tt.want)
-			}
-		})
+	v3Client2, err2 := NewV3Client(cred2)
+	if err2 != nil {
+		t.Errorf(err2.Error())
+	}
+
+	if v3Client2.client.ErrorMsg == "" {
+		t.Errorf("NewV3Client(%v) expected the base client in v3 client to have some error message", cred2)
 	}
 }

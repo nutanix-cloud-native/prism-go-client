@@ -3,7 +3,7 @@ package v3
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -55,12 +55,70 @@ type Service interface {
 	GetVolumeGroup(uuid string) (*VolumeGroupResponse, error)
 	DeleteVolumeGroup(uuid string) error
 	CreateVolumeGroup(request *VolumeGroupInput) (*VolumeGroupResponse, error)
-	ListAllVM() (*VMListIntentResponse, error)
-	ListAllSubnet() (*SubnetListIntentResponse, error)
-	ListAllNetworkSecurityRule() (*NetworkSecurityRuleListIntentResponse, error)
-	ListAllImage() (*ImageListIntentResponse, error)
-	ListAllCluster() (*ClusterListIntentResponse, error)
+	ListAllVM(filter string) (*VMListIntentResponse, error)
+	ListAllSubnet(filter string, clientSideFilters []*client.AdditionalFilter) (*SubnetListIntentResponse, error)
+	ListAllNetworkSecurityRule(filter string) (*NetworkSecurityRuleListIntentResponse, error)
+	ListAllImage(filter string) (*ImageListIntentResponse, error)
+	ListAllCluster(filter string) (*ClusterListIntentResponse, error)
+	ListAllCategoryValues(categoryName, filter string) (*CategoryValueListResponse, error)
 	GetTask(taskUUID string) (*TasksResponse, error)
+	GetHost(taskUUID string) (*HostResponse, error)
+	ListHost(getEntitiesRequest *DSMetadata) (*HostListResponse, error)
+	ListAllHost() (*HostListResponse, error)
+	CreateProject(request *Project) (*Project, error)
+	GetProject(projectUUID string) (*Project, error)
+	ListProject(getEntitiesRequest *DSMetadata) (*ProjectListResponse, error)
+	ListAllProject(filter string) (*ProjectListResponse, error)
+	UpdateProject(uuid string, body *Project) (*Project, error)
+	DeleteProject(uuid string) (*DeleteResponse, error)
+	CreateAccessControlPolicy(request *AccessControlPolicy) (*AccessControlPolicy, error)
+	GetAccessControlPolicy(accessControlPolicyUUID string) (*AccessControlPolicy, error)
+	ListAccessControlPolicy(getEntitiesRequest *DSMetadata) (*AccessControlPolicyListResponse, error)
+	ListAllAccessControlPolicy(filter string) (*AccessControlPolicyListResponse, error)
+	UpdateAccessControlPolicy(uuid string, body *AccessControlPolicy) (*AccessControlPolicy, error)
+	DeleteAccessControlPolicy(uuid string) (*DeleteResponse, error)
+	CreateRole(request *Role) (*Role, error)
+	GetRole(uuid string) (*Role, error)
+	ListRole(getEntitiesRequest *DSMetadata) (*RoleListResponse, error)
+	ListAllRole(filter string) (*RoleListResponse, error)
+	UpdateRole(uuid string, body *Role) (*Role, error)
+	DeleteRole(uuid string) (*DeleteResponse, error)
+	CreateUser(request *UserIntentInput) (*UserIntentResponse, error)
+	GetUser(userUUID string) (*UserIntentResponse, error)
+	UpdateUser(uuid string, body *UserIntentInput) (*UserIntentResponse, error)
+	DeleteUser(uuid string) (*DeleteResponse, error)
+	ListUser(getEntitiesRequest *DSMetadata) (*UserListResponse, error)
+	ListAllUser(filter string) (*UserListResponse, error)
+	GetUserGroup(userUUID string) (*UserGroupIntentResponse, error)
+	ListUserGroup(getEntitiesRequest *DSMetadata) (*UserGroupListResponse, error)
+	ListAllUserGroup(filter string) (*UserGroupListResponse, error)
+	GetPermission(permissionUUID string) (*PermissionIntentResponse, error)
+	ListPermission(getEntitiesRequest *DSMetadata) (*PermissionListResponse, error)
+	ListAllPermission(filter string) (*PermissionListResponse, error)
+	GetProtectionRule(uuid string) (*ProtectionRuleResponse, error)
+	ListProtectionRules(getEntitiesRequest *DSMetadata) (*ProtectionRulesListResponse, error)
+	ListAllProtectionRules(filter string) (*ProtectionRulesListResponse, error)
+	CreateProtectionRule(request *ProtectionRuleInput) (*ProtectionRuleResponse, error)
+	UpdateProtectionRule(uuid string, body *ProtectionRuleInput) (*ProtectionRuleResponse, error)
+	DeleteProtectionRule(uuid string) (*DeleteResponse, error)
+	GetRecoveryPlan(uuid string) (*RecoveryPlanResponse, error)
+	ListRecoveryPlans(getEntitiesRequest *DSMetadata) (*RecoveryPlanListResponse, error)
+	ListAllRecoveryPlans(filter string) (*RecoveryPlanListResponse, error)
+	CreateRecoveryPlan(request *RecoveryPlanInput) (*RecoveryPlanResponse, error)
+	UpdateRecoveryPlan(uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error)
+	DeleteRecoveryPlan(uuid string) (*DeleteResponse, error)
+	GetServiceGroup(uuid string) (*ServiceGroupResponse, error)
+	listServiceGroups(getEntitiesRequest *DSMetadata) (*ServiceGroupListResponse, error)
+	ListAllServiceGroups(filter string) (*ServiceGroupListResponse, error)
+	CreateServiceGroup(request *ServiceGroupInput) (*Reference, error)
+	UpdateServiceGroup(uuid string, body *ServiceGroupInput) error
+	DeleteServiceGroup(uuid string) error
+	GetAddressGroup(uuid string) (*AddressGroupResponse, error)
+	ListAddressGroups(getEntitiesRequest *DSMetadata) (*AddressGroupListResponse, error)
+	ListAllAddressGroups(filter string) (*AddressGroupListResponse, error)
+	DeleteAddressGroup(uuid string) error
+	CreateAddressGroup(request *AddressGroupInput) (*Reference, error)
+	UpdateAddressGroup(uuid string, body *AddressGroupInput) error
 }
 
 /*CreateVM Creates a VM
@@ -95,6 +153,7 @@ func (op Operations) DeleteVM(uuid string) (*DeleteResponse, error) {
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
+
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +254,7 @@ func (op Operations) DeleteSubnet(uuid string) (*DeleteResponse, error) {
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
+
 	if err != nil {
 		return nil, err
 	}
@@ -244,8 +304,9 @@ func (op Operations) ListSubnet(getEntitiesRequest *DSMetadata) (*SubnetListInte
 	if err != nil {
 		return nil, err
 	}
+	baseSearchPaths := []string{"metadata", "status", "status.resources"}
 
-	return subnetListIntentResponse, op.client.Do(ctx, req, subnetListIntentResponse)
+	return subnetListIntentResponse, op.client.DoWithFilters(ctx, req, subnetListIntentResponse, getEntitiesRequest.ClientSideFilters, baseSearchPaths)
 }
 
 /*UpdateSubnet Updates a subnet
@@ -305,19 +366,15 @@ func (op Operations) UploadImage(uuid, filepath string) error {
 	}
 	defer file.Close()
 
-	fileContents, err := ioutil.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("error: Cannot read file %s", err)
-	}
+	req, err := op.client.NewUploadRequest(ctx, http.MethodPut, path, file)
 
-	req, err := op.client.NewUploadRequest(ctx, http.MethodPut, path, fileContents)
 	if err != nil {
 		return fmt.Errorf("error: Creating request %s", err)
 	}
+
 	err = op.client.Do(ctx, req, nil)
 
 	return err
-
 }
 
 /*DeleteImage deletes a IMAGE
@@ -333,6 +390,7 @@ func (op Operations) DeleteImage(uuid string) (*DeleteResponse, error) {
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
+
 	if err != nil {
 		return nil, err
 	}
@@ -357,6 +415,7 @@ func (op Operations) GetImage(uuid string) (*ImageIntentResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return imageIntentResponse, op.client.Do(ctx, req, imageIntentResponse)
 }
 
@@ -624,7 +683,7 @@ func (op Operations) DeleteCategoryValue(name string, value string) error {
 func (op Operations) GetCategoryQuery(query *CategoryQueryInput) (*CategoryQueryResponse, error) {
 	ctx := context.TODO()
 
-	path := "/categories/query"
+	path := "/category/query"
 
 	req, err := op.client.NewRequest(ctx, http.MethodPost, path, query)
 	categoryQueryResponse := new(CategoryQueryResponse)
@@ -668,6 +727,7 @@ func (op Operations) DeleteNetworkSecurityRule(uuid string) (*DeleteResponse, er
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
+
 	if err != nil {
 		return nil, err
 	}
@@ -835,7 +895,7 @@ func (op Operations) UpdateVolumeGroup(uuid string, body *VolumeGroupInput) (*Vo
 	return networkSecurityRuleResponse, op.client.Do(ctx, req, networkSecurityRuleResponse)
 }
 
-const itemsPerPage = int64(100)
+const itemsPerPage int64 = 100
 
 func hasNext(ri *int64) bool {
 	*ri -= itemsPerPage
@@ -843,10 +903,11 @@ func hasNext(ri *int64) bool {
 }
 
 // ListAllVM ...
-func (op Operations) ListAllVM() (*VMListIntentResponse, error) {
+func (op Operations) ListAllVM(filter string) (*VMListIntentResponse, error) {
 	entities := make([]*VMIntentResource, 0)
 
 	resp, err := op.ListVM(&DSMetadata{
+		Filter: &filter,
 		Kind:   utils.StringPtr("vm"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
@@ -862,6 +923,7 @@ func (op Operations) ListAllVM() (*VMListIntentResponse, error) {
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListVM(&DSMetadata{
+				Filter: &filter,
 				Kind:   utils.StringPtr("vm"),
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
@@ -875,6 +937,7 @@ func (op Operations) ListAllVM() (*VMListIntentResponse, error) {
 
 			offset += itemsPerPage
 		}
+
 		resp.Entities = entities
 	}
 
@@ -882,12 +945,14 @@ func (op Operations) ListAllVM() (*VMListIntentResponse, error) {
 }
 
 // ListAllSubnet ...
-func (op Operations) ListAllSubnet() (*SubnetListIntentResponse, error) {
+func (op Operations) ListAllSubnet(filter string, clientSideFilters []*client.AdditionalFilter) (*SubnetListIntentResponse, error) {
 	entities := make([]*SubnetIntentResponse, 0)
 
 	resp, err := op.ListSubnet(&DSMetadata{
-		Kind:   utils.StringPtr("subnet"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Filter:            &filter,
+		Kind:              utils.StringPtr("subnet"),
+		Length:            utils.Int64Ptr(itemsPerPage),
+		ClientSideFilters: clientSideFilters,
 	})
 
 	if err != nil {
@@ -901,6 +966,7 @@ func (op Operations) ListAllSubnet() (*SubnetListIntentResponse, error) {
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListSubnet(&DSMetadata{
+				Filter: &filter,
 				Kind:   utils.StringPtr("subnet"),
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
@@ -913,8 +979,9 @@ func (op Operations) ListAllSubnet() (*SubnetListIntentResponse, error) {
 			entities = append(entities, resp.Entities...)
 
 			offset += itemsPerPage
-			//klog.V(5).Infof("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
 		}
+
 		resp.Entities = entities
 	}
 
@@ -922,10 +989,11 @@ func (op Operations) ListAllSubnet() (*SubnetListIntentResponse, error) {
 }
 
 // ListAllNetworkSecurityRule ...
-func (op Operations) ListAllNetworkSecurityRule() (*NetworkSecurityRuleListIntentResponse, error) {
+func (op Operations) ListAllNetworkSecurityRule(filter string) (*NetworkSecurityRuleListIntentResponse, error) {
 	entities := make([]*NetworkSecurityRuleIntentResource, 0)
 
 	resp, err := op.ListNetworkSecurityRule(&DSMetadata{
+		Filter: &filter,
 		Kind:   utils.StringPtr("network_security_rule"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
@@ -941,6 +1009,7 @@ func (op Operations) ListAllNetworkSecurityRule() (*NetworkSecurityRuleListInten
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListNetworkSecurityRule(&DSMetadata{
+				Filter: &filter,
 				Kind:   utils.StringPtr("network_security_rule"),
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
@@ -953,8 +1022,9 @@ func (op Operations) ListAllNetworkSecurityRule() (*NetworkSecurityRuleListInten
 			entities = append(entities, resp.Entities...)
 
 			offset += itemsPerPage
-			//klog.V(5).Infof("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
 		}
+
 		resp.Entities = entities
 	}
 
@@ -962,10 +1032,11 @@ func (op Operations) ListAllNetworkSecurityRule() (*NetworkSecurityRuleListInten
 }
 
 // ListAllImage ...
-func (op Operations) ListAllImage() (*ImageListIntentResponse, error) {
+func (op Operations) ListAllImage(filter string) (*ImageListIntentResponse, error) {
 	entities := make([]*ImageIntentResponse, 0)
 
 	resp, err := op.ListImage(&DSMetadata{
+		Filter: &filter,
 		Kind:   utils.StringPtr("image"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
@@ -981,6 +1052,7 @@ func (op Operations) ListAllImage() (*ImageListIntentResponse, error) {
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListImage(&DSMetadata{
+				Filter: &filter,
 				Kind:   utils.StringPtr("image"),
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
@@ -993,8 +1065,9 @@ func (op Operations) ListAllImage() (*ImageListIntentResponse, error) {
 			entities = append(entities, resp.Entities...)
 
 			offset += itemsPerPage
-			//klog.V(5).Infof("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
 		}
+
 		resp.Entities = entities
 	}
 
@@ -1002,10 +1075,11 @@ func (op Operations) ListAllImage() (*ImageListIntentResponse, error) {
 }
 
 // ListAllCluster ...
-func (op Operations) ListAllCluster() (*ClusterListIntentResponse, error) {
-	entities := make([]*ClusterIntentResource, 0)
+func (op Operations) ListAllCluster(filter string) (*ClusterListIntentResponse, error) {
+	entities := make([]*ClusterIntentResponse, 0)
 
 	resp, err := op.ListCluster(&DSMetadata{
+		Filter: &filter,
 		Kind:   utils.StringPtr("cluster"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
@@ -1021,6 +1095,7 @@ func (op Operations) ListAllCluster() (*ClusterListIntentResponse, error) {
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListCluster(&DSMetadata{
+				Filter: &filter,
 				Kind:   utils.StringPtr("cluster"),
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
@@ -1033,15 +1108,59 @@ func (op Operations) ListAllCluster() (*ClusterListIntentResponse, error) {
 			entities = append(entities, resp.Entities...)
 
 			offset += itemsPerPage
-			//klog.V(5).Infof("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
 		}
+
 		resp.Entities = entities
 	}
 
 	return resp, nil
 }
 
-//GetTask ...
+// ListAllCluster ...
+func (op Operations) ListAllCategoryValues(categoryKeyName, filter string) (*CategoryValueListResponse, error) {
+	entities := make([]*CategoryValueStatus, 0)
+
+	resp, err := op.ListCategoryValues(categoryKeyName, &CategoryListMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("category"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListCategoryValues(categoryKeyName, &CategoryListMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("category"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+// GetTask ...
 func (op Operations) GetTask(taskUUID string) (*TasksResponse, error) {
 	ctx := context.TODO()
 
@@ -1054,4 +1173,1258 @@ func (op Operations) GetTask(taskUUID string) (*TasksResponse, error) {
 	}
 
 	return tasksTesponse, op.client.Do(ctx, req, tasksTesponse)
+}
+
+// GetHost ...
+func (op Operations) GetHost(hostUUID string) (*HostResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/hosts/%s", hostUUID)
+	host := new(HostResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return host, op.client.Do(ctx, req, host)
+}
+
+// ListHost ...
+func (op Operations) ListHost(getEntitiesRequest *DSMetadata) (*HostListResponse, error) {
+	ctx := context.TODO()
+	path := "/hosts/list"
+
+	hostList := new(HostListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return hostList, op.client.Do(ctx, req, hostList)
+}
+
+// ListAllHost ...
+func (op Operations) ListAllHost() (*HostListResponse, error) {
+	entities := make([]*HostResponse, 0)
+
+	resp, err := op.ListHost(&DSMetadata{
+		Kind:   utils.StringPtr("host"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListHost(&DSMetadata{
+				Kind:   utils.StringPtr("cluster"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*CreateProject creates a project
+ * This operation submits a request to create a project based on the input parameters.
+ *
+ * @param request *Project
+ * @return *Project
+ */
+func (op Operations) CreateProject(request *Project) (*Project, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/projects", request)
+	if err != nil {
+		return nil, err
+	}
+
+	projectResponse := new(Project)
+
+	return projectResponse, op.client.Do(ctx, req, projectResponse)
+}
+
+/*GetProject This operation gets a project.
+ *
+ * @param uuid The prject uuid - string.
+ * @return *Project
+ */
+func (op Operations) GetProject(projectUUID string) (*Project, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/projects/%s", projectUUID)
+	project := new(Project)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return project, op.client.Do(ctx, req, project)
+}
+
+/*ListProject gets a list of projects.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *ProjectListResponse
+ */
+func (op Operations) ListProject(getEntitiesRequest *DSMetadata) (*ProjectListResponse, error) {
+	ctx := context.TODO()
+	path := "/projects/list"
+
+	projectList := new(ProjectListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return projectList, op.client.Do(ctx, req, projectList)
+}
+
+/*ListAllProject gets a list of projects
+ * This operation gets a list of Projects, allowing for sorting and pagination.
+ * Note: Entities that have not been created successfully are not listed.
+ * @return *ProjectListResponse
+ */
+func (op Operations) ListAllProject(filter string) (*ProjectListResponse, error) {
+	entities := make([]*Project, 0)
+
+	resp, err := op.ListProject(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("project"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListProject(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("project"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*UpdateProject Updates a project
+ * This operation submits a request to update a existing Project based on the input parameters
+ * @param uuid The uuid of the entity - string.
+ * @param body - *Project
+ * @return *Project, error
+ */
+func (op Operations) UpdateProject(uuid string, body *Project) (*Project, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/projects/%s", uuid)
+	projectInput := new(Project)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return projectInput, op.client.Do(ctx, req, projectInput)
+}
+
+/*DeleteProject Deletes a project
+ * This operation submits a request to delete a existing Project.
+ *
+ * @param uuid The uuid of the entity.
+ * @return void
+ */
+func (op Operations) DeleteProject(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/projects/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+/*CreateAccessControlPolicy creates a access policy
+ * This operation submits a request to create a access policy based on the input parameters.
+ *
+ * @param request *Access Policy
+ * @return *Access Policy
+ */
+func (op Operations) CreateAccessControlPolicy(request *AccessControlPolicy) (*AccessControlPolicy, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/access_control_policies", request)
+	if err != nil {
+		return nil, err
+	}
+
+	AccessControlPolicyResponse := new(AccessControlPolicy)
+
+	return AccessControlPolicyResponse, op.client.Do(ctx, req, AccessControlPolicyResponse)
+}
+
+/*GetAccessControlPolicy This operation gets a AccessControlPolicy.
+ *
+ * @param uuid The access policy uuid - string.
+ * @return *AccessControlPolicy
+ */
+func (op Operations) GetAccessControlPolicy(accessControlPolicyUUID string) (*AccessControlPolicy, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/access_control_policies/%s", accessControlPolicyUUID)
+	AccessControlPolicy := new(AccessControlPolicy)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return AccessControlPolicy, op.client.Do(ctx, req, AccessControlPolicy)
+}
+
+/*ListAccessControlPolicy gets a list of AccessControlPolicys.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *AccessControlPolicyListResponse
+ */
+func (op Operations) ListAccessControlPolicy(getEntitiesRequest *DSMetadata) (*AccessControlPolicyListResponse, error) {
+	ctx := context.TODO()
+	path := "/access_control_policies/list"
+
+	AccessControlPolicyList := new(AccessControlPolicyListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return AccessControlPolicyList, op.client.Do(ctx, req, AccessControlPolicyList)
+}
+
+/*ListAllAccessControlPolicy gets a list of AccessControlPolicys
+ * This operation gets a list of AccessControlPolicys, allowing for sorting and pagination.
+ * Note: Entities that have not been created successfully are not listed.
+ * @return *AccessControlPolicyListResponse
+ */
+func (op Operations) ListAllAccessControlPolicy(filter string) (*AccessControlPolicyListResponse, error) {
+	entities := make([]*AccessControlPolicy, 0)
+
+	resp, err := op.ListAccessControlPolicy(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("access_control_policy"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListAccessControlPolicy(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("access_control_policy"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*UpdateAccessControlPolicy Updates a AccessControlPolicy
+ * This operation submits a request to update a existing AccessControlPolicy based on the input parameters
+ * @param uuid The uuid of the entity - string.
+ * @param body - *AccessControlPolicy
+ * @return *AccessControlPolicy, error
+ */
+func (op Operations) UpdateAccessControlPolicy(uuid string, body *AccessControlPolicy) (*AccessControlPolicy, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/access_control_policies/%s", uuid)
+	AccessControlPolicyInput := new(AccessControlPolicy)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return AccessControlPolicyInput, op.client.Do(ctx, req, AccessControlPolicyInput)
+}
+
+/*DeleteAccessControlPolicy Deletes a AccessControlPolicy
+ * This operation submits a request to delete a existing AccessControlPolicy.
+ *
+ * @param uuid The uuid of the entity.
+ * @return void
+ */
+func (op Operations) DeleteAccessControlPolicy(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/access_control_policies/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+/*CreateRole creates a role
+ * This operation submits a request to create a role based on the input parameters.
+ *
+ * @param request *Role
+ * @return *Role
+ */
+func (op Operations) CreateRole(request *Role) (*Role, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/roles", request)
+	if err != nil {
+		return nil, err
+	}
+
+	RoleResponse := new(Role)
+
+	return RoleResponse, op.client.Do(ctx, req, RoleResponse)
+}
+
+/*GetRole This operation gets a role.
+ *
+ * @param uuid The role uuid - string.
+ * @return *Role
+ */
+func (op Operations) GetRole(roleUUID string) (*Role, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/roles/%s", roleUUID)
+	Role := new(Role)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return Role, op.client.Do(ctx, req, Role)
+}
+
+/*ListRole gets a list of roles.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *RoleListResponse
+ */
+func (op Operations) ListRole(getEntitiesRequest *DSMetadata) (*RoleListResponse, error) {
+	ctx := context.TODO()
+	path := "/roles/list"
+
+	RoleList := new(RoleListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return RoleList, op.client.Do(ctx, req, RoleList)
+}
+
+/*ListAllRole gets a list of Roles
+ * This operation gets a list of Roles, allowing for sorting and pagination.
+ * Note: Entities that have not been created successfully are not listed.
+ * @return *RoleListResponse
+ */
+func (op Operations) ListAllRole(filter string) (*RoleListResponse, error) {
+	entities := make([]*Role, 0)
+
+	resp, err := op.ListRole(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("role"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListRole(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("role"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*UpdateRole Updates a role
+ * This operation submits a request to update a existing role based on the input parameters
+ * @param uuid The uuid of the entity - string.
+ * @param body - *Role
+ * @return *Role, error
+ */
+func (op Operations) UpdateRole(uuid string, body *Role) (*Role, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/roles/%s", uuid)
+	RoleInput := new(Role)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return RoleInput, op.client.Do(ctx, req, RoleInput)
+}
+
+/*DeleteRole Deletes a role
+ * This operation submits a request to delete a existing role.
+ *
+ * @param uuid The uuid of the entity.
+ * @return void
+ */
+func (op Operations) DeleteRole(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/roles/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+/*CreateUser creates a User
+ * This operation submits a request to create a userbased on the input parameters.
+ *
+ * @param request *VMIntentInput
+ * @return *UserIntentResponse
+ */
+func (op Operations) CreateUser(request *UserIntentInput) (*UserIntentResponse, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/users", request)
+	if err != nil {
+		return nil, err
+	}
+
+	UserIntentResponse := new(UserIntentResponse)
+
+	return UserIntentResponse, op.client.Do(ctx, req, UserIntentResponse)
+}
+
+/*GetUser This operation gets a User.
+ *
+ * @param uuid The user uuid - string.
+ * @return *User
+ */
+func (op Operations) GetUser(userUUID string) (*UserIntentResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/users/%s", userUUID)
+	User := new(UserIntentResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return User, op.client.Do(ctx, req, User)
+}
+
+/*UpdateUser Updates a User
+ * This operation submits a request to update a existing User based on the input parameters
+ * @param uuid The uuid of the entity - string.
+ * @param body - *User
+ * @return *User, error
+ */
+func (op Operations) UpdateUser(uuid string, body *UserIntentInput) (*UserIntentResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/users/%s", uuid)
+	UserInput := new(UserIntentResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return UserInput, op.client.Do(ctx, req, UserInput)
+}
+
+/*DeleteUser Deletes a User
+ * This operation submits a request to delete a existing User.
+ *
+ * @param uuid The uuid of the entity.
+ * @return void
+ */
+func (op Operations) DeleteUser(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/users/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+/*ListUser gets a list of Users.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *UserListResponse
+ */
+func (op Operations) ListUser(getEntitiesRequest *DSMetadata) (*UserListResponse, error) {
+	ctx := context.TODO()
+	path := "/users/list"
+
+	UserList := new(UserListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return UserList, op.client.Do(ctx, req, UserList)
+}
+
+// ListAllUser ...
+func (op Operations) ListAllUser(filter string) (*UserListResponse, error) {
+	entities := make([]*UserIntentResponse, 0)
+
+	resp, err := op.ListUser(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("user"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListUser(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("user"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*GetUserGroup This operation gets a User.
+ *
+ * @param uuid The user uuid - string.
+ * @return *User
+ */
+func (op Operations) GetUserGroup(userGroupUUID string) (*UserGroupIntentResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/user_groups/%s", userGroupUUID)
+	User := new(UserGroupIntentResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return User, op.client.Do(ctx, req, User)
+}
+
+/*ListUserGroup gets a list of UserGroups.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *UserGroupListResponse
+ */
+func (op Operations) ListUserGroup(getEntitiesRequest *DSMetadata) (*UserGroupListResponse, error) {
+	ctx := context.TODO()
+	path := "/user_groups/list"
+
+	UserGroupList := new(UserGroupListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return UserGroupList, op.client.Do(ctx, req, UserGroupList)
+}
+
+// ListAllUserGroup ...
+func (op Operations) ListAllUserGroup(filter string) (*UserGroupListResponse, error) {
+	entities := make([]*UserGroupIntentResponse, 0)
+
+	resp, err := op.ListUserGroup(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("user_group"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListUserGroup(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("user"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+/*GePermission This operation gets a Permission.
+ *
+ * @param uuid The permission uuid - string.
+ * @return *PermissionIntentResponse
+ */
+func (op Operations) GetPermission(permissionUUID string) (*PermissionIntentResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/permissions/%s", permissionUUID)
+	permission := new(PermissionIntentResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return permission, op.client.Do(ctx, req, permission)
+}
+
+/*ListPermission gets a list of Permissions.
+ *
+ * @param metadata allows create filters to get specific data - *DSMetadata.
+ * @return *PermissionListResponse
+ */
+func (op Operations) ListPermission(getEntitiesRequest *DSMetadata) (*PermissionListResponse, error) {
+	ctx := context.TODO()
+	path := "/permissions/list"
+
+	PermissionList := new(PermissionListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return PermissionList, op.client.Do(ctx, req, PermissionList)
+}
+
+// ListAllPermission ...
+func (op Operations) ListAllPermission(filter string) (*PermissionListResponse, error) {
+	entities := make([]*PermissionIntentResponse, 0)
+
+	resp, err := op.ListPermission(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("permission"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListPermission(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("permission"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+//GetProtectionRule ...
+func (op Operations) GetProtectionRule(uuid string) (*ProtectionRuleResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/protection_rules/%s", uuid)
+	protectionRule := new(ProtectionRuleResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return protectionRule, op.client.Do(ctx, req, protectionRule)
+}
+
+//ListProtectionRules ...
+func (op Operations) ListProtectionRules(getEntitiesRequest *DSMetadata) (*ProtectionRulesListResponse, error) {
+	ctx := context.TODO()
+	path := "/protection_rules/list"
+
+	list := new(ProtectionRulesListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, op.client.Do(ctx, req, list)
+}
+
+// ListAllProtectionRules ...
+func (op Operations) ListAllProtectionRules(filter string) (*ProtectionRulesListResponse, error) {
+	entities := make([]*ProtectionRuleResponse, 0)
+
+	resp, err := op.ListProtectionRules(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("protection_rule"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListProtectionRules(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("protection_rule"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+//CreateProtectionRule ...
+func (op Operations) CreateProtectionRule(createRequest *ProtectionRuleInput) (*ProtectionRuleResponse, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/protection_rules", createRequest)
+	protectionRuleResponse := new(ProtectionRuleResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return protectionRuleResponse, op.client.Do(ctx, req, protectionRuleResponse)
+}
+
+//UpdateProtectionRule ...
+func (op Operations) UpdateProtectionRule(uuid string, body *ProtectionRuleInput) (*ProtectionRuleResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/protection_rules/%s", uuid)
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	protectionRuleResponse := new(ProtectionRuleResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return protectionRuleResponse, op.client.Do(ctx, req, protectionRuleResponse)
+}
+
+//DeleteProtectionRule ...
+func (op Operations) DeleteProtectionRule(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/protection_rules/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+//GetRecoveryPlan ...
+func (op Operations) GetRecoveryPlan(uuid string) (*RecoveryPlanResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/recovery_plans/%s", uuid)
+	RecoveryPlan := new(RecoveryPlanResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecoveryPlan, op.client.Do(ctx, req, RecoveryPlan)
+}
+
+//ListRecoveryPlans ...
+func (op Operations) ListRecoveryPlans(getEntitiesRequest *DSMetadata) (*RecoveryPlanListResponse, error) {
+	ctx := context.TODO()
+	path := "/recovery_plans/list"
+
+	list := new(RecoveryPlanListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, op.client.Do(ctx, req, list)
+}
+
+// ListAllRecoveryPlans ...
+func (op Operations) ListAllRecoveryPlans(filter string) (*RecoveryPlanListResponse, error) {
+	entities := make([]*RecoveryPlanResponse, 0)
+
+	resp, err := op.ListRecoveryPlans(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("recovery_plan"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListRecoveryPlans(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("recovery_plan"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+//CreateRecoveryPlan ...
+func (op Operations) CreateRecoveryPlan(createRequest *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/recovery_plans", createRequest)
+	RecoveryPlanResponse := new(RecoveryPlanResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return RecoveryPlanResponse, op.client.Do(ctx, req, RecoveryPlanResponse)
+}
+
+//UpdateRecoveryPlan ...
+func (op Operations) UpdateRecoveryPlan(uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/recovery_plans/%s", uuid)
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	RecoveryPlanResponse := new(RecoveryPlanResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return RecoveryPlanResponse, op.client.Do(ctx, req, RecoveryPlanResponse)
+}
+
+//DeleteRecoveryPlan ...
+func (op Operations) DeleteRecoveryPlan(uuid string) (*DeleteResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/recovery_plans/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
+}
+
+func (op Operations) GetServiceGroup(uuid string) (*ServiceGroupResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/service_groups/%s", uuid)
+	ServiceGroup := new(ServiceGroupResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return ServiceGroup, op.client.Do(ctx, req, ServiceGroup)
+}
+
+func (op Operations) CreateServiceGroup(request *ServiceGroupInput) (*Reference, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/service_groups", request)
+	ServiceGroup := new(Reference)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ServiceGroup, op.client.Do(ctx, req, ServiceGroup)
+}
+
+func (op Operations) DeleteServiceGroup(uuid string) error {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/service_groups/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	return op.client.Do(ctx, req, nil)
+}
+
+func (op Operations) ListAllServiceGroups(filter string) (*ServiceGroupListResponse, error) {
+	entities := make([]*ServiceGroupListEntry, 0)
+
+	resp, err := op.listServiceGroups(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("service_group"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.listServiceGroups(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("service_group"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+func (op Operations) listServiceGroups(getEntitiesRequest *DSMetadata) (*ServiceGroupListResponse, error) {
+	ctx := context.TODO()
+	path := "/service_groups/list"
+
+	list := new(ServiceGroupListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, op.client.Do(ctx, req, list)
+}
+
+func (op Operations) UpdateServiceGroup(uuid string, body *ServiceGroupInput) error {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/service_groups/%s", uuid)
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+
+	if err != nil {
+		return err
+	}
+
+	return op.client.Do(ctx, req, nil)
+}
+
+func (op Operations) GetAddressGroup(uuid string) (*AddressGroupResponse, error) {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/address_groups/%s", uuid)
+	AddressGroup := new(AddressGroupResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return AddressGroup, op.client.Do(ctx, req, AddressGroup)
+}
+
+func (op Operations) ListAllAddressGroups(filter string) (*AddressGroupListResponse, error) {
+	entities := make([]*AddressGroupListEntry, 0)
+
+	resp, err := op.ListAddressGroups(&DSMetadata{
+		Filter: &filter,
+		Kind:   utils.StringPtr("address_group"),
+		Length: utils.Int64Ptr(itemsPerPage),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	remaining := totalEntities
+	offset := utils.Int64Value(resp.Metadata.Offset)
+
+	if totalEntities > itemsPerPage {
+		for hasNext(&remaining) {
+			resp, err = op.ListAddressGroups(&DSMetadata{
+				Filter: &filter,
+				Kind:   utils.StringPtr("address_group"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			entities = append(entities, resp.Entities...)
+
+			offset += itemsPerPage
+			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
+		}
+
+		resp.Entities = entities
+	}
+
+	return resp, nil
+}
+
+func (op Operations) ListAddressGroups(getEntitiesRequest *DSMetadata) (*AddressGroupListResponse, error) {
+	ctx := context.TODO()
+	path := "/address_groups/list"
+
+	list := new(AddressGroupListResponse)
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, op.client.Do(ctx, req, list)
+}
+
+func (op Operations) DeleteAddressGroup(uuid string) error {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/address_groups/%s", uuid)
+
+	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	return op.client.Do(ctx, req, nil)
+}
+
+func (op Operations) CreateAddressGroup(request *AddressGroupInput) (*Reference, error) {
+	ctx := context.TODO()
+
+	req, err := op.client.NewRequest(ctx, http.MethodPost, "/address_groups", request)
+	AddressGroup := new(Reference)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return AddressGroup, op.client.Do(ctx, req, AddressGroup)
+}
+func (op Operations) UpdateAddressGroup(uuid string, body *AddressGroupInput) error {
+	ctx := context.TODO()
+
+	path := fmt.Sprintf("/address_groups/%s", uuid)
+	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+
+	if err != nil {
+		return err
+	}
+
+	return op.client.Do(ctx, req, nil)
 }
