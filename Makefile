@@ -7,5 +7,6 @@ build:
 test:
 		go test -v pkg/nutanix/fc/*.go
 		go test -v pkg/nutanix/foundation/*.go
+		go test -v pkg/nutanix/karbon/*.go
 		go test -v pkg/nutanix/v3/*.go
 		go test -v pkg/nutanix/*.go  
