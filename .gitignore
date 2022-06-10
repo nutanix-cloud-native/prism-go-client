@@ -1,0 +1,12 @@
+/.cache
+/.work
+/_output
+cover.out
+/vendor
+/.vendor-new
+.DS_Store
+bin/
+
+# ignore IDE folders
+.vscode/
+.idea/

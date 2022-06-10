@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated the utils package with the latest from github.com/nutanix/terraform-provider-nutanix
 
+### Removed
+- Remove the compiled binary for the client from the source code
+
+
 ## [0.1.0] - 2022-06-08
 ### Added
 - Initial copy of the v3 stubs and http client by [@vnephologist](https://github.com/vnephologist).
