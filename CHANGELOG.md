@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Updated the http client with the latest from github.com/nutanix/terraform-provider-nutanix
 - Updated the v3 stubs with the latest from github.com/nutanix/terraform-provider-nutanix
 - Updated the utils package with the latest from github.com/nutanix/terraform-provider-nutanix
 
