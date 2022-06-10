@@ -1,6 +1,18 @@
 package v3
 
-import client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+import (
+	"fmt"
+	"strings"
+
+	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+)
+
+const (
+	libraryVersion = "v3"
+	absolutePath   = "api/nutanix/" + libraryVersion
+	userAgent      = "nutanix/" + libraryVersion
+	clientName     = "prism_central"
+)
 
 // Client manages the V3 API
 type Client struct {
@@ -9,17 +21,27 @@ type Client struct {
 }
 
 // NewV3Client return a client to operate V3 resources
-func NewV3Client(credentials client.Credentials, debug bool) (*Client, error) {
-	c, err := client.NewClient(&credentials, debug)
+func NewV3Client(credentials client.Credentials) (*Client, error) {
+	var baseClient *client.Client
 
-	if err != nil {
-		return nil, err
+	// check if all required fields are present. Else create an empty client
+	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
+		c, err := client.NewClient(&credentials, userAgent, absolutePath, false)
+		if err != nil {
+			return nil, err
+		}
+		baseClient = c
+	} else {
+		errorMsg := fmt.Sprintf("Prism Central (PC) Client is missing. "+
+			"Please provide required details - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
+
+		baseClient = &client.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
 	}
 
 	f := &Client{
-		client: c,
+		client: baseClient,
 		V3: Operations{
-			client: c,
+			client: baseClient,
 		},
 	}
 
