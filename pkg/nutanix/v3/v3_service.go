@@ -89,6 +89,7 @@ type Service interface {
 	DeleteUser(uuid string) (*DeleteResponse, error)
 	ListUser(getEntitiesRequest *DSMetadata) (*UserListResponse, error)
 	ListAllUser(filter string) (*UserListResponse, error)
+	GetCurrentLoggedInUser(ctx context.Context) (*UserIntentResponse, error)
 	GetUserGroup(userUUID string) (*UserGroupIntentResponse, error)
 	ListUserGroup(getEntitiesRequest *DSMetadata) (*UserGroupListResponse, error)
 	ListAllUserGroup(filter string) (*UserGroupListResponse, error)
@@ -1816,6 +1817,25 @@ func (op Operations) ListAllUser(filter string) (*UserListResponse, error) {
 	}
 
 	return resp, nil
+}
+
+/*GetCurrentLoggedInUser This operation gets the user info for the currently logged in User.
+ *
+ * @param context
+ * @return *User
+ */
+func (op Operations) GetCurrentLoggedInUser(ctx context.Context) (*UserIntentResponse, error) {
+	path := "/users/me"
+	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	user := new(UserIntentResponse)
+	if err := op.client.Do(ctx, req, user); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 /*GetUserGroup This operation gets a User.
