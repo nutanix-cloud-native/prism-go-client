@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-Add the fc stubs from nutanix/terraform-provider-nutanix
+- Add the fc stubs from nutanix/terraform-provider-nutanix
+- Added GetCurrentLoggedInUser in pkg/nutanix/v3/v3_service.go
 
 ### Changed
 - Updated the http client with the latest from github.com/nutanix/terraform-provider-nutanix
