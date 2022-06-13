@@ -15,6 +15,7 @@ Add the fc stubs from nutanix/terraform-provider-nutanix
 
 ### Removed
 - Remove the compiled binary for the client from the source code
+- Remove debug logs from pkg/nutanix/client.go
 
 
 ## [0.1.0] - 2022-06-08
