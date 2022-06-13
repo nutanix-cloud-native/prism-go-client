@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the fc stubs from nutanix/terraform-provider-nutanix
 - Add the foundation stubs from nutanix/terraform-provider-nutanix
 - Add the karbon stubs from nutanix/terraform-provider-nutanix
+- Added GetCurrentLoggedInUser in pkg/nutanix/v3/v3_service.go
 
 ### Changed
 - Updated the http client with the latest from github.com/nutanix/terraform-provider-nutanix
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Remove the compiled binary for the client from the source code
+- Remove debug logs from pkg/nutanix/client.go
 
 
 ## [0.1.0] - 2022-06-08
