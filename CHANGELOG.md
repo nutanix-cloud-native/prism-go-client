@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Add the fc stubs from nutanix/terraform-provider-nutanix
+- Add the foundation stubs from nutanix/terraform-provider-nutanix
+- Add the karbon stubs from nutanix/terraform-provider-nutanix
 - Added GetCurrentLoggedInUser in pkg/nutanix/v3/v3_service.go
 
 ### Changed
