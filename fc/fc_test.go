@@ -1,12 +1,12 @@
-package karbon
+package foundationcentral
 
 import (
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+	client "github.com/nutanix-cloud-native/prism-go-client"
 )
 
-func TestNewKarbonAPIClient(t *testing.T) {
+func TestNewFoundationCentralClient(t *testing.T) {
 	// verifies positive client creation
 	cred := client.Credentials{
 		URL:                "foo.com",
@@ -19,7 +19,7 @@ func TestNewKarbonAPIClient(t *testing.T) {
 		FoundationPort:     "8000",
 		RequiredFields:     nil,
 	}
-	_, err := NewKarbonAPIClient(cred)
+	_, err := NewFoundationCentralClient(cred)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -29,15 +29,16 @@ func TestNewKarbonAPIClient(t *testing.T) {
 		URL:      "foo.com",
 		Insecure: true,
 		RequiredFields: map[string][]string{
-			"karbon": {"username", "password", "endpoint"},
+			"prism_central":      {"username", "password", "endpoint"},
+			"foundation_central": {"username", "password", "endpoint"},
 		},
 	}
-	v3Client2, err2 := NewKarbonAPIClient(cred2)
+	FcClient2, err2 := NewFoundationCentralClient(cred2)
 	if err2 != nil {
 		t.Errorf(err2.Error())
 	}
 
-	if v3Client2.client.ErrorMsg == "" {
-		t.Errorf("NewKarbonAPIClient(%v) expected the base client in karbon client to have some error message", cred2)
+	if FcClient2.client.ErrorMsg == "" {
+		t.Errorf("NewFoundationCentralClient(%v) expected the base client in v3 client to have some error message", cred2)
 	}
 }

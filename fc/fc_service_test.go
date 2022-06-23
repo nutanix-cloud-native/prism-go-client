@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
-	"github.com/nutanix-cloud-native/prism-go-client/pkg/utils"
+	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
 func setup() (*http.ServeMux, *client.Client, *httptest.Server) {

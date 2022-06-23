@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+	client "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
