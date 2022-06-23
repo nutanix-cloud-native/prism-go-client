@@ -144,8 +144,8 @@ type ClusterNodePoolAHVConfig struct {
 type ClusterStorageClassConfigIntentInput struct {
 	DefaultStorageClass bool                            `json:"default_storage_class" mapstructure:"default_storage_class, omitempty"`
 	Name                string                          `json:"name" mapstructure:"name, omitempty"`
-	ReclaimPolicy string                          `json:"reclaim_policy" mapstructure:"reclaim_policy, omitempty"`
-	VolumesConfig ClusterVolumesConfigIntentInput `json:"volumes_config" mapstructure:"volumes_config, omitempty"`
+	ReclaimPolicy       string                          `json:"reclaim_policy" mapstructure:"reclaim_policy, omitempty"`
+	VolumesConfig       ClusterVolumesConfigIntentInput `json:"volumes_config" mapstructure:"volumes_config, omitempty"`
 }
 
 type ClusterVolumesConfigIntentInput struct {

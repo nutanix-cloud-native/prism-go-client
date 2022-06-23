@@ -17,7 +17,7 @@ all: help
 ## Build:
 build: vendor ## Build your project and put the output binary in bin/
 	mkdir -p bin
-	GO111MODULE=on $(GOCMD) build -mod vendor -o bin/$(BINARY_NAME) ./pkg/nutanix/
+	GO111MODULE=on $(GOCMD) build -mod vendor -o bin/$(BINARY_NAME) .
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor
@@ -32,7 +32,7 @@ ifeq ($(EXPORT_RESULT), true)
 	GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | go-junit-report -set-exit-code > junit-report.xml)
 endif
-	$(GOTEST) -v -race ./pkg/nutanix/... $(OUTPUT_OPTIONS)
+	$(GOTEST) -v -race ./... $(OUTPUT_OPTIONS)
 
 coverage: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -coverprofile=profile.cov ./...
@@ -48,8 +48,8 @@ lint: lint-go lint-yaml ## Run all available linters
 
 
 lint-go: ## Use golintci-lint on your project
-	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--out-format checkstyle ./pkg/nutanix/... | tee /dev/tty > checkstyle-report.xml" || echo "" ))
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest-alpine golangci-lint run --deadline=65s $(OUTPUT_OPTIONS)
+	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--out-format checkstyle ./... | tee /dev/tty > checkstyle-report.xml" || echo "" ))
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest-alpine golangci-lint run --enable gofmt --fix --deadline=65s $(OUTPUT_OPTIONS)
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)

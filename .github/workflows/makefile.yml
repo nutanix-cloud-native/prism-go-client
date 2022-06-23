@@ -14,24 +14,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
         go-version: '^1.18'
-      
+
     - name: Install dependencies
       run: make vendor
-      
+
     - name: Check build
       run: make build
-    
+
     - name: Check linting
       run: make lint
-      
+
     - name: Run tests
       run: make test
-    
+
     - name: Prepare coverage report
       run: make coverage
-
