@@ -6,6 +6,7 @@ cover.out
 /.vendor-new
 .DS_Store
 bin/
+profile.cov
 
 # ignore IDE folders
 .vscode/
