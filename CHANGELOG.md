@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The http client has been moved from pkg/nutanix to repo root
+- The fc stubs have been moved from pkg/nutanix/fc to fc
+- The foundation stubs have been moved from pkg/nutanix/foundation to foundation
+- The karbon stubs have been moved from pkg/nutanix/karbon to karbon
+- The v3 stubs have been moved from pkg/nutanix/v3 to v3
 
 ## [0.2.0] - 2022-06-14
 ### Added
