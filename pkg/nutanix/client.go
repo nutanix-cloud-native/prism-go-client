@@ -482,7 +482,10 @@ func filter(body io.ReadCloser, filters []*AdditionalFilter, baseSearchPaths []s
 	if err != nil {
 		return body, err
 	}
-	json.Unmarshal(b, &res)
+	err = json.Unmarshal(b, &res)
+	if err != nil {
+		return nil, err
+	}
 
 	// Full search paths
 	searchPaths := map[string][]string{}
