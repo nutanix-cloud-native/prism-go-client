@@ -195,7 +195,11 @@ func TestNewUnAuthFormEncodedRequest(t *testing.T) {
 
 	// test body
 	// Parse the body form data to a map structure which can be accessed by req.PostForm
-	req.ParseForm()
+	err = req.ParseForm()
+	if err != nil {
+		t.Errorf("unable to parse body form data to map: %s", err)
+	}
+
 
 	// check form encoded key-values as compared to input values
 	if !reflect.DeepEqual(outBody, (map[string][]string)(req.PostForm)) {
