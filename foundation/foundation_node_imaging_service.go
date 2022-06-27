@@ -27,7 +27,7 @@ func (op NodeImagingOperations) ImageNodes(ctx context.Context, imageNodeInput *
 	return imageNodesAPIResponse, op.client.Do(ctx, req, imageNodesAPIResponse)
 }
 
-//Gets progress of imaging session.
+// Gets progress of imaging session.
 func (op NodeImagingOperations) ImageNodesProgress(ctx context.Context, sessionID string) (*ImageNodesProgressResponse, error) {
 	path := "/progress?session_id=" + sessionID
 	req, err := op.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)

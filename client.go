@@ -123,7 +123,6 @@ func NewClient(credentials *Credentials, userAgent string, absolutePath string, 
 		}
 
 		resp, err := baseClient.client.Do(req)
-
 		if err != nil {
 			return baseClient, err
 		}
@@ -150,7 +149,7 @@ func NewBaseClient(credentials *Credentials, absolutePath string, isHTTP bool) (
 	httpClient := http.DefaultClient
 
 	transCfg := &http.Transport{
-		//to skip/unskip SSL certificate validation
+		// to skip/unskip SSL certificate validation
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: credentials.Insecure,
 		},
@@ -190,13 +189,11 @@ func (c *Client) NewRequest(ctx context.Context, method, urlStr string, body int
 
 	if body != nil {
 		err := json.NewEncoder(buf).Encode(body)
-
 		if err != nil {
 			return nil, err
 		}
 	}
 	req, err := http.NewRequest(method, u.String(), buf)
-
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +219,7 @@ func (c *Client) NewUnAuthRequest(ctx context.Context, method, urlStr string, bo
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
 
-	//create main api url
+	// create main api url
 	rel, err := url.Parse(c.AbsolutePath + urlStr)
 	if err != nil {
 		return nil, err
@@ -241,7 +238,7 @@ func (c *Client) NewUnAuthRequest(ctx context.Context, method, urlStr string, bo
 		return nil, err
 	}
 
-	//add api headers
+	// add api headers
 	req.Header.Add("Content-Type", mediaType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
@@ -255,7 +252,7 @@ func (c *Client) NewUnAuthFormEncodedRequest(ctx context.Context, method, urlStr
 	if c.client == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
-	//create main api url
+	// create main api url
 	rel, err := url.Parse(c.AbsolutePath + urlStr)
 	if err != nil {
 		return nil, err
@@ -274,7 +271,7 @@ func (c *Client) NewUnAuthFormEncodedRequest(ctx context.Context, method, urlStr
 		return nil, err
 	}
 
-	//add api headers
+	// add api headers
 	req.Header.Add("Content-Type", formEncodedType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
@@ -296,7 +293,6 @@ func (c *Client) NewUploadRequest(ctx context.Context, method, urlStr string, fi
 	u := c.BaseURL.ResolveReference(rel)
 
 	req, err := http.NewRequest(method, u.String(), fileReader)
-
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +332,6 @@ func (c *Client) NewUnAuthUploadRequest(ctx context.Context, method, urlStr stri
 	u := c.BaseURL.ResolveReference(rel)
 
 	req, err := http.NewRequest(method, u.String(), fileReader)
-
 	if err != nil {
 		return nil, err
 	}
@@ -492,7 +487,7 @@ func filter(body io.ReadCloser, filters []*AdditionalFilter, baseSearchPaths []s
 	filterMap := map[string]*AdditionalFilter{}
 	for _, filter := range filters {
 		filterMap[filter.Name] = filter
-		//Build search paths by appending target search paths to base paths
+		// Build search paths by appending target search paths to base paths
 		filterSearchPaths := []string{}
 		for _, baseSearchPath := range baseSearchPaths {
 			searchPath := fmt.Sprintf("%s.%s", baseSearchPath, filter.Name)
@@ -554,7 +549,6 @@ func CheckResponse(r *http.Response) error {
 	}
 
 	buf, err := ioutil.ReadAll(r.Body)
-
 	if err != nil {
 		return err
 	}

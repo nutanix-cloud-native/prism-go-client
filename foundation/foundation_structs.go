@@ -1,6 +1,6 @@
 package foundation
 
-//Node imaging input
+// Node imaging input
 type ImageNodesInput struct {
 	XsMasterLabel         string        `json:"xs_master_label,omitempty"`
 	LayoutEggUUID         string        `json:"layout_egg_uuid,omitempty"`
@@ -34,19 +34,19 @@ type ImageNodesInput struct {
 	XsMasterUsername      string        `json:"xs_master_username,omitempty"`
 	SkipHypervisor        *bool         `json:"skip_hypervisor,omitempty"`
 	HypervisorGateway     string        `json:"hypervisor_gateway"`
-	NosPackage            string        `json:"nos_package"` //will be null for cluster creation
+	NosPackage            string        `json:"nos_package"` // will be null for cluster creation
 	UcsmUser              string        `json:"ucsm_user,omitempty"`
 	IPMINetmask           string        `json:"ipmi_netmask,omitempty"`
 	IPMIGateway           string        `json:"ipmi_gateway,omitempty"`
 }
 
-//Specific hypervisor definition for imaging
+// Specific hypervisor definition for imaging
 type Hypervisor struct {
 	Checksum string `json:"checksum,omitempty"`
 	Filename string `json:"filename"`
 }
 
-//Hypervisor ISO's for various kinds of hypervisor
+// Hypervisor ISO's for various kinds of hypervisor
 type HypervisorIso struct {
 	Hyperv *Hypervisor `json:"hyperv,omitempty"`
 	Kvm    *Hypervisor `json:"kvm,omitempty"`
@@ -54,19 +54,19 @@ type HypervisorIso struct {
 	Esx    *Hypervisor `json:"esx,omitempty"`
 }
 
-//Foundation Central Metadata
+// Foundation Central Metadata
 type FcMetadata struct {
 	FcIP   string `json:"fc_ip"`
 	APIKey string `json:"api_key"`
 }
 
-//Foundaton Central settings
+// Foundaton Central settings
 type FcSettings struct {
 	FcMetadata        *FcMetadata `json:"fc_metadata"`
 	FoundationCentral *bool       `json:"foundation_central"`
 }
 
-//Clusters creation related information
+// Clusters creation related information
 type Clusters struct {
 	EnableNs              *bool    `json:"enable_ns,omitempty"`
 	BackplaneSubnet       string   `json:"backplane_subnet,omitempty"`
@@ -115,7 +115,7 @@ type Vswitches struct {
 	Mtu         *int64   `json:"mtu"`
 }
 
-//Single node definition
+// Single node definition
 type Node struct {
 	IPMINetmask             string       `json:"ipmi_netmask,omitempty"`
 	IPMIGateway             string       `json:"ipmi_gateway,omitempty"`
@@ -154,29 +154,29 @@ type Node struct {
 	IpmiPassword            string       `json:"ipmi_password,omitempty"`
 }
 
-//Block containing multiple nodes
+// Block containing multiple nodes
 type Block struct {
 	Nodes   []*Node `json:"nodes"`
 	BlockID string  `json:"block_id,omitempty"`
 }
 
-//Response from /image_nodes API call
-//Its union of successful and errored response
+// Response from /image_nodes API call
+// Its union of successful and errored response
 type ImageNodesAPIResponse struct {
 	SessionID string `json:"session_id"`
 
-	//Error details incase of errored responses
+	// Error details incase of errored responses
 	Error *Error `json:"error"`
 }
 
-//Error details for image nodes errored response
+// Error details for image nodes errored response
 type Error struct {
 	Message   string            `json:"message"`
 	Details   map[string]string `json:"details"`
 	SessionID string            `json:"session_id"`
 }
 
-//Node Imaging progress response
+// Node Imaging progress response
 type ImageNodesProgressResponse struct {
 	AbortSession             *bool              `json:"abort_session"`
 	Results                  []string           `json:"results"`
@@ -187,11 +187,11 @@ type ImageNodesProgressResponse struct {
 	Clusters                 []*ClusterProgress `json:"clusters"`
 	Nodes                    []*NodeProgress    `json:"nodes"`
 
-	//Message in case of errored response
+	// Message in case of errored response
 	Message string `json:"message"`
 }
 
-//Individual cluster progress
+// Individual cluster progress
 type ClusterProgress struct {
 	Category        []string `json:"category,omitempty"`
 	Status          string   `json:"status"`
@@ -203,7 +203,7 @@ type ClusterProgress struct {
 	TimeTotal       *float64 `json:"time_total"`
 }
 
-//Individual Node progress
+// Individual Node progress
 type NodeProgress struct {
 	Category        []string `json:"category,omitempty"`
 	Status          string   `json:"status"`
@@ -215,16 +215,16 @@ type NodeProgress struct {
 	TimeTotal       *float64 `json:"time_total"`
 }
 
-//Response from /enumerate_nos_packages api
+// Response from /enumerate_nos_packages api
 type ListNOSPackagesResponse []string
 
-//Reference to hypervisor for ListHypervisorISOsResponse
+// Reference to hypervisor for ListHypervisorISOsResponse
 type HypervisorISOReference struct {
 	Supported *bool  `json:"supported"`
 	Filename  string `json:"filename"`
 }
 
-//Response from /enumerate_hypervisor_isos api
+// Response from /enumerate_hypervisor_isos api
 type ListHypervisorISOsResponse struct {
 	Hyperv []*HypervisorISOReference `json:"hyperv"`
 	Kvm    []*HypervisorISOReference `json:"kvm"`
@@ -233,10 +233,10 @@ type ListHypervisorISOsResponse struct {
 	Xen    []*HypervisorISOReference `json:"xen"`
 }
 
-//Response struct format for /discover_nodes api
+// Response struct format for /discover_nodes api
 type DiscoverNodesAPIResponse []DiscoveredBlock
 
-//struct format for discovered block
+// struct format for discovered block
 type DiscoveredBlock struct {
 	Model    string           `json:"model"`
 	Nodes    []DiscoveredNode `json:"nodes"`
@@ -244,7 +244,7 @@ type DiscoveredBlock struct {
 	BlockID  string           `json:"block_id"`
 }
 
-//Format for single discovered node
+// Format for single discovered node
 type DiscoveredNode struct {
 	FoundationVersion       string      `json:"foundation_version"`
 	Ipv6Address             string      `json:"ipv6_address"`
@@ -262,13 +262,13 @@ type DiscoveredNode struct {
 	NodeSerial              string      `json:"node_serial"`
 }
 
-//Response struct for /node_network_details api
+// Response struct for /node_network_details api
 type NodeNetworkDetailsResponse struct {
 	Nodes []NodeNetworkDetail `json:"nodes"`
 	Error string              `json:"error"`
 }
 
-//Network detail of particular node
+// Network detail of particular node
 type NodeNetworkDetail struct {
 	CvmGateway         string `json:"cvm_gateway"`
 	IpmiNetmask        string `json:"ipmi_netmask"`
@@ -286,13 +286,13 @@ type NodeNetworkDetail struct {
 	NodeSerial         string `json:"node_serial"`
 }
 
-//Node network details api input
+// Node network details api input
 type NodeNetworkDetailsInput struct {
 	Nodes   []NodeIpv6Input `json:"nodes"`
 	Timeout string          `json:"timeout,omitempty"`
 }
 
-//Node ipv6 details for node network details api
+// Node ipv6 details for node network details api
 type NodeIpv6Input struct {
 	Ipv6Address string `json:"ipv6_address"`
 }

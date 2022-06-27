@@ -22,7 +22,7 @@ type FileManagementOperations struct {
 	client *client.Client
 }
 
-//ListNOSPackages lists the available AOS packages file names in Foundation
+// ListNOSPackages lists the available AOS packages file names in Foundation
 func (fmo FileManagementOperations) ListNOSPackages(ctx context.Context) (*ListNOSPackagesResponse, error) {
 	path := "/enumerate_nos_packages"
 	req, err := fmo.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
@@ -33,7 +33,7 @@ func (fmo FileManagementOperations) ListNOSPackages(ctx context.Context) (*ListN
 	return listNOSPackagesResponse, fmo.client.Do(ctx, req, listNOSPackagesResponse)
 }
 
-//ListHypervisorISOs lists the hypervisor ISOs available in Foundation
+// ListHypervisorISOs lists the hypervisor ISOs available in Foundation
 func (fmo FileManagementOperations) ListHypervisorISOs(ctx context.Context) (*ListHypervisorISOsResponse, error) {
 	path := "/enumerate_hypervisor_isos"
 	req, err := fmo.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
@@ -44,7 +44,7 @@ func (fmo FileManagementOperations) ListHypervisorISOs(ctx context.Context) (*Li
 	return listHypervisorISOsResponse, fmo.client.Do(ctx, req, listHypervisorISOsResponse)
 }
 
-//UploadImage uploads the image to foundation vm as per installer type
+// UploadImage uploads the image to foundation vm as per installer type
 func (fmo FileManagementOperations) UploadImage(ctx context.Context, installerType, fileName, source string) (*UploadImageResponse, error) {
 	path := fmt.Sprintf("/upload?installer_type=%s&filename=%s", installerType, fileName)
 

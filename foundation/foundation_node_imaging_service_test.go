@@ -23,7 +23,8 @@ func setup() (*http.ServeMux, *client.Client, *httptest.Server) {
 		Password: "password",
 		Port:     "",
 		Endpoint: "0.0.0.0",
-		Insecure: true},
+		Insecure: true,
+	},
 		absolutePath,
 		true)
 	c.UserAgent = userAgent
