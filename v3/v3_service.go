@@ -368,7 +368,6 @@ func (op Operations) UploadImage(uuid, filepath string) error {
 	defer file.Close()
 
 	req, err := op.client.NewUploadRequest(ctx, http.MethodPut, path, file)
-
 	if err != nil {
 		return fmt.Errorf("error: Creating request %s", err)
 	}
@@ -707,7 +706,6 @@ func (op Operations) CreateNetworkSecurityRule(request *NetworkSecurityRuleInten
 
 	networkSecurityRuleIntentResponse := new(NetworkSecurityRuleIntentResponse)
 	req, err := op.client.NewRequest(ctx, http.MethodPost, "/network_security_rules", request)
-
 	if err != nil {
 		return nil, err
 	}
@@ -785,7 +783,8 @@ func (op Operations) ListNetworkSecurityRule(getEntitiesRequest *DSMetadata) (*N
  */
 func (op Operations) UpdateNetworkSecurityRule(
 	uuid string,
-	body *NetworkSecurityRuleIntentInput) (*NetworkSecurityRuleIntentResponse, error) {
+	body *NetworkSecurityRuleIntentInput,
+) (*NetworkSecurityRuleIntentResponse, error) {
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/network_security_rules/%s", uuid)
@@ -912,7 +911,6 @@ func (op Operations) ListAllVM(filter string) (*VMListIntentResponse, error) {
 		Kind:   utils.StringPtr("vm"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -955,7 +953,6 @@ func (op Operations) ListAllSubnet(filter string, clientSideFilters []*client.Ad
 		Length:            utils.Int64Ptr(itemsPerPage),
 		ClientSideFilters: clientSideFilters,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -998,7 +995,6 @@ func (op Operations) ListAllNetworkSecurityRule(filter string) (*NetworkSecurity
 		Kind:   utils.StringPtr("network_security_rule"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1041,7 +1037,6 @@ func (op Operations) ListAllImage(filter string) (*ImageListIntentResponse, erro
 		Kind:   utils.StringPtr("image"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1084,7 +1079,6 @@ func (op Operations) ListAllCluster(filter string) (*ClusterListIntentResponse, 
 		Kind:   utils.StringPtr("cluster"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1127,7 +1121,6 @@ func (op Operations) ListAllCategoryValues(categoryKeyName, filter string) (*Cat
 		Kind:   utils.StringPtr("category"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1459,7 +1452,6 @@ func (op Operations) ListAllAccessControlPolicy(filter string) (*AccessControlPo
 		Kind:   utils.StringPtr("access_control_policy"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1604,7 +1596,6 @@ func (op Operations) ListAllRole(filter string) (*RoleListResponse, error) {
 		Kind:   utils.StringPtr("role"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1786,7 +1777,6 @@ func (op Operations) ListAllUser(filter string) (*UserListResponse, error) {
 		Kind:   utils.StringPtr("user"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1885,7 +1875,6 @@ func (op Operations) ListAllUserGroup(filter string) (*UserGroupListResponse, er
 		Kind:   utils.StringPtr("user_group"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1965,7 +1954,6 @@ func (op Operations) ListAllPermission(filter string) (*PermissionListResponse, 
 		Kind:   utils.StringPtr("permission"),
 		Length: utils.Int64Ptr(itemsPerPage),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -1998,7 +1986,7 @@ func (op Operations) ListAllPermission(filter string) (*PermissionListResponse, 
 	return resp, nil
 }
 
-//GetProtectionRule ...
+// GetProtectionRule ...
 func (op Operations) GetProtectionRule(uuid string) (*ProtectionRuleResponse, error) {
 	ctx := context.TODO()
 
@@ -2013,7 +2001,7 @@ func (op Operations) GetProtectionRule(uuid string) (*ProtectionRuleResponse, er
 	return protectionRule, op.client.Do(ctx, req, protectionRule)
 }
 
-//ListProtectionRules ...
+// ListProtectionRules ...
 func (op Operations) ListProtectionRules(getEntitiesRequest *DSMetadata) (*ProtectionRulesListResponse, error) {
 	ctx := context.TODO()
 	path := "/protection_rules/list"
@@ -2070,7 +2058,7 @@ func (op Operations) ListAllProtectionRules(filter string) (*ProtectionRulesList
 	return resp, nil
 }
 
-//CreateProtectionRule ...
+// CreateProtectionRule ...
 func (op Operations) CreateProtectionRule(createRequest *ProtectionRuleInput) (*ProtectionRuleResponse, error) {
 	ctx := context.TODO()
 
@@ -2084,7 +2072,7 @@ func (op Operations) CreateProtectionRule(createRequest *ProtectionRuleInput) (*
 	return protectionRuleResponse, op.client.Do(ctx, req, protectionRuleResponse)
 }
 
-//UpdateProtectionRule ...
+// UpdateProtectionRule ...
 func (op Operations) UpdateProtectionRule(uuid string, body *ProtectionRuleInput) (*ProtectionRuleResponse, error) {
 	ctx := context.TODO()
 
@@ -2099,7 +2087,7 @@ func (op Operations) UpdateProtectionRule(uuid string, body *ProtectionRuleInput
 	return protectionRuleResponse, op.client.Do(ctx, req, protectionRuleResponse)
 }
 
-//DeleteProtectionRule ...
+// DeleteProtectionRule ...
 func (op Operations) DeleteProtectionRule(uuid string) (*DeleteResponse, error) {
 	ctx := context.TODO()
 
@@ -2115,7 +2103,7 @@ func (op Operations) DeleteProtectionRule(uuid string) (*DeleteResponse, error) 
 	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
 }
 
-//GetRecoveryPlan ...
+// GetRecoveryPlan ...
 func (op Operations) GetRecoveryPlan(uuid string) (*RecoveryPlanResponse, error) {
 	ctx := context.TODO()
 
@@ -2130,7 +2118,7 @@ func (op Operations) GetRecoveryPlan(uuid string) (*RecoveryPlanResponse, error)
 	return RecoveryPlan, op.client.Do(ctx, req, RecoveryPlan)
 }
 
-//ListRecoveryPlans ...
+// ListRecoveryPlans ...
 func (op Operations) ListRecoveryPlans(getEntitiesRequest *DSMetadata) (*RecoveryPlanListResponse, error) {
 	ctx := context.TODO()
 	path := "/recovery_plans/list"
@@ -2187,7 +2175,7 @@ func (op Operations) ListAllRecoveryPlans(filter string) (*RecoveryPlanListRespo
 	return resp, nil
 }
 
-//CreateRecoveryPlan ...
+// CreateRecoveryPlan ...
 func (op Operations) CreateRecoveryPlan(createRequest *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
 	ctx := context.TODO()
 
@@ -2201,7 +2189,7 @@ func (op Operations) CreateRecoveryPlan(createRequest *RecoveryPlanInput) (*Reco
 	return RecoveryPlanResponse, op.client.Do(ctx, req, RecoveryPlanResponse)
 }
 
-//UpdateRecoveryPlan ...
+// UpdateRecoveryPlan ...
 func (op Operations) UpdateRecoveryPlan(uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
 	ctx := context.TODO()
 
@@ -2216,7 +2204,7 @@ func (op Operations) UpdateRecoveryPlan(uuid string, body *RecoveryPlanInput) (*
 	return RecoveryPlanResponse, op.client.Do(ctx, req, RecoveryPlanResponse)
 }
 
-//DeleteRecoveryPlan ...
+// DeleteRecoveryPlan ...
 func (op Operations) DeleteRecoveryPlan(uuid string) (*DeleteResponse, error) {
 	ctx := context.TODO()
 
@@ -2265,7 +2253,6 @@ func (op Operations) DeleteServiceGroup(uuid string) error {
 	path := fmt.Sprintf("/service_groups/%s", uuid)
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
-
 	if err != nil {
 		return err
 	}
@@ -2333,7 +2320,6 @@ func (op Operations) UpdateServiceGroup(uuid string, body *ServiceGroupInput) er
 
 	path := fmt.Sprintf("/service_groups/%s", uuid)
 	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
-
 	if err != nil {
 		return err
 	}
@@ -2416,7 +2402,6 @@ func (op Operations) DeleteAddressGroup(uuid string) error {
 	path := fmt.Sprintf("/address_groups/%s", uuid)
 
 	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
-
 	if err != nil {
 		return err
 	}
@@ -2436,12 +2421,12 @@ func (op Operations) CreateAddressGroup(request *AddressGroupInput) (*Reference,
 
 	return AddressGroup, op.client.Do(ctx, req, AddressGroup)
 }
+
 func (op Operations) UpdateAddressGroup(uuid string, body *AddressGroupInput) error {
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/address_groups/%s", uuid)
 	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
-
 	if err != nil {
 		return err
 	}

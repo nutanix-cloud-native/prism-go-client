@@ -2,7 +2,6 @@ package karbon
 
 // DSMetadata All api calls that return a list will have this metadata block as input
 type DSMetadata struct {
-
 	// The filter in FIQL syntax used for the results.
 	Filter *string `json:"filter,omitempty" mapstructure:"filter,omitempty"`
 
@@ -24,25 +23,27 @@ type DSMetadata struct {
 
 // KARBON 2.1
 
-type ClusterListIntentResponse []ClusterIntentResponse
-type ClusterIntentResponse struct {
-	Name                     *string `json:"name" mapstructure:"name, omitempty"`
-	UUID                     *string `json:"uuid" mapstructure:"uuid, omitempty"`
-	Status                   *string `json:"status" mapstructure:"status, omitempty"`
-	Version                  *string `json:"version" mapstructure:"version, omitempty"`
-	KubeAPIServerIPv4Address *string `json:"kubeapi_server_ipv4_address" mapstructure:"kubeapi_server_ipv4_address, omitempty"`
-	ETCDConfig               struct {
-		NodePools []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
-	} `json:"etcd_config" mapstructure:"etcd_config, omitempty"`
-	MasterConfig struct {
-		DeploymentType string   `json:"deployment_type" mapstructure:"deployment_type, omitempty"`
-		NodePools      []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
-	} `json:"master_config" mapstructure:"master_config, omitempty"`
-	WorkerConfig struct {
-		NodePools []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
-	} `json:"worker_config" mapstructure:"worker_config, omitempty"`
-	CNIConfig ClusterCNIConfig `json:"cni_config" mapstructure:"cni_config, omitempty"`
-}
+type (
+	ClusterListIntentResponse []ClusterIntentResponse
+	ClusterIntentResponse     struct {
+		Name                     *string `json:"name" mapstructure:"name, omitempty"`
+		UUID                     *string `json:"uuid" mapstructure:"uuid, omitempty"`
+		Status                   *string `json:"status" mapstructure:"status, omitempty"`
+		Version                  *string `json:"version" mapstructure:"version, omitempty"`
+		KubeAPIServerIPv4Address *string `json:"kubeapi_server_ipv4_address" mapstructure:"kubeapi_server_ipv4_address, omitempty"`
+		ETCDConfig               struct {
+			NodePools []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
+		} `json:"etcd_config" mapstructure:"etcd_config, omitempty"`
+		MasterConfig struct {
+			DeploymentType string   `json:"deployment_type" mapstructure:"deployment_type, omitempty"`
+			NodePools      []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
+		} `json:"master_config" mapstructure:"master_config, omitempty"`
+		WorkerConfig struct {
+			NodePools []string `json:"node_pools" mapstructure:"node_pools, omitempty"`
+		} `json:"worker_config" mapstructure:"worker_config, omitempty"`
+		CNIConfig ClusterCNIConfig `json:"cni_config" mapstructure:"cni_config, omitempty"`
+	}
+)
 
 type ClusterCNIConfig struct {
 	NodeCIDRMaskSize int64                 `json:"node_cidr_mask_size" mapstructure:"node_cidr_mask_size, omitempty"`
@@ -105,8 +106,7 @@ type ClusterMasterNodeMasterConfigIntentInput struct {
 	NodePoolName string `json:"node_pool_name" mapstructure:"node_pool_name, omitempty"`
 }
 
-type ClusterSingleMasterConfigIntentInput struct {
-}
+type ClusterSingleMasterConfigIntentInput struct{}
 
 type ClusterWorkerConfigIntentInput struct {
 	NodePools []ClusterNodePool `json:"node_pools" mapstructure:"node_pools, omitempty"`

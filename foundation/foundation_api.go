@@ -13,23 +13,22 @@ const (
 	clientName   = "foundation"
 )
 
-//Foundation client with its services
+// Foundation client with its services
 type Client struct {
-
-	//base client
+	// base client
 	client *client.Client
 
-	//Service for Imaging Nodes and Cluster Creation
+	// Service for Imaging Nodes and Cluster Creation
 	NodeImaging NodeImagingService
 
-	//Service for File Management in foundation VM
+	// Service for File Management in foundation VM
 	FileManagement FileManagementService
 
-	//Service for Networking apis in foundation VM
+	// Service for Networking apis in foundation VM
 	Networking NetworkingService
 }
 
-//This routine returns new Foundation API Client
+// This routine returns new Foundation API Client
 func NewFoundationAPIClient(credentials client.Credentials) (*Client, error) {
 	var baseClient *client.Client
 	if credentials.FoundationEndpoint != "" {
@@ -47,7 +46,7 @@ func NewFoundationAPIClient(credentials client.Credentials) (*Client, error) {
 		baseClient = &client.Client{ErrorMsg: errorMsg}
 	}
 
-	//Fill user agent details
+	// Fill user agent details
 	baseClient.UserAgent = userAgent
 
 	foundationClient := &Client{
