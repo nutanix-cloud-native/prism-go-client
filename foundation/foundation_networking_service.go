@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+	client "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 // NetworkingService is a interface for networking apis in foundation

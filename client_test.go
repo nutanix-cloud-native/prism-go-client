@@ -1,4 +1,4 @@
-package client
+package prism_go_client
 
 import (
 	"bytes"
@@ -199,7 +199,6 @@ func TestNewUnAuthFormEncodedRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to parse body form data to map: %s", err)
 	}
-
 
 	// check form encoded key-values as compared to input values
 	if !reflect.DeepEqual(outBody, (map[string][]string)(req.PostForm)) {

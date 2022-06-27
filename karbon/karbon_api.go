@@ -1,27 +1,28 @@
-package v3
+package karbon
 
 import (
 	"fmt"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+	client "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
-	libraryVersion = "v3"
-	absolutePath   = "api/nutanix/" + libraryVersion
-	userAgent      = "nutanix/" + libraryVersion
-	clientName     = "prism_central"
+	absolutePath = "karbon"
+	userAgent    = "nutanix"
+	clientName   = "karbon"
 )
 
 // Client manages the V3 API
 type Client struct {
-	client *client.Client
-	V3     Service
+	client          *client.Client
+	Cluster         ClusterService
+	PrivateRegistry PrivateRegistryService
+	Meta            MetaService
 }
 
-// NewV3Client return a client to operate V3 resources
-func NewV3Client(credentials client.Credentials) (*Client, error) {
+// NewKarbonAPIClient return a client to operate Karbon resources
+func NewKarbonAPIClient(credentials client.Credentials) (*Client, error) {
 	var baseClient *client.Client
 
 	// check if all required fields are present. Else create an empty client
@@ -32,25 +33,23 @@ func NewV3Client(credentials client.Credentials) (*Client, error) {
 		}
 		baseClient = c
 	} else {
-		errorMsg := fmt.Sprintf("Prism Central (PC) Client is missing. "+
+		errorMsg := fmt.Sprintf("karbon Client is missing. "+
 			"Please provide required details - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
-
 		baseClient = &client.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
 	}
 
 	f := &Client{
 		client: baseClient,
-		V3: Operations{
+		Cluster: ClusterOperations{
+			client: baseClient,
+		},
+		PrivateRegistry: PrivateRegistryOperations{
+			client: baseClient,
+		},
+		Meta: MetaOperations{
 			client: baseClient,
 		},
 	}
-
-	// f.client.OnRequestCompleted(func(req *http.Request, resp *http.Response, v interface{}) {
-	// 	if v != nil {
-	// 		utils.PrintToJSON(v, "[Debug] FINISHED REQUEST")
-	// 		// TBD: How to print responses before all requests.
-	// 	}
-	// })
 
 	return f, nil
 }

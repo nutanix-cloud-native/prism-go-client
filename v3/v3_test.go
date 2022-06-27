@@ -3,7 +3,7 @@ package v3
 import (
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client/pkg/nutanix"
+	client "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 func TestNewV3Client(t *testing.T) {

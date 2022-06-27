@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nutanix-cloud-native/prism-go-client/pkg/utils"
+	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
 func TestFMOperations_ListNOSPackages(t *testing.T) {

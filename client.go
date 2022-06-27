@@ -1,4 +1,4 @@
-package client
+package prism_go_client
 
 import (
 	"bytes"
