@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The foundation stubs have been moved from pkg/nutanix/foundation to foundation
 - The karbon stubs have been moved from pkg/nutanix/karbon to karbon
 - The v3 stubs have been moved from pkg/nutanix/v3 to v3
+- The underlying http client is moved from root package to internal
+- The root package is renamed from `prism_go_client` to `prismgoclient`
 
 ## [0.2.0] - 2022-06-14
 ### Added

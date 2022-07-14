@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 const (
@@ -16,17 +17,17 @@ const (
 
 // Client manages the foundation central API
 type Client struct {
-	client  *client.Client
+	client  *internal.Client
 	Service Service
 }
 
-// NewFoundationCentralClient return a client to operate foundation central resources
-func NewFoundationCentralClient(credentials client.Credentials) (*Client, error) {
-	var baseClient *client.Client
+// NewFoundationCentralClient return a internal to operate foundation central resources
+func NewFoundationCentralClient(credentials prismgoclient.Credentials) (*Client, error) {
+	var baseClient *internal.Client
 
-	// check if all required fields are present. Else create an empty client
+	// check if all required fields are present. Else create an empty internal
 	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
-		c, err := client.NewClient(&credentials, userAgent, absolutePath, false)
+		c, err := internal.NewClient(&credentials, userAgent, absolutePath, false)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +36,7 @@ func NewFoundationCentralClient(credentials client.Credentials) (*Client, error)
 		errorMsg := fmt.Sprintf("Foundation Central Client is missing. "+
 			"Please provide required details - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
 
-		baseClient = &client.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
+		baseClient = &internal.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
 	}
 
 	fc := &Client{

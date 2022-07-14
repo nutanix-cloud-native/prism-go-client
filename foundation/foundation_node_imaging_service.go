@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 type NodeImagingService interface {
@@ -13,7 +13,7 @@ type NodeImagingService interface {
 }
 
 type NodeImagingOperations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 func (op NodeImagingOperations) ImageNodes(ctx context.Context, imageNodeInput *ImageNodesInput) (*ImageNodesAPIResponse, error) {

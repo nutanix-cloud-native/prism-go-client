@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 // Operations implements Service interface
 type Operations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // Interface for foundation central apis

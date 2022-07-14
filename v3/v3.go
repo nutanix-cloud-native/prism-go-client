@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 const (
@@ -16,17 +17,17 @@ const (
 
 // Client manages the V3 API
 type Client struct {
-	client *client.Client
+	client *internal.Client
 	V3     Service
 }
 
-// NewV3Client return a client to operate V3 resources
-func NewV3Client(credentials client.Credentials) (*Client, error) {
-	var baseClient *client.Client
+// NewV3Client return a internal to operate V3 resources
+func NewV3Client(credentials prismgoclient.Credentials) (*Client, error) {
+	var baseClient *internal.Client
 
-	// check if all required fields are present. Else create an empty client
+	// check if all required fields are present. Else create an empty internal
 	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
-		c, err := client.NewClient(&credentials, userAgent, absolutePath, false)
+		c, err := internal.NewClient(&credentials, userAgent, absolutePath, false)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +36,7 @@ func NewV3Client(credentials client.Credentials) (*Client, error) {
 		errorMsg := fmt.Sprintf("Prism Central (PC) Client is missing. "+
 			"Please provide required details - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
 
-		baseClient = &client.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
+		baseClient = &internal.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
 	}
 
 	f := &Client{
@@ -45,7 +46,7 @@ func NewV3Client(credentials client.Credentials) (*Client, error) {
 		},
 	}
 
-	// f.client.OnRequestCompleted(func(req *http.Request, resp *http.Response, v interface{}) {
+	// f.internal.OnRequestCompleted(func(req *http.Request, resp *http.Response, v interface{}) {
 	// 	if v != nil {
 	// 		utils.PrintToJSON(v, "[Debug] FINISHED REQUEST")
 	// 		// TBD: How to print responses before all requests.

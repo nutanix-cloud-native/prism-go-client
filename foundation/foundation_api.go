@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 const (
@@ -13,10 +14,10 @@ const (
 	clientName   = "foundation"
 )
 
-// Foundation client with its services
+// Foundation internal with its services
 type Client struct {
 	// base client
-	client *client.Client
+	client *internal.Client
 
 	// Service for Imaging Nodes and Cluster Creation
 	NodeImaging NodeImagingService
@@ -29,12 +30,12 @@ type Client struct {
 }
 
 // This routine returns new Foundation API Client
-func NewFoundationAPIClient(credentials client.Credentials) (*Client, error) {
-	var baseClient *client.Client
+func NewFoundationAPIClient(credentials prismgoclient.Credentials) (*Client, error) {
+	var baseClient *internal.Client
 	if credentials.FoundationEndpoint != "" {
-		// for foundation client, url should be based on foundation's endpoint and port
+		// for foundation internal, url should be based on foundation's endpoint and port
 		credentials.URL = fmt.Sprintf("%s:%s", credentials.FoundationEndpoint, credentials.FoundationPort)
-		c, err := client.NewBaseClient(&credentials, absolutePath, true)
+		c, err := internal.NewBaseClient(&credentials, absolutePath, true)
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +43,8 @@ func NewFoundationAPIClient(credentials client.Credentials) (*Client, error) {
 	} else {
 		errorMsg := fmt.Sprintf("Foundation Client is missing. "+
 			"Please provide required detail - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
-		// create empty client if required fields are not provided
-		baseClient = &client.Client{ErrorMsg: errorMsg}
+		// create empty internal if required fields are not provided
+		baseClient = &internal.Client{ErrorMsg: errorMsg}
 	}
 
 	// Fill user agent details

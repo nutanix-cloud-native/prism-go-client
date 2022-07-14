@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
 // Operations ...
 type Operations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // Service ...
@@ -56,7 +57,7 @@ type Service interface {
 	DeleteVolumeGroup(uuid string) error
 	CreateVolumeGroup(request *VolumeGroupInput) (*VolumeGroupResponse, error)
 	ListAllVM(filter string) (*VMListIntentResponse, error)
-	ListAllSubnet(filter string, clientSideFilters []*client.AdditionalFilter) (*SubnetListIntentResponse, error)
+	ListAllSubnet(filter string, clientSideFilters []*prismgoclient.AdditionalFilter) (*SubnetListIntentResponse, error)
 	ListAllNetworkSecurityRule(filter string) (*NetworkSecurityRuleListIntentResponse, error)
 	ListAllImage(filter string) (*ImageListIntentResponse, error)
 	ListAllCluster(filter string) (*ClusterListIntentResponse, error)
@@ -511,14 +512,14 @@ func (op Operations) ListCluster(getEntitiesRequest *DSMetadata) (*ClusterListIn
 
 // 	path := fmt.Sprintf("/images/%s", uuid)
 
-// 	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+// 	req, err := op.internal.NewRequest(ctx, http.MethodPut, path, body)
 // 	if err != nil {
 // 		return nil, err
 // 	}
 
 // 	imageIntentResponse := new(ImageIntentResponse)
 
-// 	err = op.client.Do(ctx, req, imageIntentResponse)
+// 	err = op.internal.Do(ctx, req, imageIntentResponse)
 // 	if err != nil {
 // 		return nil, err
 // 	}
@@ -944,7 +945,7 @@ func (op Operations) ListAllVM(filter string) (*VMListIntentResponse, error) {
 }
 
 // ListAllSubnet ...
-func (op Operations) ListAllSubnet(filter string, clientSideFilters []*client.AdditionalFilter) (*SubnetListIntentResponse, error) {
+func (op Operations) ListAllSubnet(filter string, clientSideFilters []*prismgoclient.AdditionalFilter) (*SubnetListIntentResponse, error) {
 	entities := make([]*SubnetIntentResponse, 0)
 
 	resp, err := op.ListSubnet(&DSMetadata{

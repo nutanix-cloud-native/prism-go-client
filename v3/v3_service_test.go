@@ -10,15 +10,16 @@ import (
 	"reflect"
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func setup() (*http.ServeMux, *client.Client, *httptest.Server) {
+func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := client.NewClient(&client.Credentials{
+	c, _ := internal.NewClient(&prismgoclient.Credentials{
 		URL:      "",
 		Username: "username",
 		Password: "password",
@@ -79,7 +80,7 @@ func TestOperations_CreateVM(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -170,7 +171,7 @@ func TestOperations_DeleteVM(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -227,7 +228,7 @@ func TestOperations_GetVM(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -290,7 +291,7 @@ func TestOperations_ListVM(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -372,7 +373,7 @@ func TestOperations_UpdateVM(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -479,7 +480,7 @@ func TestOperations_CreateSubnet(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -569,7 +570,7 @@ func TestOperations_DeleteSubnet(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -627,7 +628,7 @@ func TestOperations_GetSubnet(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -691,7 +692,7 @@ func TestOperations_ListSubnet(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -774,7 +775,7 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -885,7 +886,7 @@ func TestOperations_CreateImage(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -958,7 +959,7 @@ func TestOperations_UploadImageError(t *testing.T) {
 	defer server.Close()
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1011,7 +1012,7 @@ func TestOperations_UploadImage(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1071,7 +1072,7 @@ func TestOperations_DeleteImage(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1129,7 +1130,7 @@ func TestOperations_GetImage(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1193,7 +1194,7 @@ func TestOperations_ListImage(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1275,7 +1276,7 @@ func TestOperations_UpdateImage(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1356,7 +1357,7 @@ func TestOperations_GetCluster(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1420,7 +1421,7 @@ func TestOperations_ListCluster(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1492,7 +1493,7 @@ func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1563,7 +1564,7 @@ func TestOperations_ListCategories(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1614,7 +1615,7 @@ func TestOperations_DeleteCategoryKey(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1676,7 +1677,7 @@ func TestOperations_GetCategoryKey(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1740,7 +1741,7 @@ func TestOperations_ListCategoryValues(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1814,7 +1815,7 @@ func TestOperations_CreateOrUpdateCategoryValue(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1887,7 +1888,7 @@ func TestOperations_GetCategoryValue(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -1939,7 +1940,7 @@ func TestOperations_DeleteCategoryValue(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2002,7 +2003,7 @@ func TestOperations_GetCategoryQuery(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2082,7 +2083,7 @@ func TestOperations_CreateNetworkSecurityRule(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2171,7 +2172,7 @@ func TestOperations_DeleteNetworkSecurityRule(t *testing.T) {
 		})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2230,7 +2231,7 @@ func TestOperations_GetNetworkSecurityRule(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2294,7 +2295,7 @@ func TestOperations_ListNetworkSecurityRule(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2375,7 +2376,7 @@ func TestOperations_UpdateNetworkSecurityRule(t *testing.T) {
 		})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2479,7 +2480,7 @@ func TestOperations_CreateVolumeGroup(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2549,7 +2550,7 @@ func TestOperations_DeleteVolumeGroup(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2607,7 +2608,7 @@ func TestOperations_GetVolumeGroup(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2671,7 +2672,7 @@ func TestOperations_ListVolumeGroup(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2753,7 +2754,7 @@ func TestOperations_UpdateVolumeGroup(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2838,7 +2839,7 @@ func TestOperations_GetHost(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2902,7 +2903,7 @@ func TestOperations_ListHost(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -2994,7 +2995,7 @@ func TestOperations_CreateProject(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3081,7 +3082,7 @@ func TestOperations_GetProject(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3145,7 +3146,7 @@ func TestOperations_ListProject(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3236,7 +3237,7 @@ func TestOperations_UpdateProject(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3334,7 +3335,7 @@ func TestOperations_DeleteProject(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3423,7 +3424,7 @@ func TestOperations_CreateAccessControlPolicy(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3507,7 +3508,7 @@ func TestOperations_GetAccessControlPolicy(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3571,7 +3572,7 @@ func TestOperations_ListAccessControlPolicy(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3659,7 +3660,7 @@ func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3754,7 +3755,7 @@ func TestOperations_DeleteAccessControlPolicy(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3845,7 +3846,7 @@ func TestOperations_CreateRole(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3931,7 +3932,7 @@ func TestOperations_GetRole(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -3995,7 +3996,7 @@ func TestOperations_ListRole(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4085,7 +4086,7 @@ func TestOperations_UpdateRole(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4182,7 +4183,7 @@ func TestOperations_DeleteRole(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4271,7 +4272,7 @@ func TestOperations_CreateUser(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4355,7 +4356,7 @@ func TestOperations_GetUser(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4419,7 +4420,7 @@ func TestOperations_ListUser(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4508,7 +4509,7 @@ func TestOperations_UpdateUser(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4604,7 +4605,7 @@ func TestOperations_DeleteUser(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4727,7 +4728,7 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4844,7 +4845,7 @@ func TestOperations_GetProtectionRule(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -4908,7 +4909,7 @@ func TestOperations_ListProtectionRules(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5031,7 +5032,7 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5143,7 +5144,7 @@ func TestOperations_DeleteProtectionRules(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5361,7 +5362,7 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5573,7 +5574,7 @@ func TestOperations_GetRecoveryPlan(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5637,7 +5638,7 @@ func TestOperations_ListRecoveryPlans(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -5855,7 +5856,7 @@ func TestOperations_UpdateRecoveryPlans(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -6062,7 +6063,7 @@ func TestOperations_DeleteRecoveryPlan(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {

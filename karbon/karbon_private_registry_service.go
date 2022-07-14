@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 // PrivateRegistryOperations ...
 type PrivateRegistryOperations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // Service ...
