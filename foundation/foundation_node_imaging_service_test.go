@@ -10,14 +10,15 @@ import (
 	"reflect"
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
-func setup() (*http.ServeMux, *client.Client, *httptest.Server) {
+func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := client.NewBaseClient(&client.Credentials{
+	c, _ := internal.NewBaseClient(&prismgoclient.Credentials{
 		URL:      "",
 		Username: "username",
 		Password: "password",

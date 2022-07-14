@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 // NetworkingService is a interface for networking apis in foundation
@@ -16,7 +16,7 @@ type NetworkingService interface {
 
 // NetworkingOperations implements NetworkingService interface
 type NetworkingOperations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // DiscoverNodes discovers(gets) Nutanix-imaged nodes within an IPv6 network.

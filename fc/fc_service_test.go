@@ -9,14 +9,15 @@ import (
 	"reflect"
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
-func setup() (*http.ServeMux, *client.Client, *httptest.Server) {
+func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := client.NewClient(&client.Credentials{
+	c, _ := internal.NewClient(&prismgoclient.Credentials{
 		URL:      "https://10.2.242.13:9440",
 		Username: "admin",
 		Password: "Nutanix.123",
@@ -58,7 +59,7 @@ func TestOperations_ListImagedNodes(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -119,7 +120,7 @@ func TestOperations_ListImagedClusters(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -181,7 +182,7 @@ func TestOperations_ListAPIKeys(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -238,7 +239,7 @@ func TestOperations_GetImagedNode(t *testing.T) {
 	node.CvmIP = utils.StringPtr("10.0.0.0")
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -295,7 +296,7 @@ func TestOperations_GetImagedCluster(t *testing.T) {
 	cluster.ClusterExternalIP = utils.StringPtr("10.0.0.0")
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -361,7 +362,7 @@ func TestOperations_GetAPIKey(t *testing.T) {
 	apiKey.KeyUUID = "20ca-4d4c-61fd"
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -431,7 +432,7 @@ func TestOperations_CreateAPIKey(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -524,7 +525,7 @@ func TestOperations_CreateCluster(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {
@@ -576,7 +577,7 @@ func TestOperations_DeleteCluster(t *testing.T) {
 	})
 
 	type fields struct {
-		client *client.Client
+		client *internal.Client
 	}
 
 	type args struct {

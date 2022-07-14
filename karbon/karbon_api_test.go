@@ -3,12 +3,12 @@ package karbon
 import (
 	"testing"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
 func TestNewKarbonAPIClient(t *testing.T) {
 	// verifies positive client creation
-	cred := client.Credentials{
+	cred := prismgoclient.Credentials{
 		URL:                "foo.com",
 		Username:           "username",
 		Password:           "password",
@@ -25,7 +25,7 @@ func TestNewKarbonAPIClient(t *testing.T) {
 	}
 
 	// verify missing client scenario
-	cred2 := client.Credentials{
+	cred2 := prismgoclient.Credentials{
 		URL:      "foo.com",
 		Insecure: true,
 		RequiredFields: map[string][]string{

@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 // MetaOperations ...
 type MetaOperations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // Service ...

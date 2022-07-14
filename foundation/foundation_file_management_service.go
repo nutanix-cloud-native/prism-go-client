@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	client "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
 // Interface for file management apis of foundation
@@ -19,7 +19,7 @@ type FileManagementService interface {
 
 // FileManagementOperations implements FileManagementService interface
 type FileManagementOperations struct {
-	client *client.Client
+	client *internal.Client
 }
 
 // ListNOSPackages lists the available AOS packages file names in Foundation

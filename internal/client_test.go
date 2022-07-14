@@ -1,4 +1,4 @@
-package prism_go_client
+package internal
 
 import (
 	"bytes"
@@ -14,27 +14,29 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
 	testLibraryVersion = "v3"
 	testAbsolutePath   = "api/nutanix/" + testLibraryVersion
 	testUserAgent      = "nutanix/" + testLibraryVersion
-	fileName           = "v3/v3.go"
+	fileName           = "../v3/v3.go"
 )
 
 func setup() (*http.ServeMux, *Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 
-	client, _ := NewClient(&Credentials{"", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, false)
+	client, _ := NewClient(&prismgoclient.Credentials{Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
 	client.BaseURL, _ = url.Parse(server.URL)
 
 	return mux, client, server
 }
 
 func TestNewClient(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, false)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -51,7 +53,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewBaseClient(t *testing.T) {
-	c, err := NewBaseClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testAbsolutePath, true)
+	c, err := NewBaseClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testAbsolutePath, true)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -68,7 +70,7 @@ func TestNewBaseClient(t *testing.T) {
 }
 
 func TestNewRequest(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, false)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -91,7 +93,7 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestNewUploadRequest(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, true)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -134,7 +136,7 @@ func TestNewUploadRequest(t *testing.T) {
 }
 
 func TestNewUnAuthRequest(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, true)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -172,7 +174,7 @@ func TestNewUnAuthRequest(t *testing.T) {
 }
 
 func TestNewUnAuthFormEncodedRequest(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, true)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -217,7 +219,7 @@ func TestNewUnAuthFormEncodedRequest(t *testing.T) {
 }
 
 func TestNewUnAuthUploadRequest(t *testing.T) {
-	c, err := NewClient(&Credentials{"foo.com", "username", "password", "", "", true, false, "", "", "", nil}, testUserAgent, testAbsolutePath, true)
+	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
 	if err != nil {
 		t.Errorf("Unexpected Error: %v", err)
 	}
@@ -443,8 +445,8 @@ func removeWhiteSpace(input string) string {
 	return whitespacePattern.ReplaceAllString(input, "")
 }
 
-func getFilter(name string, values []string) []*AdditionalFilter {
-	return []*AdditionalFilter{
+func getFilter(name string, values []string) []*prismgoclient.AdditionalFilter {
+	return []*prismgoclient.AdditionalFilter{
 		{
 			Name:   name,
 			Values: values,
@@ -452,7 +454,7 @@ func getFilter(name string, values []string) []*AdditionalFilter {
 	}
 }
 
-func runTest(filters []*AdditionalFilter, inputString string, expected string) bool {
+func runTest(filters []*prismgoclient.AdditionalFilter, inputString string, expected string) bool {
 	input := io.NopCloser(strings.NewReader(inputString))
 	fmt.Println(expected)
 	baseSearchPaths := []string{"spec", "spec.resources"}
@@ -472,7 +474,7 @@ func TestDoWithFilters_filter(t *testing.T) {
 	entity3 := getEntity("subnet-02", "112", "012345-111")
 	input := fmt.Sprintf(`{"entities":[%s,%s,%s]}`, entity1, entity2, entity3)
 
-	filtersList := [][]*AdditionalFilter{
+	filtersList := [][]*prismgoclient.AdditionalFilter{
 		getFilter("name", []string{"subnet-01", "subnet-03"}),
 		getFilter("vlan_id", []string{"111", "subnet-03"}),
 		getFilter("cluster_reference.uuid", []string{"111", "012345-112"}),
@@ -494,7 +496,7 @@ func TestDoWithFilters_filter(t *testing.T) {
 
 func TestClient_NewRequest(t *testing.T) {
 	type fields struct {
-		Credentials        *Credentials
+		Credentials        *prismgoclient.Credentials
 		client             *http.Client
 		BaseURL            *url.URL
 		UserAgent          string
@@ -541,7 +543,7 @@ func TestClient_NewRequest(t *testing.T) {
 
 func TestClient_OnRequestCompleted(t *testing.T) {
 	type fields struct {
-		Credentials        *Credentials
+		Credentials        *prismgoclient.Credentials
 		client             *http.Client
 		BaseURL            *url.URL
 		UserAgent          string
@@ -575,7 +577,7 @@ func TestClient_OnRequestCompleted(t *testing.T) {
 
 func TestClient_Do(t *testing.T) {
 	type fields struct {
-		Credentials        *Credentials
+		Credentials        *prismgoclient.Credentials
 		client             *http.Client
 		BaseURL            *url.URL
 		UserAgent          string
