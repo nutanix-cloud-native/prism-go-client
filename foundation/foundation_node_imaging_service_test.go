@@ -6,30 +6,32 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"testing"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
+	"github.com/stretchr/testify/require"
 )
 
-func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
+func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := internal.NewBaseClient(&prismgoclient.Credentials{
+	creds := &prismgoclient.Credentials{
 		URL:      "",
 		Username: "username",
 		Password: "password",
 		Port:     "",
 		Endpoint: "0.0.0.0",
 		Insecure: true,
-	},
-		absolutePath,
-		true)
-	c.UserAgent = userAgent
-	c.BaseURL, _ = url.Parse(server.URL)
+	}
+	c, err := internal.NewClient(
+		internal.WithCredentials(creds),
+		internal.WithAbsolutePath(absolutePath),
+		internal.WithUserAgent(userAgent),
+		internal.WithBaseURL(server.URL))
+	require.NoError(t, err)
 
 	return mux, c, server
 }
@@ -41,7 +43,7 @@ func testHTTPMethod(t *testing.T, r *http.Request, expected string) {
 }
 
 func TestNodeImagingOperations_ImageNodes(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/foundation/image_nodes", func(w http.ResponseWriter, r *http.Request) {
@@ -158,7 +160,7 @@ func TestNodeImagingOperations_ImageNodes(t *testing.T) {
 }
 
 func TestNodeImagingOperations_ImageNodesProgress(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	sessionID := "123456-1234-123456"
 	mux.HandleFunc("/foundation/progress", func(w http.ResponseWriter, r *http.Request) {

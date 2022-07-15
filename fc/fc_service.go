@@ -36,7 +36,7 @@ type Service interface {
 func (op Operations) GetImagedNode(ctx context.Context, nodeUUID string) (*ImagedNodeDetails, error) {
 	path := fmt.Sprintf("/imaged_nodes/%s", nodeUUID)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	imagedNodeDetails := new(ImagedNodeDetails)
 
 	if err != nil {
@@ -54,16 +54,17 @@ func (op Operations) GetImagedNode(ctx context.Context, nodeUUID string) (*Image
  */
 func (op Operations) ListImagedNodes(ctx context.Context, input *ImagedNodesListInput) (*ImagedNodesListResponse, error) {
 	path := "/imaged_nodes/list"
-
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, input)
-
-	imagedNodesListResponse := new(ImagedNodesListResponse)
-
+	req, err := op.client.NewRequest(http.MethodPost, path, input)
 	if err != nil {
 		return nil, err
 	}
 
-	return imagedNodesListResponse, op.client.Do(ctx, req, imagedNodesListResponse)
+	imagedNodesListResponse := new(ImagedNodesListResponse)
+	if err := op.client.Do(ctx, req, imagedNodesListResponse); err != nil {
+		return nil, err
+	}
+
+	return imagedNodesListResponse, nil
 }
 
 /*GetImagedCluster Get the details of an imaged cluster
@@ -75,7 +76,7 @@ func (op Operations) ListImagedNodes(ctx context.Context, input *ImagedNodesList
 func (op Operations) GetImagedCluster(ctx context.Context, clusterUUID string) (*ImagedClusterDetails, error) {
 	path := fmt.Sprintf("/imaged_clusters/%s", clusterUUID)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	imagedClusterDetails := new(ImagedClusterDetails)
 
 	if err != nil {
@@ -94,7 +95,7 @@ func (op Operations) GetImagedCluster(ctx context.Context, clusterUUID string) (
 func (op Operations) ListImagedClusters(ctx context.Context, input *ImagedClustersListInput) (*ImagedClustersListResponse, error) {
 	path := "/imaged_clusters/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, input)
+	req, err := op.client.NewRequest(http.MethodPost, path, input)
 
 	imagedClustersListResponse := new(ImagedClustersListResponse)
 
@@ -114,7 +115,7 @@ func (op Operations) ListImagedClusters(ctx context.Context, input *ImagedCluste
 func (op Operations) CreateCluster(ctx context.Context, input *CreateClusterInput) (*CreateClusterResponse, error) {
 	path := "/imaged_clusters"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, input)
+	req, err := op.client.NewRequest(http.MethodPost, path, input)
 
 	createClusterResponse := new(CreateClusterResponse)
 
@@ -134,7 +135,7 @@ func (op Operations) CreateCluster(ctx context.Context, input *CreateClusterInpu
 func (op Operations) UpdateCluster(ctx context.Context, clusterUUID string, updateData *UpdateClusterData) error {
 	path := fmt.Sprintf("/imaged_clusters/%s", clusterUUID)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, updateData)
+	req, err := op.client.NewRequest(http.MethodPut, path, updateData)
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func (op Operations) UpdateCluster(ctx context.Context, clusterUUID string, upda
 func (op Operations) DeleteCluster(ctx context.Context, clusterUUID string) error {
 	path := fmt.Sprintf("/imaged_clusters/%s", clusterUUID)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -168,7 +169,7 @@ func (op Operations) DeleteCluster(ctx context.Context, clusterUUID string) erro
 func (op Operations) CreateAPIKey(ctx context.Context, input *CreateAPIKeysInput) (*CreateAPIKeysResponse, error) {
 	path := "/api_keys"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, input)
+	req, err := op.client.NewRequest(http.MethodPost, path, input)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +187,7 @@ func (op Operations) CreateAPIKey(ctx context.Context, input *CreateAPIKeysInput
 func (op Operations) GetAPIKey(ctx context.Context, uuid string) (*CreateAPIKeysResponse, error) {
 	path := fmt.Sprintf("/api_keys/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, uuid)
+	req, err := op.client.NewRequest(http.MethodGet, path, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +205,7 @@ func (op Operations) GetAPIKey(ctx context.Context, uuid string) (*CreateAPIKeys
 func (op Operations) ListAPIKeys(ctx context.Context, body *ListMetadataInput) (*ListAPIKeysResponse, error) {
 	path := "/api_keys/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, body)
+	req, err := op.client.NewRequest(http.MethodPost, path, body)
 	if err != nil {
 		return nil, err
 	}

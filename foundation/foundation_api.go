@@ -29,37 +29,38 @@ type Client struct {
 	Networking NetworkingService
 }
 
-// This routine returns new Foundation API Client
+// NewFoundationAPIClient creates a new Foundation API Client
 func NewFoundationAPIClient(credentials prismgoclient.Credentials) (*Client, error) {
-	var baseClient *internal.Client
-	if credentials.FoundationEndpoint != "" {
-		// for foundation internal, url should be based on foundation's endpoint and port
-		credentials.URL = fmt.Sprintf("%s:%s", credentials.FoundationEndpoint, credentials.FoundationPort)
-		c, err := internal.NewBaseClient(&credentials, absolutePath, true)
-		if err != nil {
-			return nil, err
-		}
-		baseClient = c
-	} else {
-		errorMsg := fmt.Sprintf("Foundation Client is missing. "+
-			"Please provide required detail - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
-		// create empty internal if required fields are not provided
-		baseClient = &internal.Client{ErrorMsg: errorMsg}
+	if credentials.FoundationEndpoint == "" {
+		return nil, fmt.Errorf("foundation Client is missing: %s %s",
+			"Please provide required detail - %s in provider configuration.",
+			strings.Join(credentials.RequiredFields[clientName], ", "))
+	}
+	// for foundation internal, url should be based on foundation's endpoint and port
+	baseURL := fmt.Sprintf("%s:%s", credentials.FoundationEndpoint, credentials.FoundationPort)
+	if !strings.HasPrefix(baseURL, string(internal.SchemeHTTP)) {
+		baseURL = fmt.Sprintf("%s://%s", internal.SchemeHTTP, baseURL)
+	}
+	c, err := internal.NewClient(
+		internal.WithCredentials(&credentials),
+		internal.WithAbsolutePath(absolutePath),
+		internal.WithUserAgent(userAgent),
+		internal.WithBaseURL(baseURL),
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	// Fill user agent details
-	baseClient.UserAgent = userAgent
-
 	foundationClient := &Client{
-		client: baseClient,
+		client: c,
 		NodeImaging: NodeImagingOperations{
-			client: baseClient,
+			client: c,
 		},
 		FileManagement: FileManagementOperations{
-			client: baseClient,
+			client: c,
 		},
 		Networking: NetworkingOperations{
-			client: baseClient,
+			client: c,
 		},
 	}
 	return foundationClient, nil

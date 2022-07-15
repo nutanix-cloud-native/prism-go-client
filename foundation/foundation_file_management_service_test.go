@@ -12,7 +12,7 @@ import (
 )
 
 func TestFMOperations_ListNOSPackages(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	mux.HandleFunc("/foundation/enumerate_nos_packages", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
@@ -45,7 +45,7 @@ func TestFMOperations_ListNOSPackages(t *testing.T) {
 }
 
 func TestFMOperations_ListHypervisorISOs(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	mux.HandleFunc("/foundation/enumerate_hypervisor_isos", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
@@ -112,7 +112,7 @@ func TestFMOperations_ListHypervisorISOs(t *testing.T) {
 }
 
 func TestFMOperations_UploadImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	installerType := "kvm"
 	filename := "test_ahv.iso"
@@ -162,7 +162,7 @@ func TestFMOperations_UploadImage(t *testing.T) {
 }
 
 func TestFMOperations_DeleteImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	installerType := "kvm"
 	filename := "test_ahv.iso"

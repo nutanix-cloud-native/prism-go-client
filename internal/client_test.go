@@ -15,6 +15,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-logr/logr/testr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
@@ -25,60 +29,167 @@ const (
 	fileName           = "../v3/v3.go"
 )
 
-func setup() (*http.ServeMux, *Client, *httptest.Server) {
+func setup(t *testing.T) (*http.ServeMux, *Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 
-	client, _ := NewClient(&prismgoclient.Credentials{Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
-	client.BaseURL, _ = url.Parse(server.URL)
+	creds := &prismgoclient.Credentials{URL: server.URL, Username: "username", Password: "password", Insecure: true}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
-	return mux, client, server
+	return mux, c, server
 }
 
 func TestNewClient(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
+	// New returns a logr.Logger which is implemented by an arbitrary function.
+	tlog := testr.New(t)
+	tests := []struct {
+		testCase    string
+		opts        []ClientOption
+		wantErr     bool
+		expectedErr string
+		validation  func(t *testing.T, c *Client)
+	}{
+		{
+			testCase: "valid",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+		},
+		{
+			testCase: "no user agent",
+			opts: []ClientOption{
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+			wantErr:     true,
+			expectedErr: "userAgent argument must be passed",
+		},
+		{
+			testCase: "no absolute path",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+			wantErr:     true,
+			expectedErr: "absolutePath argument must be passed",
+		},
+		{
+			testCase: "no credentials",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+			},
+			wantErr:     true,
+			expectedErr: "credentials argument must be passed",
+		},
+		{
+			testCase: "custom logger",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+				WithLogger(&tlog),
+			},
+			validation: func(t *testing.T, c *Client) {
+				require.NotNil(t, c.logger)
+				c.logger.Info("test")
+			},
+		},
+		{
+			testCase: "no logger creates default logger",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.NotNil(t, c.logger)
+			},
+		},
+		{
+			testCase: "credentials URL is used when base URL is not provided",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.Contains(t, c.BaseURL.String(), "foo.com")
+			},
+		},
+		{
+			testCase: "credentials URL is ignored when base URL is provided",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+				WithBaseURL("bar.com"),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.Contains(t, c.BaseURL.String(), "bar.com")
+				assert.NotContains(t, c.BaseURL.String(), "foo.com")
+			},
+		},
+		{
+			testCase: "if insecure credentials is set, skip TLS verification",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.True(t, c.httpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify)
+			},
+		},
+		{
+			testCase: "if insecure credentials is not set, ensure TLS verification",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.False(t, c.httpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify)
+			},
+		},
 	}
 
-	expectedURL := fmt.Sprintf(defaultBaseURL, httpsPrefix, "foo.com")
-
-	if c.BaseURL == nil || c.BaseURL.String() != expectedURL {
-		t.Errorf("NewClient BaseURL = %v, expected %v", c.BaseURL, expectedURL)
-	}
-
-	if c.UserAgent != testUserAgent {
-		t.Errorf("NewClient UserAgent = %v, expected %v", c.UserAgent, testUserAgent)
-	}
-}
-
-func TestNewBaseClient(t *testing.T) {
-	c, err := NewBaseClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testAbsolutePath, true)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
-
-	expectedURL := fmt.Sprintf(defaultBaseURL, httpPrefix, "foo.com")
-
-	if c.BaseURL == nil || c.BaseURL.String() != expectedURL {
-		t.Errorf("NewBaseClient BaseURL = %v, expected %v", c.BaseURL, expectedURL)
-	}
-
-	if c.AbsolutePath != testAbsolutePath {
-		t.Errorf("NewBaseClient UserAgent = %v, expected %v", c.AbsolutePath, testAbsolutePath)
+	for _, test := range tests {
+		c, err := NewClient(test.opts...)
+		if test.wantErr {
+			assert.Nil(t, c)
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), test.expectedErr)
+		} else {
+			assert.NotNil(t, c)
+			assert.NoError(t, err)
+			if test.validation != nil {
+				test.validation(t, c)
+			}
+		}
 	}
 }
 
 func TestNewRequest(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, false)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
+	creds := &prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: false}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
 	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", "https", "foo.com")
 	inBody, outBody := map[string]interface{}{"name": "bar"}, `{"name":"bar"}`+"\n"
 
-	req, _ := c.NewRequest(context.TODO(), http.MethodPost, inURL, inBody)
+	req, _ := c.NewRequest(http.MethodPost, inURL, inBody)
 
 	// test relative URL was expanded
 	if req.URL.String() != outURL {
@@ -93,35 +204,33 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestNewUploadRequest(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
+	creds := &prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
-	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", httpPrefix, "foo.com")
-	inBody, _ := os.Open(fileName)
-	if err != nil {
-		t.Fatalf("Error opening file %v, error : %v", fileName, err)
-	}
+	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", SchemeHTTPS, "foo.com")
+	inBody, err := os.Open(fileName)
+	require.NoError(t, err)
 
 	// expected body
-	out, _ := os.Open(fileName)
-	outBody, _ := ioutil.ReadAll(out)
+	out, err := os.Open(fileName)
+	require.NoError(t, err)
+	outBody, err := ioutil.ReadAll(out)
+	require.NoError(t, err)
 
-	req, err := c.NewUploadRequest(context.TODO(), http.MethodPost, inURL, inBody)
-	if err != nil {
-		t.Fatalf("NewUploadRequest() errored out with error : %v", err.Error())
-	}
+	req, err := c.NewUploadRequest(http.MethodPost, inURL, inBody)
+	require.NoError(t, err)
 	// test relative URL was expanded
-	if req.URL.String() != outURL {
-		t.Errorf("NewUploadRequest(%v) URL = %v, expected %v", inURL, req.URL, outURL)
-	}
+	assert.Equal(t, outURL, req.URL.String())
 
 	// test body contents
-	got, _ := ioutil.ReadAll(req.Body)
-	if !bytes.Equal(got, outBody) {
-		t.Errorf("NewUploadRequest(%v) Body = %v, expected %v", inBody, string(got), string(outBody))
-	}
+	got, err := ioutil.ReadAll(req.Body)
+	require.NoError(t, err)
+	assert.Equal(t, outBody, got)
 
 	// test headers.
 	inHeaders := map[string]string{
@@ -129,22 +238,23 @@ func TestNewUploadRequest(t *testing.T) {
 		"Accept":       mediaType,
 	}
 	for k, v := range inHeaders {
-		if v != req.Header[k][0] {
-			t.Errorf("NewUploadRequest() Header value for %v = %v, expected %v", k, req.Header[k][0], v)
-		}
+		assert.Equal(t, v, req.Header[k][0])
 	}
 }
 
 func TestNewUnAuthRequest(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
+	creds := &prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
-	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", httpPrefix, "foo.com")
+	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", SchemeHTTPS, "foo.com")
 	inBody, outBody := map[string]interface{}{"name": "bar"}, `{"name":"bar"}`+"\n"
 
-	req, _ := c.NewUnAuthRequest(context.TODO(), http.MethodPost, inURL, inBody)
+	req, _ := c.NewUnAuthRequest(http.MethodPost, inURL, inBody)
 
 	// test relative URL was expanded
 	if req.URL.String() != outURL {
@@ -174,16 +284,19 @@ func TestNewUnAuthRequest(t *testing.T) {
 }
 
 func TestNewUnAuthFormEncodedRequest(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
+	creds := &prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
-	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", httpPrefix, "foo.com")
+	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", SchemeHTTPS, "foo.com")
 	inBody := map[string]string{"name": "bar", "fullname": "foobar"}
 	outBody := map[string][]string{"name": {"bar"}, "fullname": {"foobar"}}
 
-	req, _ := c.NewUnAuthFormEncodedRequest(context.TODO(), http.MethodPost, inURL, inBody)
+	req, _ := c.NewUnAuthFormEncodedRequest(http.MethodPost, inURL, inBody)
 
 	// test relative URL was expanded
 	if req.URL.String() != outURL {
@@ -219,12 +332,15 @@ func TestNewUnAuthFormEncodedRequest(t *testing.T) {
 }
 
 func TestNewUnAuthUploadRequest(t *testing.T) {
-	c, err := NewClient(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}, testUserAgent, testAbsolutePath, true)
-	if err != nil {
-		t.Errorf("Unexpected Error: %v", err)
-	}
+	creds := &prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password", Insecure: true}
+	c, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
 
-	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", httpPrefix, "foo.com")
+	inURL, outURL := "/foo", fmt.Sprintf(defaultBaseURL+testAbsolutePath+"/foo", SchemeHTTPS, "foo.com")
 	inBody, _ := os.Open(fileName)
 	if err != nil {
 		t.Fatalf("Error opening fiele %v, error : %v", fileName, err)
@@ -234,7 +350,7 @@ func TestNewUnAuthUploadRequest(t *testing.T) {
 	out, _ := os.Open(fileName)
 	outBody, _ := ioutil.ReadAll(out)
 
-	req, err := c.NewUnAuthUploadRequest(context.TODO(), http.MethodPost, inURL, inBody)
+	req, err := c.NewUnAuthUploadRequest(http.MethodPost, inURL, inBody)
 	if err != nil {
 		t.Fatalf("NewUnAuthUploadRequest() errored out with error : %v", err.Error())
 	}
@@ -316,9 +432,7 @@ func TestCheckResponse(t *testing.T) {
 }
 
 func TestDo(t *testing.T) {
-	ctx := context.TODO()
-	mux, client, server := setup()
-
+	mux, client, server := setup(t)
 	defer server.Close()
 
 	type foo struct {
@@ -333,7 +447,7 @@ func TestDo(t *testing.T) {
 		fmt.Fprint(w, `{"A":"a"}`)
 	})
 
-	req, _ := client.NewRequest(ctx, http.MethodGet, "/", nil)
+	req, _ := client.NewRequest(http.MethodGet, "/", nil)
 	body := new(foo)
 
 	err := client.Do(context.Background(), req, body)
@@ -348,16 +462,14 @@ func TestDo(t *testing.T) {
 }
 
 func TestDo_httpError(t *testing.T) {
-	ctx := context.TODO()
-	mux, client, server := setup()
-
+	mux, client, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", 400)
 	})
 
-	req, _ := client.NewRequest(ctx, http.MethodGet, "/", nil)
+	req, _ := client.NewRequest(http.MethodGet, "/", nil)
 	err := client.Do(context.Background(), req, nil)
 
 	if err == nil {
@@ -365,18 +477,17 @@ func TestDo_httpError(t *testing.T) {
 	}
 }
 
-// / Test handling of an error caused by the internal http client's Do()
+// / Test handling of an error caused by the internal http httpClient's Do()
 // function.
 func TestDo_redirectLoop(t *testing.T) {
-	ctx := context.TODO()
-	mux, client, server := setup()
+	mux, client, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
-	req, _ := client.NewRequest(ctx, http.MethodGet, "/", nil)
+	req, _ := client.NewRequest(http.MethodGet, "/", nil)
 	err := client.Do(context.Background(), req, nil)
 
 	if err == nil {
@@ -402,14 +513,14 @@ func TestDo_redirectLoop(t *testing.T) {
 // 		fmt.Fprint(w, `{"A":"a"}`)
 // 	})
 
-// 	req, _ := client.NewRequest(ctx, http.MethodGet, "/", nil)
+// 	req, _ := httpClient.NewRequest(ctx, http.MethodGet, "/", nil)
 // 	req = req.WithContext(ctx)
 // 	body := new(foo)
 
 // 	// var completedReq *http.Request
 // 	var completedResp string
 
-// 	client.OnRequestCompleted(func(req *http.Request, resp *http.Response, v interface{}) {
+// 	httpClient.OnRequestCompleted(func(req *http.Request, resp *http.Response, v interface{}) {
 // 		// completedReq = req
 // 		b, err := httputil.DumpResponse(resp, true)
 // 		if err != nil {
@@ -417,7 +528,7 @@ func TestDo_redirectLoop(t *testing.T) {
 // 		}
 // 		completedResp = string(b)
 // 	})
-// 	err := client.Do(ctx, req, body)
+// 	err := httpClient.Do(ctx, req, body)
 
 // 	if err != nil {
 // 		t.Fatalf("Do(): %v", err)
@@ -454,18 +565,14 @@ func getFilter(name string, values []string) []*prismgoclient.AdditionalFilter {
 	}
 }
 
-func runTest(filters []*prismgoclient.AdditionalFilter, inputString string, expected string) bool {
+func runTest(t *testing.T, filters []*prismgoclient.AdditionalFilter, inputString string, expected string) {
 	input := io.NopCloser(strings.NewReader(inputString))
-	fmt.Println(expected)
 	baseSearchPaths := []string{"spec", "spec.resources"}
 	filteredBody, err := filter(input, filters, baseSearchPaths)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	actualBytes, _ := io.ReadAll(filteredBody)
 	actual := string(actualBytes)
-	fmt.Println(actual)
-	return actual == expected
+	assert.Equal(t, expected, actual)
 }
 
 func TestDoWithFilters_filter(t *testing.T) {
@@ -486,9 +593,7 @@ func TestDoWithFilters_filter(t *testing.T) {
 	}
 
 	for i := 0; i < len(filtersList); i++ {
-		if ok := runTest(filtersList[i], input, expectedList[i]); !ok {
-			t.Fatal()
-		}
+		runTest(t, filtersList[i], input, expectedList[i])
 	}
 }
 
@@ -503,7 +608,6 @@ func TestClient_NewRequest(t *testing.T) {
 		onRequestCompleted RequestCompletionCallback
 	}
 	type args struct {
-		ctx    context.Context
 		method string
 		urlStr string
 		body   interface{}
@@ -523,13 +627,13 @@ func TestClient_NewRequest(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Client{
-				Credentials:        tt.fields.Credentials,
-				client:             tt.fields.client,
+				credentials:        tt.fields.Credentials,
+				httpClient:         tt.fields.client,
 				BaseURL:            tt.fields.BaseURL,
 				UserAgent:          tt.fields.UserAgent,
 				onRequestCompleted: tt.fields.onRequestCompleted,
 			}
-			got, err := c.NewRequest(tt.args.ctx, tt.args.method, tt.args.urlStr, tt.args.body)
+			got, err := c.NewRequest(tt.args.method, tt.args.urlStr, tt.args.body)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Client.NewRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -564,8 +668,8 @@ func TestClient_OnRequestCompleted(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Client{
-				Credentials:        tt.fields.Credentials,
-				client:             tt.fields.client,
+				credentials:        tt.fields.Credentials,
+				httpClient:         tt.fields.client,
 				BaseURL:            tt.fields.BaseURL,
 				UserAgent:          tt.fields.UserAgent,
 				onRequestCompleted: tt.fields.onRequestCompleted,
@@ -602,8 +706,8 @@ func TestClient_Do(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Client{
-				Credentials:        tt.fields.Credentials,
-				client:             tt.fields.client,
+				credentials:        tt.fields.Credentials,
+				httpClient:         tt.fields.client,
 				BaseURL:            tt.fields.BaseURL,
 				UserAgent:          tt.fields.UserAgent,
 				onRequestCompleted: tt.fields.onRequestCompleted,

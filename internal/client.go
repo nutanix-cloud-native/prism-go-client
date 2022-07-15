@@ -16,152 +16,206 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
+	"go.uber.org/zap"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
+type Scheme string
+
 const (
-	// libraryVersion = "v3"
-	defaultBaseURL = "%s://%s/"
-	httpPrefix     = "http"
-	httpsPrefix    = "https"
-	// absolutePath   = "api/nutanix/" + libraryVersion
-	// userAgent      = "nutanix/" + libraryVersion
+	defaultBaseURL  = "%s://%s/"
 	mediaType       = "application/json"
 	formEncodedType = "application/x-www-form-urlencoded"
 	octetStreamType = "application/octet-stream"
+
+	SchemeHTTP  Scheme = "http"
+	SchemeHTTPS Scheme = "https"
 )
 
-// Client Config Configuration of the client
-type Client struct {
-	Credentials *prismgoclient.Credentials
+// RequestCompletionCallback defines the type of the request callback function
+type RequestCompletionCallback func(*http.Request, *http.Response, interface{})
 
-	// HTTP client used to communicate with the Nutanix API.
-	client *http.Client
+// Client Config Configuration of the httpClient
+type Client struct {
+	credentials *prismgoclient.Credentials
+
+	// HTTP httpClient used to communicate with the Nutanix API.
+	httpClient *http.Client
 
 	// Base URL for API requests.
 	BaseURL *url.URL
 
-	// User agent for client
+	// User agent for httpClient
 	UserAgent string
 
-	Cookies []*http.Cookie
+	cookies []*http.Cookie
 
 	// Optional function called after every successful request made.
 	onRequestCompleted RequestCompletionCallback
 
 	// absolutePath: for example api/nutanix/v3
-	AbsolutePath string
+	absolutePath string
 
-	// error message, incase client is in error state
+	// error message, incase httpClient is in error state
 	ErrorMsg string
+
+	logger *logr.Logger
 }
 
-// RequestCompletionCallback defines the type of the request callback function
-type RequestCompletionCallback func(*http.Request, *http.Response, interface{})
+type ClientOption func(*Client) error
 
-// NewClient returns a wrapper around http/https (as per isHTTP flag) client with additions of proxy & session_auth if given
-func NewClient(credentials *prismgoclient.Credentials, userAgent string, absolutePath string, isHTTP bool) (*Client, error) {
-	if userAgent == "" {
+// WithLogger sets the logger for the httpClient
+func WithLogger(logger *logr.Logger) ClientOption {
+	return func(c *Client) error {
+		c.logger = logger
+		return nil
+	}
+}
+
+// WithCredentials sets the credentials for the httpClient
+func WithCredentials(credentials *prismgoclient.Credentials) ClientOption {
+	return func(c *Client) error {
+		c.credentials = credentials
+		return nil
+	}
+}
+
+// WithUserAgent sets the user agent for the httpClient
+func WithUserAgent(userAgent string) ClientOption {
+	return func(c *Client) error {
+		c.UserAgent = userAgent
+		return nil
+	}
+}
+
+// WithBaseURL sets the base URL for the httpClient to communicate with
+func WithBaseURL(baseURL string) ClientOption {
+	return func(c *Client) error {
+		// if the BaseURL does not have a scheme, use https as a default scheme
+		// the `url.Parse` function parses the base URL (i.e. Host) as a Path
+		// if the URL does not have a scheme. Prefixing a scheme ensures the base URL
+		// is parsed as a Host and not a Path.
+		if !strings.HasPrefix(baseURL, string(SchemeHTTP)) {
+			baseURL = fmt.Sprintf("%s://%s", SchemeHTTPS, baseURL)
+		}
+		u, err := url.Parse(baseURL)
+		if err != nil {
+			return err
+		}
+		if u.Path == "" {
+			u.Path = "/"
+		}
+		c.BaseURL = u
+		return nil
+	}
+}
+
+// WithCookies sets the cookies for the httpClient
+func WithCookies(cookies []*http.Cookie) ClientOption {
+	return func(c *Client) error {
+		c.cookies = cookies
+		return nil
+	}
+}
+
+// WithAbsolutePath sets the absolute path for the httpClient to communicate with
+func WithAbsolutePath(absolutePath string) ClientOption {
+	return func(c *Client) error {
+		c.absolutePath = absolutePath
+		return nil
+	}
+}
+
+// NewClient returns a wrapper around http/https (as per isHTTP flag) httpClient with additions of proxy & session_auth if given
+func NewClient(opts ...ClientOption) (*Client, error) {
+	c := &Client{
+		httpClient: http.DefaultClient,
+	}
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			return nil, err
+		}
+	}
+
+	// If the user does not specify a logger, then we'll use zap for a default one
+	if c.logger == nil {
+		zapLog, err := zap.NewProduction()
+		if err != nil {
+			return nil, err
+		}
+		logger := zapr.NewLogger(zapLog)
+		c.logger = &logger
+	}
+
+	if c.UserAgent == "" {
 		return nil, fmt.Errorf("userAgent argument must be passed")
 	}
-	if absolutePath == "" {
+	if c.absolutePath == "" {
 		return nil, fmt.Errorf("absolutePath argument must be passed")
 	}
-
-	// create base client with basic configs
-	baseClient, err := NewBaseClient(credentials, absolutePath, isHTTP)
-	if err != nil {
-		return nil, err
+	if c.credentials == nil {
+		return nil, fmt.Errorf("credentials argument must be passed")
 	}
-	// add useragent
-	baseClient.UserAgent = userAgent
-
-	if credentials.ProxyURL != "" {
-		log.Printf("[DEBUG] Using proxy: %s\n", credentials.ProxyURL)
-		proxy, err := url.Parse(credentials.ProxyURL)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing proxy url: %s", err)
+	if c.BaseURL == nil {
+		c.logger.V(1).Info("BaseURL is not set. Using URL from credentials", "url", c.credentials.URL)
+		if err := WithBaseURL(c.credentials.URL)(c); err != nil {
+			return nil, err
 		}
-
-		// override transport config incase of using proxy
-		transCfg := &http.Transport{
-			// nolint:gas
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: credentials.Insecure}, // ignore expired SSL certificates
-		}
-		transCfg.Proxy = http.ProxyURL(proxy)
-		baseClient.client.Transport = logging.NewTransport("Nutanix", transCfg)
 	}
-
-	if credentials.SessionAuth {
-		log.Printf("[DEBUG] Using session_auth\n")
-
-		ctx := context.TODO()
-		req, err := baseClient.NewRequest(ctx, http.MethodGet, "/users/me", nil)
-		if err != nil {
-			return baseClient, err
-		}
-
-		resp, err := baseClient.client.Do(req)
-		if err != nil {
-			return baseClient, err
-		}
-		defer func() {
-			if rerr := resp.Body.Close(); err == nil {
-				err = rerr
-			}
-		}()
-
-		err = CheckResponse(resp)
-
-		baseClient.Cookies = resp.Cookies()
-	}
-
-	return baseClient, nil
-}
-
-// NewBaseClient returns a basic http/https client based on isHttp flag
-func NewBaseClient(credentials *prismgoclient.Credentials, absolutePath string, isHTTP bool) (*Client, error) {
-	if absolutePath == "" {
-		return nil, fmt.Errorf("absolutePath argument must be passed")
-	}
-
-	httpClient := http.DefaultClient
 
 	transCfg := &http.Transport{
 		// to skip/unskip SSL certificate validation
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: credentials.Insecure,
+			InsecureSkipVerify: c.credentials.Insecure,
 		},
 	}
-	httpClient.Transport = logging.NewTransport("Nutanix", transCfg)
-
-	protocol := httpsPrefix
-	if isHTTP {
-		protocol = httpPrefix
+	if c.credentials.ProxyURL != "" {
+		c.logger.V(1).Info("Using proxy:", "proxy", c.credentials.ProxyURL)
+		proxy, err := url.Parse(c.credentials.ProxyURL)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing proxy url: %s", err)
+		}
+		transCfg.Proxy = http.ProxyURL(proxy)
 	}
+	c.httpClient.Transport = transCfg
 
-	baseURL, err := url.Parse(fmt.Sprintf(defaultBaseURL, protocol, credentials.URL))
-	if err != nil {
-		return nil, err
+	if c.credentials.SessionAuth {
+		c.logger.V(1).Info("Using session_auth")
+
+		req, err := c.NewRequest(http.MethodGet, "/users/me", nil)
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if err := CheckResponse(resp); err != nil {
+			return nil, err
+		}
+
+		c.cookies = resp.Cookies()
 	}
-
-	c := &Client{credentials, httpClient, baseURL, "", nil, nil, absolutePath, ""}
 
 	return c, nil
 }
 
 // NewRequest creates a request
-func (c *Client) NewRequest(ctx context.Context, method, urlStr string, body interface{}) (*http.Request, error) {
-	// check if client exists or not
-	if c.client == nil {
+func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
 
-	rel, errp := url.Parse(c.AbsolutePath + urlStr)
-	if errp != nil {
-		return nil, errp
+	rel, err := url.Parse(c.absolutePath + urlStr)
+	if err != nil {
+		return nil, err
 	}
 
 	u := c.BaseURL.ResolveReference(rel)
@@ -182,26 +236,26 @@ func (c *Client) NewRequest(ctx context.Context, method, urlStr string, body int
 	req.Header.Add("Content-Type", mediaType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
-	if c.Cookies != nil {
-		for _, i := range c.Cookies {
+	if c.cookies != nil {
+		for _, i := range c.cookies {
 			req.AddCookie(i)
 		}
 	} else {
 		req.Header.Add("Authorization", "Basic "+
-			base64.StdEncoding.EncodeToString([]byte(c.Credentials.Username+":"+c.Credentials.Password)))
+			base64.StdEncoding.EncodeToString([]byte(c.credentials.Username+":"+c.credentials.Password)))
 	}
 	return req, nil
 }
 
-// NewRequest creates a request without authorisation headers
-func (c *Client) NewUnAuthRequest(ctx context.Context, method, urlStr string, body interface{}) (*http.Request, error) {
-	// check if client exists or not
-	if c.client == nil {
+// NewUnAuthRequest creates a request without authorisation headers
+func (c *Client) NewUnAuthRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
 
 	// create main api url
-	rel, err := url.Parse(c.AbsolutePath + urlStr)
+	rel, err := url.Parse(c.absolutePath + urlStr)
 	if err != nil {
 		return nil, err
 	}
@@ -228,13 +282,13 @@ func (c *Client) NewUnAuthRequest(ctx context.Context, method, urlStr string, bo
 }
 
 // NewUnAuthFormEncodedRequest returns content-type: application/x-www-form-urlencoded based unauth request
-func (c *Client) NewUnAuthFormEncodedRequest(ctx context.Context, method, urlStr string, body map[string]string) (*http.Request, error) {
-	// check if client exists or not
-	if c.client == nil {
+func (c *Client) NewUnAuthFormEncodedRequest(method, urlStr string, body map[string]string) (*http.Request, error) {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
 	// create main api url
-	rel, err := url.Parse(c.AbsolutePath + urlStr)
+	rel, err := url.Parse(c.absolutePath + urlStr)
 	if err != nil {
 		return nil, err
 	}
@@ -261,12 +315,12 @@ func (c *Client) NewUnAuthFormEncodedRequest(ctx context.Context, method, urlStr
 }
 
 // NewUploadRequest Handles image uploads for image service
-func (c *Client) NewUploadRequest(ctx context.Context, method, urlStr string, fileReader *os.File) (*http.Request, error) {
-	// check if client exists or not
-	if c.client == nil {
+func (c *Client) NewUploadRequest(method, urlStr string, fileReader *os.File) (*http.Request, error) {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
-	rel, errp := url.Parse(c.AbsolutePath + urlStr)
+	rel, errp := url.Parse(c.absolutePath + urlStr)
 	if errp != nil {
 		return nil, errp
 	}
@@ -294,18 +348,18 @@ func (c *Client) NewUploadRequest(ctx context.Context, method, urlStr string, fi
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
 	req.Header.Add("Authorization", "Basic "+
-		base64.StdEncoding.EncodeToString([]byte(c.Credentials.Username+":"+c.Credentials.Password)))
+		base64.StdEncoding.EncodeToString([]byte(c.credentials.Username+":"+c.credentials.Password)))
 
 	return req, nil
 }
 
 // NewUploadRequest handles image uploads for image service
-func (c *Client) NewUnAuthUploadRequest(ctx context.Context, method, urlStr string, fileReader *os.File) (*http.Request, error) {
-	// check if client exists or not
-	if c.client == nil {
+func (c *Client) NewUnAuthUploadRequest(method, urlStr string, fileReader *os.File) (*http.Request, error) {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return nil, fmt.Errorf(c.ErrorMsg)
 	}
-	rel, errp := url.Parse(c.AbsolutePath + urlStr)
+	rel, errp := url.Parse(c.absolutePath + urlStr)
 	if errp != nil {
 		return nil, errp
 	}
@@ -342,13 +396,13 @@ func (c *Client) OnRequestCompleted(rc RequestCompletionCallback) {
 
 // Do performs request passed
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
-	// check if client exists or not
-	if c.client == nil {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return fmt.Errorf(c.ErrorMsg)
 	}
 
 	req = req.WithContext(ctx)
-	resp, err := c.client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -397,12 +451,12 @@ func searchSlice(slice []string, key string) bool {
 
 // DoWithFilters performs request passed and filters entities in json response
 func (c *Client) DoWithFilters(ctx context.Context, req *http.Request, v interface{}, filters []*prismgoclient.AdditionalFilter, baseSearchPaths []string) error {
-	// check if client exists or not
-	if c.client == nil {
+	// check if httpClient exists or not
+	if c.httpClient == nil {
 		return fmt.Errorf(c.ErrorMsg)
 	}
 	req = req.WithContext(ctx)
-	resp, err := c.client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -526,7 +580,7 @@ func CheckResponse(r *http.Response) error {
 	// Nutanix returns non-json response with code 401 when
 	// invalid credentials are used
 	if c == http.StatusUnauthorized {
-		return fmt.Errorf("invalid Nutanix Credentials")
+		return fmt.Errorf("invalid Nutanix credentials")
 	}
 
 	buf, err := ioutil.ReadAll(r.Body)
