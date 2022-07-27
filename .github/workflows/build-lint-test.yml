@@ -29,7 +29,7 @@ jobs:
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v3.2.0
       with:
-        args: --enable gofmt --enable gofumpt
+        args: --enable gofmt --enable gofumpt --timeout 5m
 
     - name: Check YAML linting
       run: make lint-yaml
