@@ -12,7 +12,7 @@ import (
 
 // MetaOperations ...
 type MetaOperations struct {
-	client *internal.Client
+	httpClient *internal.Client
 }
 
 // Service ...
@@ -25,12 +25,12 @@ type MetaService interface {
 func (op MetaOperations) GetVersion() (*MetaVersionResponse, error) {
 	ctx := context.TODO()
 	path := "/v1-alpha.1/version"
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	karbonMetaVersionResponse := new(MetaVersionResponse)
 	if err != nil {
 		return nil, err
 	}
-	return karbonMetaVersionResponse, op.client.Do(ctx, req, karbonMetaVersionResponse)
+	return karbonMetaVersionResponse, op.httpClient.Do(ctx, req, karbonMetaVersionResponse)
 }
 
 func (op MetaOperations) GetSemanticVersion() (*MetaSemanticVersionResponse, error) {

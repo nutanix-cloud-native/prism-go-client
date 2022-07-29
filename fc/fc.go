@@ -27,7 +27,11 @@ func NewFoundationCentralClient(credentials prismgoclient.Credentials) (*Client,
 
 	// check if all required fields are present. Else create an empty internal
 	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
-		c, err := internal.NewClient(&credentials, userAgent, absolutePath, false)
+		c, err := internal.NewClient(
+			internal.WithCredentials(&credentials),
+			internal.WithAbsolutePath(absolutePath),
+			internal.WithUserAgent(userAgent),
+		)
 		if err != nil {
 			return nil, err
 		}

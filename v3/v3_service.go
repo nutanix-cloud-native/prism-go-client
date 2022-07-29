@@ -132,7 +132,7 @@ type Service interface {
 func (op Operations) CreateVM(createRequest *VMIntentInput) (*VMIntentResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/vms", createRequest)
+	req, err := op.client.NewRequest(http.MethodPost, "/vms", createRequest)
 	vmIntentResponse := new(VMIntentResponse)
 
 	if err != nil {
@@ -153,7 +153,7 @@ func (op Operations) DeleteVM(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/vms/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -174,7 +174,7 @@ func (op Operations) GetVM(uuid string) (*VMIntentResponse, error) {
 
 	path := fmt.Sprintf("/vms/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	vmIntentResponse := new(VMIntentResponse)
 
 	if err != nil {
@@ -193,7 +193,7 @@ func (op Operations) ListVM(getEntitiesRequest *DSMetadata) (*VMListIntentRespon
 	ctx := context.TODO()
 	path := "/vms/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	vmListIntentResponse := new(VMListIntentResponse)
 
 	if err != nil {
@@ -214,7 +214,7 @@ func (op Operations) UpdateVM(uuid string, body *VMIntentInput) (*VMIntentRespon
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/vms/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	vmIntentResponse := new(VMIntentResponse)
 
 	if err != nil {
@@ -233,7 +233,7 @@ func (op Operations) UpdateVM(uuid string, body *VMIntentInput) (*VMIntentRespon
 func (op Operations) CreateSubnet(createRequest *SubnetIntentInput) (*SubnetIntentResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/subnets", createRequest)
+	req, err := op.client.NewRequest(http.MethodPost, "/subnets", createRequest)
 	subnetIntentResponse := new(SubnetIntentResponse)
 
 	if err != nil {
@@ -254,7 +254,7 @@ func (op Operations) DeleteSubnet(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/subnets/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -275,7 +275,7 @@ func (op Operations) GetSubnet(uuid string) (*SubnetIntentResponse, error) {
 
 	path := fmt.Sprintf("/subnets/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	subnetIntentResponse := new(SubnetIntentResponse)
 
 	if err != nil {
@@ -300,7 +300,7 @@ func (op Operations) ListSubnet(getEntitiesRequest *DSMetadata) (*SubnetListInte
 	ctx := context.TODO()
 	path := "/subnets/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	subnetListIntentResponse := new(SubnetListIntentResponse)
 
 	if err != nil {
@@ -322,7 +322,7 @@ func (op Operations) UpdateSubnet(uuid string, body *SubnetIntentInput) (*Subnet
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/subnets/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	subnetIntentResponse := new(SubnetIntentResponse)
 
 	if err != nil {
@@ -341,7 +341,7 @@ func (op Operations) UpdateSubnet(uuid string, body *SubnetIntentInput) (*Subnet
 func (op Operations) CreateImage(body *ImageIntentInput) (*ImageIntentResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/images", body)
+	req, err := op.client.NewRequest(http.MethodPost, "/images", body)
 	imageIntentResponse := new(ImageIntentResponse)
 
 	if err != nil {
@@ -368,7 +368,7 @@ func (op Operations) UploadImage(uuid, filepath string) error {
 	}
 	defer file.Close()
 
-	req, err := op.client.NewUploadRequest(ctx, http.MethodPut, path, file)
+	req, err := op.client.NewUploadRequest(http.MethodPut, path, file)
 	if err != nil {
 		return fmt.Errorf("error: Creating request %s", err)
 	}
@@ -389,7 +389,7 @@ func (op Operations) DeleteImage(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/images/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -410,7 +410,7 @@ func (op Operations) GetImage(uuid string) (*ImageIntentResponse, error) {
 
 	path := fmt.Sprintf("/images/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	imageIntentResponse := new(ImageIntentResponse)
 
 	if err != nil {
@@ -429,7 +429,7 @@ func (op Operations) ListImage(getEntitiesRequest *DSMetadata) (*ImageListIntent
 	ctx := context.TODO()
 	path := "/images/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	imageListIntentResponse := new(ImageListIntentResponse)
 
 	if err != nil {
@@ -450,7 +450,7 @@ func (op Operations) UpdateImage(uuid string, body *ImageIntentInput) (*ImageInt
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/images/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	imageIntentResponse := new(ImageIntentResponse)
 
 	if err != nil {
@@ -471,7 +471,7 @@ func (op Operations) GetCluster(uuid string) (*ClusterIntentResponse, error) {
 
 	path := fmt.Sprintf("/clusters/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	clusterIntentResponse := new(ClusterIntentResponse)
 
 	if err != nil {
@@ -490,7 +490,7 @@ func (op Operations) ListCluster(getEntitiesRequest *DSMetadata) (*ClusterListIn
 	ctx := context.TODO()
 	path := "/clusters/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	clusterList := new(ClusterListIntentResponse)
 
 	if err != nil {
@@ -532,7 +532,7 @@ func (op Operations) CreateOrUpdateCategoryKey(body *CategoryKey) (*CategoryKeyS
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/categories/%s", utils.StringValue(body.Name))
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	categoryKeyResponse := new(CategoryKeyStatus)
 
 	if err != nil {
@@ -551,7 +551,7 @@ func (op Operations) ListCategories(getEntitiesRequest *CategoryListMetadata) (*
 	ctx := context.TODO()
 	path := "/categories/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	categoryKeyListResponse := new(CategoryKeyListResponse)
 
 	if err != nil {
@@ -572,7 +572,7 @@ func (op Operations) DeleteCategoryKey(name string) error {
 
 	path := fmt.Sprintf("/categories/%s", name)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -590,7 +590,7 @@ func (op Operations) GetCategoryKey(name string) (*CategoryKeyStatus, error) {
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/categories/%s", name)
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	categoryKeyStatusResponse := new(CategoryKeyStatus)
 
 	if err != nil {
@@ -609,7 +609,7 @@ func (op Operations) ListCategoryValues(name string, getEntitiesRequest *Categor
 	ctx := context.TODO()
 	path := fmt.Sprintf("/categories/%s/list", name)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	categoryValueListResponse := new(CategoryValueListResponse)
 
 	if err != nil {
@@ -624,7 +624,7 @@ func (op Operations) CreateOrUpdateCategoryValue(name string, body *CategoryValu
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/categories/%s/%s", name, utils.StringValue(body.Value))
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	categoryValueResponse := new(CategoryValueStatus)
 
 	if err != nil {
@@ -646,7 +646,7 @@ func (op Operations) GetCategoryValue(name string, value string) (*CategoryValue
 
 	path := fmt.Sprintf("/categories/%s/%s", name, value)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	categoryValueStatusResponse := new(CategoryValueStatus)
 
 	if err != nil {
@@ -668,7 +668,7 @@ func (op Operations) DeleteCategoryValue(name string, value string) error {
 
 	path := fmt.Sprintf("/categories/%s/%s", name, value)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -686,7 +686,7 @@ func (op Operations) GetCategoryQuery(query *CategoryQueryInput) (*CategoryQuery
 
 	path := "/category/query"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, query)
+	req, err := op.client.NewRequest(http.MethodPost, path, query)
 	categoryQueryResponse := new(CategoryQueryResponse)
 
 	if err != nil {
@@ -706,7 +706,7 @@ func (op Operations) CreateNetworkSecurityRule(request *NetworkSecurityRuleInten
 	ctx := context.TODO()
 
 	networkSecurityRuleIntentResponse := new(NetworkSecurityRuleIntentResponse)
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/network_security_rules", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/network_security_rules", request)
 	if err != nil {
 		return nil, err
 	}
@@ -725,7 +725,7 @@ func (op Operations) DeleteNetworkSecurityRule(uuid string) (*DeleteResponse, er
 
 	path := fmt.Sprintf("/network_security_rules/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -746,7 +746,7 @@ func (op Operations) GetNetworkSecurityRule(uuid string) (*NetworkSecurityRuleIn
 
 	path := fmt.Sprintf("/network_security_rules/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	networkSecurityRuleIntentResponse := new(NetworkSecurityRuleIntentResponse)
 
 	if err != nil {
@@ -765,7 +765,7 @@ func (op Operations) ListNetworkSecurityRule(getEntitiesRequest *DSMetadata) (*N
 	ctx := context.TODO()
 	path := "/network_security_rules/list"
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	networkSecurityRuleListIntentResponse := new(NetworkSecurityRuleListIntentResponse)
 
 	if err != nil {
@@ -789,7 +789,7 @@ func (op Operations) UpdateNetworkSecurityRule(
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/network_security_rules/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	networkSecurityRuleIntentResponse := new(NetworkSecurityRuleIntentResponse)
 
 	if err != nil {
@@ -808,7 +808,7 @@ func (op Operations) UpdateNetworkSecurityRule(
 func (op Operations) CreateVolumeGroup(request *VolumeGroupInput) (*VolumeGroupResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/volume_groups", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/volume_groups", request)
 	networkSecurityRuleResponse := new(VolumeGroupResponse)
 
 	if err != nil {
@@ -829,7 +829,7 @@ func (op Operations) DeleteVolumeGroup(uuid string) error {
 
 	path := fmt.Sprintf("/volume_groups/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -847,7 +847,7 @@ func (op Operations) GetVolumeGroup(uuid string) (*VolumeGroupResponse, error) {
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/volume_groups/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	networkSecurityRuleResponse := new(VolumeGroupResponse)
 
 	if err != nil {
@@ -865,7 +865,7 @@ func (op Operations) GetVolumeGroup(uuid string) (*VolumeGroupResponse, error) {
 func (op Operations) ListVolumeGroup(getEntitiesRequest *DSMetadata) (*VolumeGroupListResponse, error) {
 	ctx := context.TODO()
 	path := "/volume_groups/list"
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	networkSecurityRuleListResponse := new(VolumeGroupListResponse)
 
 	if err != nil {
@@ -886,7 +886,7 @@ func (op Operations) UpdateVolumeGroup(uuid string, body *VolumeGroupInput) (*Vo
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/volume_groups/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	networkSecurityRuleResponse := new(VolumeGroupResponse)
 
 	if err != nil {
@@ -1160,7 +1160,7 @@ func (op Operations) GetTask(taskUUID string) (*TasksResponse, error) {
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/tasks/%s", taskUUID)
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	tasksTesponse := new(TasksResponse)
 
 	if err != nil {
@@ -1177,7 +1177,7 @@ func (op Operations) GetHost(hostUUID string) (*HostResponse, error) {
 	path := fmt.Sprintf("/hosts/%s", hostUUID)
 	host := new(HostResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1192,7 +1192,7 @@ func (op Operations) ListHost(getEntitiesRequest *DSMetadata) (*HostListResponse
 
 	hostList := new(HostListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1249,7 +1249,7 @@ func (op Operations) ListAllHost() (*HostListResponse, error) {
 func (op Operations) CreateProject(request *Project) (*Project, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/projects", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/projects", request)
 	if err != nil {
 		return nil, err
 	}
@@ -1270,7 +1270,7 @@ func (op Operations) GetProject(projectUUID string) (*Project, error) {
 	path := fmt.Sprintf("/projects/%s", projectUUID)
 	project := new(Project)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1289,7 +1289,7 @@ func (op Operations) ListProject(getEntitiesRequest *DSMetadata) (*ProjectListRe
 
 	projectList := new(ProjectListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1355,7 +1355,7 @@ func (op Operations) UpdateProject(uuid string, body *Project) (*Project, error)
 	path := fmt.Sprintf("/projects/%s", uuid)
 	projectInput := new(Project)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1374,7 +1374,7 @@ func (op Operations) DeleteProject(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/projects/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 	if err != nil {
 		return nil, err
@@ -1392,7 +1392,7 @@ func (op Operations) DeleteProject(uuid string) (*DeleteResponse, error) {
 func (op Operations) CreateAccessControlPolicy(request *AccessControlPolicy) (*AccessControlPolicy, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/access_control_policies", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/access_control_policies", request)
 	if err != nil {
 		return nil, err
 	}
@@ -1413,7 +1413,7 @@ func (op Operations) GetAccessControlPolicy(accessControlPolicyUUID string) (*Ac
 	path := fmt.Sprintf("/access_control_policies/%s", accessControlPolicyUUID)
 	AccessControlPolicy := new(AccessControlPolicy)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1432,7 +1432,7 @@ func (op Operations) ListAccessControlPolicy(getEntitiesRequest *DSMetadata) (*A
 
 	AccessControlPolicyList := new(AccessControlPolicyListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1498,7 +1498,7 @@ func (op Operations) UpdateAccessControlPolicy(uuid string, body *AccessControlP
 	path := fmt.Sprintf("/access_control_policies/%s", uuid)
 	AccessControlPolicyInput := new(AccessControlPolicy)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1517,7 +1517,7 @@ func (op Operations) DeleteAccessControlPolicy(uuid string) (*DeleteResponse, er
 
 	path := fmt.Sprintf("/access_control_policies/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -1536,7 +1536,7 @@ func (op Operations) DeleteAccessControlPolicy(uuid string) (*DeleteResponse, er
 func (op Operations) CreateRole(request *Role) (*Role, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/roles", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/roles", request)
 	if err != nil {
 		return nil, err
 	}
@@ -1557,7 +1557,7 @@ func (op Operations) GetRole(roleUUID string) (*Role, error) {
 	path := fmt.Sprintf("/roles/%s", roleUUID)
 	Role := new(Role)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1576,7 +1576,7 @@ func (op Operations) ListRole(getEntitiesRequest *DSMetadata) (*RoleListResponse
 
 	RoleList := new(RoleListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1642,7 +1642,7 @@ func (op Operations) UpdateRole(uuid string, body *Role) (*Role, error) {
 	path := fmt.Sprintf("/roles/%s", uuid)
 	RoleInput := new(Role)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1661,7 +1661,7 @@ func (op Operations) DeleteRole(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/roles/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -1680,7 +1680,7 @@ func (op Operations) DeleteRole(uuid string) (*DeleteResponse, error) {
 func (op Operations) CreateUser(request *UserIntentInput) (*UserIntentResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/users", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/users", request)
 	if err != nil {
 		return nil, err
 	}
@@ -1701,7 +1701,7 @@ func (op Operations) GetUser(userUUID string) (*UserIntentResponse, error) {
 	path := fmt.Sprintf("/users/%s", userUUID)
 	User := new(UserIntentResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1721,7 +1721,7 @@ func (op Operations) UpdateUser(uuid string, body *UserIntentInput) (*UserIntent
 	path := fmt.Sprintf("/users/%s", uuid)
 	UserInput := new(UserIntentResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1740,7 +1740,7 @@ func (op Operations) DeleteUser(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/users/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -1761,7 +1761,7 @@ func (op Operations) ListUser(getEntitiesRequest *DSMetadata) (*UserListResponse
 
 	UserList := new(UserListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1817,7 +1817,7 @@ func (op Operations) ListAllUser(filter string) (*UserListResponse, error) {
  */
 func (op Operations) GetCurrentLoggedInUser(ctx context.Context) (*UserIntentResponse, error) {
 	path := "/users/me"
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1840,7 +1840,7 @@ func (op Operations) GetUserGroup(userGroupUUID string) (*UserGroupIntentRespons
 	path := fmt.Sprintf("/user_groups/%s", userGroupUUID)
 	User := new(UserGroupIntentResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1859,7 +1859,7 @@ func (op Operations) ListUserGroup(getEntitiesRequest *DSMetadata) (*UserGroupLi
 
 	UserGroupList := new(UserGroupListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1919,7 +1919,7 @@ func (op Operations) GetPermission(permissionUUID string) (*PermissionIntentResp
 	path := fmt.Sprintf("/permissions/%s", permissionUUID)
 	permission := new(PermissionIntentResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1938,7 +1938,7 @@ func (op Operations) ListPermission(getEntitiesRequest *DSMetadata) (*Permission
 
 	PermissionList := new(PermissionListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -1994,7 +1994,7 @@ func (op Operations) GetProtectionRule(uuid string) (*ProtectionRuleResponse, er
 	path := fmt.Sprintf("/protection_rules/%s", uuid)
 	protectionRule := new(ProtectionRuleResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2009,7 +2009,7 @@ func (op Operations) ListProtectionRules(getEntitiesRequest *DSMetadata) (*Prote
 
 	list := new(ProtectionRulesListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -2063,7 +2063,7 @@ func (op Operations) ListAllProtectionRules(filter string) (*ProtectionRulesList
 func (op Operations) CreateProtectionRule(createRequest *ProtectionRuleInput) (*ProtectionRuleResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/protection_rules", createRequest)
+	req, err := op.client.NewRequest(http.MethodPost, "/protection_rules", createRequest)
 	protectionRuleResponse := new(ProtectionRuleResponse)
 
 	if err != nil {
@@ -2078,7 +2078,7 @@ func (op Operations) UpdateProtectionRule(uuid string, body *ProtectionRuleInput
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/protection_rules/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	protectionRuleResponse := new(ProtectionRuleResponse)
 
 	if err != nil {
@@ -2094,7 +2094,7 @@ func (op Operations) DeleteProtectionRule(uuid string) (*DeleteResponse, error) 
 
 	path := fmt.Sprintf("/protection_rules/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -2111,7 +2111,7 @@ func (op Operations) GetRecoveryPlan(uuid string) (*RecoveryPlanResponse, error)
 	path := fmt.Sprintf("/recovery_plans/%s", uuid)
 	RecoveryPlan := new(RecoveryPlanResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2126,7 +2126,7 @@ func (op Operations) ListRecoveryPlans(getEntitiesRequest *DSMetadata) (*Recover
 
 	list := new(RecoveryPlanListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -2180,7 +2180,7 @@ func (op Operations) ListAllRecoveryPlans(filter string) (*RecoveryPlanListRespo
 func (op Operations) CreateRecoveryPlan(createRequest *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/recovery_plans", createRequest)
+	req, err := op.client.NewRequest(http.MethodPost, "/recovery_plans", createRequest)
 	RecoveryPlanResponse := new(RecoveryPlanResponse)
 
 	if err != nil {
@@ -2195,7 +2195,7 @@ func (op Operations) UpdateRecoveryPlan(uuid string, body *RecoveryPlanInput) (*
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/recovery_plans/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	RecoveryPlanResponse := new(RecoveryPlanResponse)
 
 	if err != nil {
@@ -2211,7 +2211,7 @@ func (op Operations) DeleteRecoveryPlan(uuid string) (*DeleteResponse, error) {
 
 	path := fmt.Sprintf("/recovery_plans/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	deleteResponse := new(DeleteResponse)
 
 	if err != nil {
@@ -2227,7 +2227,7 @@ func (op Operations) GetServiceGroup(uuid string) (*ServiceGroupResponse, error)
 	path := fmt.Sprintf("/service_groups/%s", uuid)
 	ServiceGroup := new(ServiceGroupResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2238,7 +2238,7 @@ func (op Operations) GetServiceGroup(uuid string) (*ServiceGroupResponse, error)
 func (op Operations) CreateServiceGroup(request *ServiceGroupInput) (*Reference, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/service_groups", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/service_groups", request)
 	ServiceGroup := new(Reference)
 
 	if err != nil {
@@ -2253,7 +2253,7 @@ func (op Operations) DeleteServiceGroup(uuid string) error {
 
 	path := fmt.Sprintf("/service_groups/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -2308,7 +2308,7 @@ func (op Operations) listServiceGroups(getEntitiesRequest *DSMetadata) (*Service
 
 	list := new(ServiceGroupListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -2320,7 +2320,7 @@ func (op Operations) UpdateServiceGroup(uuid string, body *ServiceGroupInput) er
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/service_groups/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return err
 	}
@@ -2334,7 +2334,7 @@ func (op Operations) GetAddressGroup(uuid string) (*AddressGroupResponse, error)
 	path := fmt.Sprintf("/address_groups/%s", uuid)
 	AddressGroup := new(AddressGroupResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2389,7 +2389,7 @@ func (op Operations) ListAddressGroups(getEntitiesRequest *DSMetadata) (*Address
 
 	list := new(AddressGroupListResponse)
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, path, getEntitiesRequest)
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -2402,7 +2402,7 @@ func (op Operations) DeleteAddressGroup(uuid string) error {
 
 	path := fmt.Sprintf("/address_groups/%s", uuid)
 
-	req, err := op.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}
@@ -2413,7 +2413,7 @@ func (op Operations) DeleteAddressGroup(uuid string) error {
 func (op Operations) CreateAddressGroup(request *AddressGroupInput) (*Reference, error) {
 	ctx := context.TODO()
 
-	req, err := op.client.NewRequest(ctx, http.MethodPost, "/address_groups", request)
+	req, err := op.client.NewRequest(http.MethodPost, "/address_groups", request)
 	AddressGroup := new(Reference)
 
 	if err != nil {
@@ -2427,7 +2427,7 @@ func (op Operations) UpdateAddressGroup(uuid string, body *AddressGroupInput) er
 	ctx := context.TODO()
 
 	path := fmt.Sprintf("/address_groups/%s", uuid)
-	req, err := op.client.NewRequest(ctx, http.MethodPut, path, body)
+	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	if err != nil {
 		return err
 	}

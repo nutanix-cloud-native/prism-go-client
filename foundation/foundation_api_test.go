@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
@@ -21,16 +23,13 @@ func TestNewFoundationAPIClient(t *testing.T) {
 		RequiredFields:     nil,
 	}
 	foundationClient, err := NewFoundationAPIClient(cred)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	assert.NoError(t, err)
+
 	outURL := fmt.Sprintf("http://%s:%s/", cred.FoundationEndpoint, cred.FoundationPort)
-	if foundationClient.client.BaseURL.String() != outURL {
-		t.Errorf("NewFoundationAPIClient(%v) BaseUrl in base client of foundation client = %v, expected %v", cred, foundationClient.client.BaseURL.String(), outURL)
-	}
+	assert.Equal(t, outURL, foundationClient.client.BaseURL.String())
 
 	// verify missing client scenario
-	cred2 := prismgoclient.Credentials{
+	cred = prismgoclient.Credentials{
 		URL:      "foo.com",
 		Username: "username",
 		Password: "password",
@@ -41,12 +40,7 @@ func TestNewFoundationAPIClient(t *testing.T) {
 			"foundation": {"foundation_endpoint"},
 		},
 	}
-	foundationClient2, err2 := NewFoundationAPIClient(cred2)
-	if err2 != nil {
-		t.Errorf(err2.Error())
-	}
-
-	if foundationClient2.client.ErrorMsg == "" {
-		t.Errorf("NewFoundationAPIClient(%v) expected the base client in foundation client to have some error message", cred2)
-	}
+	foundationClient, err = NewFoundationAPIClient(cred)
+	assert.Error(t, err)
+	assert.Nil(t, foundationClient)
 }

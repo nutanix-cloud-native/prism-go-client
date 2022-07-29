@@ -22,7 +22,7 @@ type NetworkingOperations struct {
 // DiscoverNodes discovers(gets) Nutanix-imaged nodes within an IPv6 network.
 func (ntw NetworkingOperations) DiscoverNodes(ctx context.Context) (*DiscoverNodesAPIResponse, error) {
 	path := "/discover_nodes"
-	req, err := ntw.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
+	req, err := ntw.client.NewUnAuthRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (ntw NetworkingOperations) DiscoverNodes(ctx context.Context) (*DiscoverNod
 // Gets hypervisor, CVM & IPMI info of the discovered nodes
 func (ntw NetworkingOperations) NodeNetworkDetails(ctx context.Context, ntwInput *NodeNetworkDetailsInput) (*NodeNetworkDetailsResponse, error) {
 	path := "/node_network_details"
-	req, err := ntw.client.NewUnAuthRequest(ctx, http.MethodPost, path, ntwInput)
+	req, err := ntw.client.NewUnAuthRequest(http.MethodPost, path, ntwInput)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (ntw NetworkingOperations) NodeNetworkDetails(ctx context.Context, ntwInput
 // Configures IPMI IP address on BMC of nodes.
 func (ntw NetworkingOperations) ConfigureIPMI(ctx context.Context, config *IPMIConfigAPIInput) (*IPMIConfigAPIResponse, error) {
 	path := "/ipmi_config"
-	req, err := ntw.client.NewUnAuthRequest(ctx, http.MethodPost, path, config)
+	req, err := ntw.client.NewUnAuthRequest(http.MethodPost, path, config)
 	if err != nil {
 		return nil, err
 	}

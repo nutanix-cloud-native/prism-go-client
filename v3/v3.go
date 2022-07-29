@@ -27,7 +27,10 @@ func NewV3Client(credentials prismgoclient.Credentials) (*Client, error) {
 
 	// check if all required fields are present. Else create an empty internal
 	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
-		c, err := internal.NewClient(&credentials, userAgent, absolutePath, false)
+		c, err := internal.NewClient(
+			internal.WithCredentials(&credentials),
+			internal.WithUserAgent(userAgent),
+			internal.WithAbsolutePath(absolutePath))
 		if err != nil {
 			return nil, err
 		}
