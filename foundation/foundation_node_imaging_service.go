@@ -18,7 +18,7 @@ type NodeImagingOperations struct {
 
 func (op NodeImagingOperations) ImageNodes(ctx context.Context, imageNodeInput *ImageNodesInput) (*ImageNodesAPIResponse, error) {
 	path := "/image_nodes"
-	req, err := op.client.NewUnAuthRequest(ctx, http.MethodPost, path, imageNodeInput)
+	req, err := op.client.NewUnAuthRequest(http.MethodPost, path, imageNodeInput)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (op NodeImagingOperations) ImageNodes(ctx context.Context, imageNodeInput *
 // Gets progress of imaging session.
 func (op NodeImagingOperations) ImageNodesProgress(ctx context.Context, sessionID string) (*ImageNodesProgressResponse, error) {
 	path := "/progress?session_id=" + sessionID
-	req, err := op.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
+	req, err := op.client.NewUnAuthRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}

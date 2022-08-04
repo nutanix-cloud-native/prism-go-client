@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added the "environment" package which provides abstraction for retrieving settings like API endpoints, credentials and their sources to evolve independently from clients
+- Add logr based configurable logging for internal.NewClient
+
 ### Changed
 - The http client has been moved from pkg/nutanix to repo root
 - The fc stubs have been moved from pkg/nutanix/fc to fc
@@ -15,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The v3 stubs have been moved from pkg/nutanix/v3 to v3
 - The underlying http client is moved from root package to internal
 - The root package is renamed from `prism_go_client` to `prismgoclient`
+- Modify NewClient constructor to use functional options
+- NewRequest and NewAuthRequest methods on internal.Client don't admit context in params
+
+### Removed
+- remove internal.NewBaseClient constructor
 
 ## [0.2.0] - 2022-06-14
 ### Added

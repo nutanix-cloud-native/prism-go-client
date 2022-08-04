@@ -25,7 +25,7 @@ type FileManagementOperations struct {
 // ListNOSPackages lists the available AOS packages file names in Foundation
 func (fmo FileManagementOperations) ListNOSPackages(ctx context.Context) (*ListNOSPackagesResponse, error) {
 	path := "/enumerate_nos_packages"
-	req, err := fmo.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
+	req, err := fmo.client.NewUnAuthRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (fmo FileManagementOperations) ListNOSPackages(ctx context.Context) (*ListN
 // ListHypervisorISOs lists the hypervisor ISOs available in Foundation
 func (fmo FileManagementOperations) ListHypervisorISOs(ctx context.Context) (*ListHypervisorISOsResponse, error) {
 	path := "/enumerate_hypervisor_isos"
-	req, err := fmo.client.NewUnAuthRequest(ctx, http.MethodGet, path, nil)
+	req, err := fmo.client.NewUnAuthRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (fmo FileManagementOperations) UploadImage(ctx context.Context, installerTy
 	}
 	defer file.Close()
 
-	req, err := fmo.client.NewUnAuthUploadRequest(ctx, http.MethodPost, path, file)
+	req, err := fmo.client.NewUnAuthUploadRequest(http.MethodPost, path, file)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (fmo FileManagementOperations) DeleteImage(ctx context.Context, installerTy
 	body["installer_type"] = installerType
 	body["filename"] = fileName
 
-	req, err := fmo.client.NewUnAuthFormEncodedRequest(ctx, http.MethodPost, path, body)
+	req, err := fmo.client.NewUnAuthFormEncodedRequest(http.MethodPost, path, body)
 	if err != nil {
 		return err
 	}

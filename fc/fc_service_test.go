@@ -5,30 +5,35 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"k8s.io/apimachinery/pkg/util/rand"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
-func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
+func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := internal.NewClient(&prismgoclient.Credentials{
+	creds := &prismgoclient.Credentials{
 		URL:      "https://10.2.242.13:9440",
-		Username: "admin",
-		Password: "Nutanix.123",
+		Username: rand.String(10),
+		Password: rand.String(10),
 		Port:     "9440",
 		Endpoint: "10.2.242.13",
 		Insecure: true,
-	},
-		userAgent,
-		absolutePath,
-		false)
-	c.BaseURL, _ = url.Parse(server.URL)
+	}
+	c, err := internal.NewClient(
+		internal.WithCredentials(creds),
+		internal.WithUserAgent(userAgent),
+		internal.WithAbsolutePath(absolutePath),
+		internal.WithBaseURL(server.URL))
+	require.NoError(t, err)
 
 	return mux, c, server
 }
@@ -40,7 +45,7 @@ func testHTTPMethod(t *testing.T, r *http.Request, expected string) {
 }
 
 func TestOperations_ListImagedNodes(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -74,11 +79,10 @@ func TestOperations_ListImagedNodes(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"Test Imaged Nodes",
-			fields{c},
-			args{input},
-			list,
-			false,
+			name:   "Test Imaged Nodes",
+			fields: fields{c},
+			args:   args{input},
+			want:   list,
 		},
 	}
 
@@ -89,19 +93,18 @@ func TestOperations_ListImagedNodes(t *testing.T) {
 				client: tt.fields.client,
 			}
 			got, err := op.ListImagedNodes(ctx, tt.args.getEntitiesRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.ListImagedNodes() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.ListImagedNodes() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
 			}
 		})
 	}
 }
 
 func TestOperations_ListImagedClusters(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -162,7 +165,7 @@ func TestOperations_ListImagedClusters(t *testing.T) {
 }
 
 func TestOperations_ListAPIKeys(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -224,7 +227,7 @@ func TestOperations_ListAPIKeys(t *testing.T) {
 }
 
 func TestOperations_GetImagedNode(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -281,7 +284,7 @@ func TestOperations_GetImagedNode(t *testing.T) {
 }
 
 func TestOperations_GetImagedCluster(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -338,7 +341,7 @@ func TestOperations_GetImagedCluster(t *testing.T) {
 }
 
 func TestOperations_GetAPIKey(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -404,7 +407,7 @@ func TestOperations_GetAPIKey(t *testing.T) {
 }
 
 func TestOperations_CreateAPIKey(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -475,7 +478,7 @@ func TestOperations_CreateAPIKey(t *testing.T) {
 }
 
 func TestOperations_CreateCluster(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -568,7 +571,7 @@ func TestOperations_CreateCluster(t *testing.T) {
 }
 
 func TestOperations_DeleteCluster(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 

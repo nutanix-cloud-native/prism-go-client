@@ -16,7 +16,7 @@ const (
 
 // Client manages the V3 API
 type Client struct {
-	client          *internal.Client
+	httpClient      *internal.Client
 	Cluster         ClusterService
 	PrivateRegistry PrivateRegistryService
 	Meta            MetaService
@@ -24,31 +24,29 @@ type Client struct {
 
 // NewKarbonAPIClient return a internal to operate Karbon resources
 func NewKarbonAPIClient(credentials prismgoclient.Credentials) (*Client, error) {
-	var baseClient *internal.Client
-
-	// check if all required fields are present. Else create an empty internal
-	if credentials.Username != "" && credentials.Password != "" && credentials.Endpoint != "" {
-		c, err := internal.NewClient(&credentials, userAgent, absolutePath, false)
-		if err != nil {
-			return nil, err
-		}
-		baseClient = c
-	} else {
-		errorMsg := fmt.Sprintf("karbon Client is missing. "+
-			"Please provide required details - %s in provider configuration.", strings.Join(credentials.RequiredFields[clientName], ", "))
-		baseClient = &internal.Client{UserAgent: userAgent, ErrorMsg: errorMsg}
+	if credentials.URL == "" || credentials.Username == "" || credentials.Password == "" {
+		return nil, fmt.Errorf("karbon Client is missing: %s %s",
+			"Please provide required details - %s in provider configuration",
+			strings.Join(credentials.RequiredFields[clientName], ", "))
+	}
+	c, err := internal.NewClient(
+		internal.WithCredentials(&credentials),
+		internal.WithUserAgent(userAgent),
+		internal.WithAbsolutePath(absolutePath))
+	if err != nil {
+		return nil, err
 	}
 
 	f := &Client{
-		client: baseClient,
+		httpClient: c,
 		Cluster: ClusterOperations{
-			client: baseClient,
+			httpClient: c,
 		},
 		PrivateRegistry: PrivateRegistryOperations{
-			client: baseClient,
+			httpClient: c,
 		},
 		Meta: MetaOperations{
-			client: baseClient,
+			httpClient: c,
 		},
 	}
 

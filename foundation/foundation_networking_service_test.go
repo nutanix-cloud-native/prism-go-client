@@ -12,7 +12,7 @@ import (
 )
 
 func TestNtwOperations_DiscoverNodes(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	mux.HandleFunc("/foundation/discover_nodes", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
@@ -83,7 +83,7 @@ func TestNtwOperations_DiscoverNodes(t *testing.T) {
 }
 
 func TestNtwOperations_NodeNetworkDetails(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	mux.HandleFunc("/foundation/node_network_details", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
@@ -169,7 +169,7 @@ func TestNtwOperations_NodeNetworkDetails(t *testing.T) {
 }
 
 func TestNtwOperations_ConfigureIPMI(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 	mux.HandleFunc("/foundation/ipmi_config", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)

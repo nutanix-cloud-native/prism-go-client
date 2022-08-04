@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"testing"
 
@@ -14,29 +13,32 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func setup() (*http.ServeMux, *internal.Client, *httptest.Server) {
+func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	c, _ := internal.NewClient(&prismgoclient.Credentials{
+	creds := &prismgoclient.Credentials{
 		URL:      "",
 		Username: "username",
 		Password: "password",
 		Port:     "",
 		Endpoint: "0.0.0.0",
 		Insecure: true,
-	},
-		userAgent,
-		absolutePath,
-		false)
-	c.BaseURL, _ = url.Parse(server.URL)
+	}
+	c, err := internal.NewClient(
+		internal.WithCredentials(creds),
+		internal.WithUserAgent(userAgent),
+		internal.WithAbsolutePath(absolutePath),
+		internal.WithBaseURL(server.URL))
+	require.NoError(t, err)
 
 	return mux, c, server
 }
 
 func TestOperations_CreateVM(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/api/nutanix/v3/vms", func(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +148,7 @@ func TestOperations_CreateVM(t *testing.T) {
 }
 
 func TestOperations_DeleteVM(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
@@ -213,7 +215,7 @@ func TestOperations_DeleteVM(t *testing.T) {
 }
 
 func TestOperations_GetVM(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
@@ -270,7 +272,7 @@ func TestOperations_GetVM(t *testing.T) {
 }
 
 func TestOperations_ListVM(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/api/nutanix/v3/vms/list", func(w http.ResponseWriter, r *http.Request) {
@@ -333,7 +335,7 @@ func TestOperations_ListVM(t *testing.T) {
 }
 
 func TestOperations_UpdateVM(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 	defer server.Close()
 
 	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
@@ -439,7 +441,7 @@ func TestOperations_UpdateVM(t *testing.T) {
 }
 
 func TestOperations_CreateSubnet(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -544,7 +546,7 @@ func TestOperations_CreateSubnet(t *testing.T) {
 }
 
 func TestOperations_DeleteSubnet(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -612,7 +614,7 @@ func TestOperations_DeleteSubnet(t *testing.T) {
 }
 
 func TestOperations_GetSubnet(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -670,7 +672,7 @@ func TestOperations_GetSubnet(t *testing.T) {
 }
 
 func TestOperations_ListSubnet(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -734,7 +736,7 @@ func TestOperations_ListSubnet(t *testing.T) {
 }
 
 func TestOperations_UpdateSubnet(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -842,7 +844,7 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 }
 
 func TestOperations_CreateImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -954,7 +956,7 @@ func TestOperations_CreateImage(t *testing.T) {
 }
 
 func TestOperations_UploadImageError(t *testing.T) {
-	_, c, server := setup()
+	_, c, server := setup(t)
 
 	defer server.Close()
 
@@ -996,7 +998,7 @@ func TestOperations_UploadImageError(t *testing.T) {
 }
 
 func TestOperations_UploadImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1046,7 +1048,7 @@ func TestOperations_UploadImage(t *testing.T) {
 }
 
 func TestOperations_DeleteImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1114,7 +1116,7 @@ func TestOperations_DeleteImage(t *testing.T) {
 }
 
 func TestOperations_GetImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1172,7 +1174,7 @@ func TestOperations_GetImage(t *testing.T) {
 }
 
 func TestOperations_ListImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1236,7 +1238,7 @@ func TestOperations_ListImage(t *testing.T) {
 }
 
 func TestOperations_UpdateImage(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1341,7 +1343,7 @@ func TestOperations_UpdateImage(t *testing.T) {
 }
 
 func TestOperations_GetCluster(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1399,7 +1401,7 @@ func TestOperations_GetCluster(t *testing.T) {
 }
 
 func TestOperations_ListCluster(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1463,7 +1465,7 @@ func TestOperations_ListCluster(t *testing.T) {
 }
 
 func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1542,7 +1544,7 @@ func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
 }
 
 func TestOperations_ListCategories(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1606,7 +1608,7 @@ func TestOperations_ListCategories(t *testing.T) {
 }
 
 func TestOperations_DeleteCategoryKey(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1657,7 +1659,7 @@ func TestOperations_DeleteCategoryKey(t *testing.T) {
 }
 
 func TestOperations_GetCategoryKey(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1719,7 +1721,7 @@ func TestOperations_GetCategoryKey(t *testing.T) {
 }
 
 func TestOperations_ListCategoryValues(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1784,7 +1786,7 @@ func TestOperations_ListCategoryValues(t *testing.T) {
 }
 
 func TestOperations_CreateOrUpdateCategoryValue(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1866,7 +1868,7 @@ func TestOperations_CreateOrUpdateCategoryValue(t *testing.T) {
 }
 
 func TestOperations_GetCategoryValue(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1931,7 +1933,7 @@ func TestOperations_GetCategoryValue(t *testing.T) {
 }
 
 func TestOperations_DeleteCategoryValue(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -1983,7 +1985,7 @@ func TestOperations_DeleteCategoryValue(t *testing.T) {
 }
 
 func TestOperations_GetCategoryQuery(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2045,7 +2047,7 @@ func TestOperations_GetCategoryQuery(t *testing.T) {
 }
 
 func TestOperations_CreateNetworkSecurityRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2145,7 +2147,7 @@ func TestOperations_CreateNetworkSecurityRule(t *testing.T) {
 }
 
 func TestOperations_DeleteNetworkSecurityRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2214,7 +2216,7 @@ func TestOperations_DeleteNetworkSecurityRule(t *testing.T) {
 }
 
 func TestOperations_GetNetworkSecurityRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2273,7 +2275,7 @@ func TestOperations_GetNetworkSecurityRule(t *testing.T) {
 }
 
 func TestOperations_ListNetworkSecurityRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2337,7 +2339,7 @@ func TestOperations_ListNetworkSecurityRule(t *testing.T) {
 }
 
 func TestOperations_UpdateNetworkSecurityRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2440,7 +2442,7 @@ func TestOperations_UpdateNetworkSecurityRule(t *testing.T) {
 }
 
 func TestOperations_CreateVolumeGroup(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2541,7 +2543,7 @@ func TestOperations_CreateVolumeGroup(t *testing.T) {
 }
 
 func TestOperations_DeleteVolumeGroup(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2592,7 +2594,7 @@ func TestOperations_DeleteVolumeGroup(t *testing.T) {
 }
 
 func TestOperations_GetVolumeGroup(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2650,7 +2652,7 @@ func TestOperations_GetVolumeGroup(t *testing.T) {
 }
 
 func TestOperations_ListVolumeGroup(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2714,7 +2716,7 @@ func TestOperations_ListVolumeGroup(t *testing.T) {
 }
 
 func TestOperations_UpdateVolumeGroup(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2823,7 +2825,7 @@ func testHTTPMethod(t *testing.T, r *http.Request, expected string) {
 }
 
 func TestOperations_GetHost(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2881,7 +2883,7 @@ func TestOperations_GetHost(t *testing.T) {
 }
 
 func TestOperations_ListHost(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -2945,7 +2947,7 @@ func TestOperations_ListHost(t *testing.T) {
 }
 
 func TestOperations_CreateProject(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3066,7 +3068,7 @@ func TestOperations_CreateProject(t *testing.T) {
 }
 
 func TestOperations_GetProject(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3124,7 +3126,7 @@ func TestOperations_GetProject(t *testing.T) {
 }
 
 func TestOperations_ListProject(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3188,7 +3190,7 @@ func TestOperations_ListProject(t *testing.T) {
 }
 
 func TestOperations_UpdateProject(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3309,7 +3311,7 @@ func TestOperations_UpdateProject(t *testing.T) {
 }
 
 func TestOperations_DeleteProject(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3377,7 +3379,7 @@ func TestOperations_DeleteProject(t *testing.T) {
 }
 
 func TestOperations_CreateAccessControlPolicy(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3492,7 +3494,7 @@ func TestOperations_CreateAccessControlPolicy(t *testing.T) {
 }
 
 func TestOperations_GetAccessControlPolicy(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3550,7 +3552,7 @@ func TestOperations_GetAccessControlPolicy(t *testing.T) {
 }
 
 func TestOperations_ListAccessControlPolicy(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3614,7 +3616,7 @@ func TestOperations_ListAccessControlPolicy(t *testing.T) {
 }
 
 func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3729,7 +3731,7 @@ func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
 }
 
 func TestOperations_DeleteAccessControlPolicy(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3797,7 +3799,7 @@ func TestOperations_DeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestOperations_CreateRole(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3916,7 +3918,7 @@ func TestOperations_CreateRole(t *testing.T) {
 }
 
 func TestOperations_GetRole(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -3974,7 +3976,7 @@ func TestOperations_GetRole(t *testing.T) {
 }
 
 func TestOperations_ListRole(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4038,7 +4040,7 @@ func TestOperations_ListRole(t *testing.T) {
 }
 
 func TestOperations_UpdateRole(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4157,7 +4159,7 @@ func TestOperations_UpdateRole(t *testing.T) {
 }
 
 func TestOperations_DeleteRole(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4225,7 +4227,7 @@ func TestOperations_DeleteRole(t *testing.T) {
 }
 
 func TestOperations_CreateUser(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4340,7 +4342,7 @@ func TestOperations_CreateUser(t *testing.T) {
 }
 
 func TestOperations_GetUser(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4398,7 +4400,7 @@ func TestOperations_GetUser(t *testing.T) {
 }
 
 func TestOperations_ListUser(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4462,7 +4464,7 @@ func TestOperations_ListUser(t *testing.T) {
 }
 
 func TestOperations_UpdateUser(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4579,7 +4581,7 @@ func TestOperations_UpdateUser(t *testing.T) {
 }
 
 func TestOperations_DeleteUser(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4647,7 +4649,7 @@ func TestOperations_DeleteUser(t *testing.T) {
 }
 
 func TestOperations_CreateProtectionRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4829,7 +4831,7 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 }
 
 func TestOperations_GetProtectionRule(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4887,7 +4889,7 @@ func TestOperations_GetProtectionRule(t *testing.T) {
 }
 
 func TestOperations_ListProtectionRules(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -4951,7 +4953,7 @@ func TestOperations_ListProtectionRules(t *testing.T) {
 }
 
 func TestOperations_UpdateProtectionRules(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -5135,7 +5137,7 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 }
 
 func TestOperations_DeleteProtectionRules(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -5186,7 +5188,7 @@ func TestOperations_DeleteProtectionRules(t *testing.T) {
 }
 
 func TestOperations_CreateRecoveryPlan(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -5558,7 +5560,7 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 }
 
 func TestOperations_GetRecoveryPlan(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -5616,7 +5618,7 @@ func TestOperations_GetRecoveryPlan(t *testing.T) {
 }
 
 func TestOperations_ListRecoveryPlans(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -5680,7 +5682,7 @@ func TestOperations_ListRecoveryPlans(t *testing.T) {
 }
 
 func TestOperations_UpdateRecoveryPlans(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
@@ -6054,7 +6056,7 @@ func TestOperations_UpdateRecoveryPlans(t *testing.T) {
 }
 
 func TestOperations_DeleteRecoveryPlan(t *testing.T) {
-	mux, c, server := setup()
+	mux, c, server := setup(t)
 
 	defer server.Close()
 
