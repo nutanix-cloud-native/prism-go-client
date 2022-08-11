@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -197,7 +196,7 @@ func TestNewRequest(t *testing.T) {
 	}
 
 	// test body was JSON encoded
-	body, _ := ioutil.ReadAll(req.Body)
+	body, _ := io.ReadAll(req.Body)
 	if string(body) != outBody {
 		t.Errorf("NewRequest(%v) Body = %v, expected %v", inBody, string(body), outBody)
 	}
@@ -219,7 +218,7 @@ func TestNewUploadRequest(t *testing.T) {
 	// expected body
 	out, err := os.Open(fileName)
 	require.NoError(t, err)
-	outBody, err := ioutil.ReadAll(out)
+	outBody, err := io.ReadAll(out)
 	require.NoError(t, err)
 
 	req, err := c.NewUploadRequest(http.MethodPost, inURL, inBody)
@@ -228,7 +227,7 @@ func TestNewUploadRequest(t *testing.T) {
 	assert.Equal(t, outURL, req.URL.String())
 
 	// test body contents
-	got, err := ioutil.ReadAll(req.Body)
+	got, err := io.ReadAll(req.Body)
 	require.NoError(t, err)
 	assert.Equal(t, outBody, got)
 
@@ -262,7 +261,7 @@ func TestNewUnAuthRequest(t *testing.T) {
 	}
 
 	// test body was JSON encoded
-	body, _ := ioutil.ReadAll(req.Body)
+	body, _ := io.ReadAll(req.Body)
 	if string(body) != outBody {
 		t.Errorf("NewUnAuthRequest(%v) Body = %v, expected %v", inBody, string(body), outBody)
 	}
@@ -348,7 +347,7 @@ func TestNewUnAuthUploadRequest(t *testing.T) {
 
 	// expected body
 	out, _ := os.Open(fileName)
-	outBody, _ := ioutil.ReadAll(out)
+	outBody, _ := io.ReadAll(out)
 
 	req, err := c.NewUnAuthUploadRequest(http.MethodPost, inURL, inBody)
 	if err != nil {
@@ -360,7 +359,7 @@ func TestNewUnAuthUploadRequest(t *testing.T) {
 	}
 
 	// test body contents
-	got, _ := ioutil.ReadAll(req.Body)
+	got, _ := io.ReadAll(req.Body)
 	if !bytes.Equal(got, outBody) {
 		t.Errorf("NewUnAuthUploadRequest(%v) Body = %v, expected %v", inBody, string(got), string(outBody))
 	}
@@ -396,7 +395,7 @@ func TestGetResponse(t *testing.T) {
 	res := &http.Response{
 		Request:    &http.Request{},
 		StatusCode: http.StatusBadRequest,
-		Body: ioutil.NopCloser(strings.NewReader(
+		Body: io.NopCloser(strings.NewReader(
 			`{"api_version": "3.1", "code": 400, "kind": "error", "message_list":
 				 [{"message": "This field may not be blank."}], "state": "ERROR"}`)),
 	}
@@ -416,7 +415,7 @@ func TestCheckResponse(t *testing.T) {
 	res := &http.Response{
 		Request:    &http.Request{},
 		StatusCode: http.StatusBadRequest,
-		Body: ioutil.NopCloser(strings.NewReader(
+		Body: io.NopCloser(strings.NewReader(
 			`{"api_version": "3.1", "code": 400, "kind": "error", "message_list":
 				 [{"message": "This field may not be blank."}], "state": "ERROR"}`)),
 	}
