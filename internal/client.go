@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -583,12 +582,12 @@ func CheckResponse(r *http.Response) error {
 		return fmt.Errorf("invalid Nutanix credentials")
 	}
 
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
 
-	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := io.NopCloser(bytes.NewBuffer(buf))
 
 	r.Body = rdr2
 	// if has entities -> return nil

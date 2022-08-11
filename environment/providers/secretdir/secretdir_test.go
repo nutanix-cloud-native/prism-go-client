@@ -2,7 +2,6 @@ package secretdir
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,7 +12,7 @@ import (
 
 func TestBasicAuth(t *testing.T) {
 	g := NewWithT(t)
-	path, err := ioutil.TempDir(".", "basic-auth")
+	path, err := os.MkdirTemp(".", "basic-auth")
 	g.Expect(err).To(Succeed())
 	defer func() {
 		if !t.Failed() {
@@ -26,7 +25,7 @@ func TestBasicAuth(t *testing.T) {
 	user := rand.String(10)
 	passwd := rand.String(10)
 	key := fmt.Sprintf("%s:9440:%s:%s", ip, user, passwd)
-	g.Expect(ioutil.WriteFile(filepath.Join(path, secretKeyName),
+	g.Expect(os.WriteFile(filepath.Join(path, secretKeyName),
 		[]byte(key),
 		0o600)).To(Succeed())
 	t.Log("Key", key)
@@ -42,7 +41,7 @@ func TestBasicAuth(t *testing.T) {
 
 func TestTLSAuth(t *testing.T) {
 	g := NewWithT(t)
-	path, err := ioutil.TempDir(".", "tls-auth")
+	path, err := os.MkdirTemp(".", "tls-auth")
 	g.Expect(err).To(Succeed())
 	defer func() {
 		if !t.Failed() {
@@ -53,10 +52,10 @@ func TestTLSAuth(t *testing.T) {
 	cert := rand.String(512)
 	t.Logf("Temporary directory %s", path)
 	os.Setenv(envSecretDir, path)
-	g.Expect(ioutil.WriteFile(filepath.Join(path, secretKeyCertName),
+	g.Expect(os.WriteFile(filepath.Join(path, secretKeyCertName),
 		[]byte(cert),
 		0o600)).To(Succeed())
-	g.Expect(ioutil.WriteFile(filepath.Join(path, secretKeyCertEndpoint),
+	g.Expect(os.WriteFile(filepath.Join(path, secretKeyCertEndpoint),
 		[]byte(fmt.Sprintf("%s:9440", ip)),
 		0o600)).To(Succeed())
 
