@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NewRequest and NewAuthRequest methods on internal.Client don't admit context in params
 - v3 client constructor now takes functional options as parameters
 - v3 client constructor returns error instead of failing silently
+- Add context to v3 interface method parameters to explicitly propagate context
 
 ### Removed
 - remove internal.NewBaseClient constructor
