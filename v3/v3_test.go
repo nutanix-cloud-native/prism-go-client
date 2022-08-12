@@ -3,6 +3,8 @@ package v3
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
@@ -19,25 +21,20 @@ func TestNewV3Client(t *testing.T) {
 		FoundationPort:     "8000",
 		RequiredFields:     nil,
 	}
-	_, err := NewV3Client(cred)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	v3Client, err := NewV3Client(cred)
+	assert.NoError(t, err)
+	assert.NotNil(t, v3Client)
 
 	// verify missing client scenario
-	cred2 := prismgoclient.Credentials{
+	cred = prismgoclient.Credentials{
 		URL:      "foo.com",
 		Insecure: true,
 		RequiredFields: map[string][]string{
 			"prism_central": {"username", "password", "endpoint"},
 		},
 	}
-	v3Client2, err2 := NewV3Client(cred2)
-	if err2 != nil {
-		t.Errorf(err2.Error())
-	}
 
-	if v3Client2.client.ErrorMsg == "" {
-		t.Errorf("NewV3Client(%v) expected the base client in v3 client to have some error message", cred2)
-	}
+	v3Client, err = NewV3Client(cred)
+	assert.Nil(t, v3Client)
+	assert.EqualError(t, err, "username, password and endpoint are required")
 }
