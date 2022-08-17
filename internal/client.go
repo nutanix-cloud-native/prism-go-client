@@ -154,6 +154,16 @@ func WithCertificate(cert *x509.Certificate) ClientOption {
 	}
 }
 
+// WithRoundTripper overrides the transport for the httpClient
+// Overriding transport is useful for testing against API Mocks
+// This is not recommended for production use
+func WithRoundTripper(transport http.RoundTripper) ClientOption {
+	return func(c *Client) error {
+		c.httpClient.Transport = transport
+		return nil
+	}
+}
+
 // NewClient returns a wrapper around http/https (as per isHTTP flag) httpClient with additions of proxy & session_auth if given
 func NewClient(opts ...ClientOption) (*Client, error) {
 	c := &Client{

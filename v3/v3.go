@@ -3,6 +3,7 @@ package v3
 import (
 	"crypto/x509"
 	"fmt"
+	"net/http"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
@@ -29,6 +30,16 @@ type ClientOption func(*Client) error
 func WithCertificate(certificate *x509.Certificate) ClientOption {
 	return func(c *Client) error {
 		c.clientOpts = append(c.clientOpts, internal.WithCertificate(certificate))
+		return nil
+	}
+}
+
+// WithRoundTripper overrides the transport for the underlying http client
+// Overriding transport is useful for testing against API Mocks
+// This is not recommended for production use
+func WithRoundTripper(transport http.RoundTripper) ClientOption {
+	return func(c *Client) error {
+		c.clientOpts = append(c.clientOpts, internal.WithRoundTripper(transport))
 		return nil
 	}
 }
