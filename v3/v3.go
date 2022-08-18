@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-logr/logr"
 	"github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
@@ -40,6 +41,14 @@ func WithCertificate(certificate *x509.Certificate) ClientOption {
 func WithRoundTripper(transport http.RoundTripper) ClientOption {
 	return func(c *Client) error {
 		c.clientOpts = append(c.clientOpts, internal.WithRoundTripper(transport))
+		return nil
+	}
+}
+
+// WithLogger sets the logger for the client
+func WithLogger(logger *logr.Logger) ClientOption {
+	return func(c *Client) error {
+		c.clientOpts = append(c.clientOpts, internal.WithLogger(logger))
 		return nil
 	}
 }
