@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add logr based configurable logging for internal.NewClient
 - Add `WithCertificate` functional option for v3 client constructor
 - Add `WithRoundTripper` functional option for v3 client to add custom interceptors
+- Add `WithLogger` functional option for v3 client
 
 ### Changed
 - The http client has been moved from pkg/nutanix to repo root
