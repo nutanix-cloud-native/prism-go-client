@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr/testr"
+	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -156,6 +157,18 @@ func TestNewClient(t *testing.T) {
 			},
 			validation: func(t *testing.T, c *Client) {
 				assert.False(t, c.httpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify)
+			},
+		},
+		{
+			testCase: "WithRoundTripper overrides the underlying transport",
+			opts: []ClientOption{
+				WithUserAgent(testUserAgent),
+				WithAbsolutePath(testAbsolutePath),
+				WithCredentials(&prismgoclient.Credentials{URL: "foo.com", Username: "username", Password: "password"}),
+				WithRoundTripper(khttpclient.NewInterceptor(http.DefaultTransport)),
+			},
+			validation: func(t *testing.T, c *Client) {
+				assert.IsType(t, &khttpclient.Interceptor{}, c.httpClient.Transport)
 			},
 		},
 	}

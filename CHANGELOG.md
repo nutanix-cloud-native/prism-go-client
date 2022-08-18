@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the "environment" package which provides abstraction for retrieving settings like API endpoints, credentials and their sources to evolve independently from clients
 - Add logr based configurable logging for internal.NewClient
 - Add `WithCertificate` functional option for v3 client constructor
+- Add `WithRoundTripper` functional option for v3 client to add custom interceptors
 
 ### Changed
 - The http client has been moved from pkg/nutanix to repo root
