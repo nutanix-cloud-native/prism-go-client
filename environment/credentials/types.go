@@ -1,4 +1,7 @@
-package kubernetes
+package credentials
+
+// This file defines single-key secret format by encoding entire secret
+// as JSON object.
 
 import (
 	"encoding/json"
@@ -10,6 +13,9 @@ type CredentialType string
 const (
 	// BasicAuthCredentialType is username/password based authentication.
 	BasicAuthCredentialType CredentialType = "basic_auth"
+
+	// KeyName is secret
+	KeyName = "credentials"
 )
 
 type Credential struct {
