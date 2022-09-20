@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/util/rand"
 )

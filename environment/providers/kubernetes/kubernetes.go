@@ -13,24 +13,9 @@ import (
 	coreinformers "k8s.io/client-go/informers/core/v1"
 )
 
-// Type aliases for backward compatibility
-type (
-	CredentialType             = credentials.CredentialType
-	NutanixCredentials         = credentials.NutanixCredentials
-	BasicAuthCredential        = credentials.BasicAuthCredential
-	BasicAuth                  = credentials.BasicAuth
-	PrismCentralBasicAuth      = credentials.PrismCentralBasicAuth
-	PrismElementBasicAuth      = credentials.PrismElementBasicAuth
-	NutanixCredentialKind      = credentials.NutanixCredentialKind
-	NutanixCredentialReference = credentials.NutanixCredentialReference
-	NutanixPrismEndpoint       = credentials.NutanixPrismEndpoint
-)
-
-const SecretKind = credentials.SecretKind
-
 type provider struct {
 	secretInformer coreinformers.SecretInformer
-	prismEndpoint  NutanixPrismEndpoint
+	prismEndpoint  credentials.NutanixPrismEndpoint
 }
 
 func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, error) {
@@ -85,7 +70,7 @@ func (prov *provider) Get(topology types.Topology, key string) (
 // Prism endpoint and a secretes informer as input.
 // It's assumed secrets informer is already running and its cache has been synced.
 func NewProvider(
-	prismEndpoint NutanixPrismEndpoint,
+	prismEndpoint credentials.NutanixPrismEndpoint,
 	secretInformer coreinformers.SecretInformer,
 ) types.Provider {
 	return &provider{
