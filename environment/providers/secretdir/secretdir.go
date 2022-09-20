@@ -48,33 +48,32 @@ func NewProvider() types.Provider {
 	return &provider{}
 }
 
-func getMgmtEndpointFromSecretDir(path string) (*types.ManagementEndpoint, error) {
-	secretParams := map[string]string{}
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return nil, err
+// read parameters return "" for non-existing keys
+func readParam(path, key string) (string, error) {
+	if b, err := os.ReadFile(filepath.Join(path, key)); err == nil {
+		return string(b), err
+	} else if os.IsNotExist(err) {
+		return "", nil
+	} else {
+		return "", err
 	}
-	for _, file := range files {
-		if file.Type().IsRegular() {
-			b, err := os.ReadFile(filepath.Join(path, file.Name()))
-			if err != nil {
-				return nil, err
-			}
-			secretParams[file.Name()] = string(b)
-		}
-	}
-	return mangementEndpointFromSecretParams(secretParams)
 }
 
 // mangementEndpointFromSecretParams parses management endpoint and credentials from
 // parameters embedded as data in a k8s secret.
-func mangementEndpointFromSecretParams(secretParams map[string]string) (
+func getMgmtEndpointFromSecretDir(path string) (
 	*types.ManagementEndpoint, error,
 ) {
-	certString := secretParams[secretKeyCertName]
+	certString, err := readParam(path, secretKeyCertName)
+	if err != nil {
+		return nil, err
+	}
 	if certString != "" {
 		// TLS key pair
-		endpoint := secretParams[secretKeyCertEndpoint]
+		endpoint, err := readParam(path, secretKeyCertEndpoint)
+		if err != nil {
+			return nil, err
+		}
 		if endpoint == "" {
 			return nil, fmt.Errorf("no endpoint is provided in secret value")
 		}
@@ -90,7 +89,10 @@ func mangementEndpointFromSecretParams(secretParams map[string]string) (
 		}, nil
 	} else {
 		// basic auth
-		str := secretParams[secretKeyName]
+		str, err := readParam(path, secretKeyName)
+		if err != nil {
+			return nil, err
+		}
 		creds := strings.SplitN(str, ":", 4)
 		if len(creds) != 4 {
 			return nil, ErrMissingValue
