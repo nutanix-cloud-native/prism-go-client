@@ -71,6 +71,7 @@ type NutanixCredentialReference struct {
 	// Name of the credential.
 	Name string `json:"name"`
 	// namespace of the credential.
+	// +optional
 	Namespace string `json:"namespace"`
 }
 
