@@ -18,6 +18,7 @@ const (
 	KeyName = "credentials"
 )
 
+// +kubebuilder:object:generate=true
 type Credential struct {
 	Type CredentialType  `json:"type"`
 	Data json.RawMessage `json:"data"`
@@ -25,6 +26,7 @@ type Credential struct {
 
 // NutanixCredentials is list of credentials to be embedded in other objects like
 // Kubernetes secrets.
+// +kubebuilder:object:generate=true
 type NutanixCredentials struct {
 	Credentials []Credential `json:"credentials"`
 }
@@ -37,15 +39,18 @@ type BasicAuthCredential struct {
 	PrismElements []PrismElementBasicAuth `json:"prismElements"`
 }
 
+// +kubebuilder:object:generate=true
 type BasicAuth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+// +kubebuilder:object:generate=true
 type PrismCentralBasicAuth struct {
 	BasicAuth `json:",inline"`
 }
 
+// +kubebuilder:object:generate=true
 type PrismElementBasicAuth struct {
 	BasicAuth `json:",inline"`
 	// Name is the unique resource name of the Prism Element (cluster) in the Prism Central's domain
@@ -59,6 +64,7 @@ const (
 	SecretKind = NutanixCredentialKind("Secret")
 )
 
+// +kubebuilder:object:generate=true
 type NutanixCredentialReference struct {
 	// Kind of the Nutanix credential
 	Kind NutanixCredentialKind `json:"kind"`
@@ -70,6 +76,7 @@ type NutanixCredentialReference struct {
 
 // NutanixPrismEndpoint defines a Nutanix API endpoint with reference to credentials.
 // Credentials are stored in Kubernetes secrets.
+// +kubebuilder:object:generate=true
 type NutanixPrismEndpoint struct {
 	// address is the endpoint address (DNS name or IP address) of the Nutanix Prism Central or Element (cluster)
 	Address string `json:"address"`
