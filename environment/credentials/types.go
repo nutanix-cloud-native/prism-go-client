@@ -67,8 +67,11 @@ const (
 // +kubebuilder:object:generate=true
 type NutanixCredentialReference struct {
 	// Kind of the Nutanix credential
+	// +kubebuilder:validation:Enum=Secret
 	Kind NutanixCredentialKind `json:"kind"`
 	// Name of the credential.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 	// namespace of the credential.
 	// +optional
@@ -80,10 +83,17 @@ type NutanixCredentialReference struct {
 // +kubebuilder:object:generate=true
 type NutanixPrismEndpoint struct {
 	// address is the endpoint address (DNS name or IP address) of the Nutanix Prism Central or Element (cluster)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MaxLength=256
 	Address string `json:"address"`
 	// port is the port number to access the Nutanix Prism Central or Element (cluster)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:default=9440
 	Port int32 `json:"port"`
 	// use insecure connection to Prism endpoint
+	// +kubebuilder:default=false
 	// +optional
 	Insecure bool `json:"insecure"`
 	// Pass credential information for the target Prism instance
