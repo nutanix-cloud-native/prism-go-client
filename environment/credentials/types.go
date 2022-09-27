@@ -1,4 +1,7 @@
-package kubernetes
+package credentials
+
+// This file defines single-key secret format by encoding entire secret
+// as JSON object.
 
 import (
 	"encoding/json"
@@ -10,8 +13,12 @@ type CredentialType string
 const (
 	// BasicAuthCredentialType is username/password based authentication.
 	BasicAuthCredentialType CredentialType = "basic_auth"
+
+	// KeyName is secret
+	KeyName = "credentials"
 )
 
+// +kubebuilder:object:generate=true
 type Credential struct {
 	Type CredentialType  `json:"type"`
 	Data json.RawMessage `json:"data"`
@@ -19,6 +26,7 @@ type Credential struct {
 
 // NutanixCredentials is list of credentials to be embedded in other objects like
 // Kubernetes secrets.
+// +kubebuilder:object:generate=true
 type NutanixCredentials struct {
 	Credentials []Credential `json:"credentials"`
 }
@@ -31,15 +39,18 @@ type BasicAuthCredential struct {
 	PrismElements []PrismElementBasicAuth `json:"prismElements"`
 }
 
+// +kubebuilder:object:generate=true
 type BasicAuth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+// +kubebuilder:object:generate=true
 type PrismCentralBasicAuth struct {
 	BasicAuth `json:",inline"`
 }
 
+// +kubebuilder:object:generate=true
 type PrismElementBasicAuth struct {
 	BasicAuth `json:",inline"`
 	// Name is the unique resource name of the Prism Element (cluster) in the Prism Central's domain
@@ -53,23 +64,36 @@ const (
 	SecretKind = NutanixCredentialKind("Secret")
 )
 
+// +kubebuilder:object:generate=true
 type NutanixCredentialReference struct {
 	// Kind of the Nutanix credential
+	// +kubebuilder:validation:Enum=Secret
 	Kind NutanixCredentialKind `json:"kind"`
 	// Name of the credential.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 	// namespace of the credential.
+	// +optional
 	Namespace string `json:"namespace"`
 }
 
 // NutanixPrismEndpoint defines a Nutanix API endpoint with reference to credentials.
 // Credentials are stored in Kubernetes secrets.
+// +kubebuilder:object:generate=true
 type NutanixPrismEndpoint struct {
 	// address is the endpoint address (DNS name or IP address) of the Nutanix Prism Central or Element (cluster)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MaxLength=256
 	Address string `json:"address"`
 	// port is the port number to access the Nutanix Prism Central or Element (cluster)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:default=9440
 	Port int32 `json:"port"`
 	// use insecure connection to Prism endpoint
+	// +kubebuilder:default=false
 	// +optional
 	Insecure bool `json:"insecure"`
 	// Pass credential information for the target Prism instance

@@ -5,17 +5,17 @@
 package kubernetes
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 
+	"github.com/nutanix-cloud-native/prism-go-client/environment/credentials"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 )
 
 type provider struct {
 	secretInformer coreinformers.SecretInformer
-	prismEndpoint  NutanixPrismEndpoint
+	prismEndpoint  credentials.NutanixPrismEndpoint
 }
 
 func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, error) {
@@ -26,42 +26,16 @@ func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, e
 	}
 
 	// Parse credentials in secret
-	credsData, ok := secret.Data["credentials"]
+	credsData, ok := secret.Data[credentials.KeyName]
 	if !ok {
-		return nil, fmt.Errorf("no \"credentials\" data found in secret %s/%s",
-			ref.Namespace, ref.Name)
+		return nil, fmt.Errorf("no %q data found in secret %s/%s",
+			credentials.KeyName, ref.Namespace, ref.Name)
 	}
-	creds := &NutanixCredentials{}
-	err = json.Unmarshal(credsData, &creds.Credentials)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal the credentials data. %w", err)
-	}
-	// TODO only single API endpoint supported
-	for _, cred := range creds.Credentials {
-		switch cred.Type {
-		case BasicAuthCredentialType:
-			basicAuthCreds := BasicAuthCredential{}
-			if err := json.Unmarshal(cred.Data, &basicAuthCreds); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal the basic-auth data. %w", err)
-			}
-			pc := basicAuthCreds.PrismCentral
-			if pc.Username == "" || pc.Password == "" {
-				return nil, fmt.Errorf("the PrismCentral credentials data is not set for secret %s/%s",
-					ref.Namespace, ref.Name)
-			}
-			return &types.ApiCredentials{
-				Username: pc.Username,
-				Password: pc.Password,
-			}, nil
-		default:
-			return nil, fmt.Errorf("unsupported credentials type in secret %s/%s: %v",
-				ref.Namespace, ref.Name, cred.Type)
-		}
-	}
-	return nil, fmt.Errorf("no Prism credentials in secret %s/%s", ref.Namespace, ref.Name)
+
+	return credentials.ParseCredentials(credsData)
 }
 
-// GetManagementEndpoint retrieves managment endpoint
+// GetManagementEndpoint retrieves management endpoint
 func (prov *provider) GetManagementEndpoint(
 	topology types.Topology,
 ) (*types.ManagementEndpoint, error) {
@@ -96,7 +70,7 @@ func (prov *provider) Get(topology types.Topology, key string) (
 // Prism endpoint and a secretes informer as input.
 // It's assumed secrets informer is already running and its cache has been synced.
 func NewProvider(
-	prismEndpoint NutanixPrismEndpoint,
+	prismEndpoint credentials.NutanixPrismEndpoint,
 	secretInformer coreinformers.SecretInformer,
 ) types.Provider {
 	return &provider{

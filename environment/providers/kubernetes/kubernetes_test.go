@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/nutanix-cloud-native/prism-go-client/environment/credentials"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
@@ -67,12 +68,12 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 			`, username, password)),
 			},
 		})
-		prismEndpoint = NutanixPrismEndpoint{
+		prismEndpoint = credentials.NutanixPrismEndpoint{
 			Address:  ip,
 			Port:     9440,
 			Insecure: true,
-			CredentialRef: &NutanixCredentialReference{
-				Kind:      SecretKind,
+			CredentialRef: &credentials.NutanixCredentialReference{
+				Kind:      credentials.SecretKind,
 				Name:      secretName,
 				Namespace: secretNamespace,
 			},
