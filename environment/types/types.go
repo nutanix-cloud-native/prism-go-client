@@ -36,6 +36,9 @@ type ManagementEndpoint struct {
 	// HTTPS is used for encryption independent of this setting. An
 	// unauthenticated TLS endpoint is prone to man-in-the-middle attacks.
 	Insecure bool
+	// AdditionalTrustBundle is a PEM-encoded certificate bundle to be used
+	// in addition to system trust store
+	AdditionalTrustBundle string
 }
 
 // Topology is a map of topological domains to topological segments.

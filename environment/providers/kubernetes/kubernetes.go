@@ -49,9 +49,10 @@ func (prov *provider) GetManagementEndpoint(
 		return nil, err
 	}
 	return &types.ManagementEndpoint{
-		Address:        addr,
-		Insecure:       prov.prismEndpoint.Insecure,
-		ApiCredentials: *creds,
+		Address:               addr,
+		Insecure:              prov.prismEndpoint.Insecure,
+		AdditionalTrustBundle: prov.prismEndpoint.AdditionalTrustBundle,
+		ApiCredentials:        *creds,
 	}, nil
 }
 
