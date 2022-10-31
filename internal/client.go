@@ -62,7 +62,8 @@ type Client struct {
 	// error message, incase httpClient is in error state
 	ErrorMsg string
 
-	logger *logr.Logger
+	logger   *logr.Logger
+	certpool *x509.CertPool
 }
 
 type ClientOption func(*Client) error
@@ -143,13 +144,10 @@ func WithAbsolutePath(absolutePath string) ClientOption {
 // WithCertificate adds the certificate to the certificate pool in tls config
 func WithCertificate(cert *x509.Certificate) ClientOption {
 	return func(c *Client) error {
-		certPool, err := x509.SystemCertPool()
-		if err != nil {
-			return fmt.Errorf("failed to get system cert pool: %s", err)
+		if cert == nil {
+			return fmt.Errorf("certificate is nil")
 		}
-
-		certPool.AddCert(cert)
-		c.httpClient.Transport.(*http.Transport).TLSClientConfig.RootCAs = certPool
+		c.certpool.AddCert(cert)
 		return nil
 	}
 }
@@ -169,8 +167,16 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 	c := &Client{
 		httpClient: http.DefaultClient,
 	}
+
+	certPool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get system cert pool: %s", err)
+	}
+	c.certpool = certPool
+
 	c.httpClient.Transport = http.DefaultTransport
 	c.httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{}
+	c.httpClient.Transport.(*http.Transport).TLSClientConfig.RootCAs = c.certpool
 
 	// If the user does not specify a logger, then we'll use zap for a default one
 	// If the user specified a logger, then we'll use that logger
