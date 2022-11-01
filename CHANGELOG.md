@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Add license header to generated file and add a makefile target for generate
 - `NUTANIX_INSECURE` and `NUTANIX_ADDITIONAL_TRUST_BUNDLE` environment variables are used to hydrate environment/local provider
+- Store the certpool in the client to allow injecting multiple certificates using the `WithCertificate` option
 
 ## [0.3.0] - 2022-09-27
 ### Added
