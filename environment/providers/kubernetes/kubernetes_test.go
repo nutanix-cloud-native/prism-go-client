@@ -37,11 +37,27 @@ func runSecretInformer(ctx context.Context, clientset kubernetes.Interface) core
 	return secretInformer
 }
 
+func runCMInformer(ctx context.Context, clientset kubernetes.Interface) coreinformers.ConfigMapInformer {
+	informerFactory := informers.NewSharedInformerFactory(clientset, time.Minute)
+	cmInformer := informerFactory.Core().V1().ConfigMaps()
+	informer := cmInformer.Informer()
+	By("spawning cm informer", func() {
+		go informer.Run(ctx.Done())
+	})
+	By("waiting for cm informer cache to be in sync", func() {
+		Expect(
+			cache.WaitForCacheSync(ctx.Done(), informer.HasSynced),
+		).To(BeTrue())
+	})
+	return cmInformer
+}
+
 var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 	var (
 		secretName      = "nutanix-credentials"
 		secretNamespace = "kube-system"
 		secretInformer  coreinformers.SecretInformer
+		cmInformer      coreinformers.ConfigMapInformer
 		prov            types.Provider
 		ip              = rand.String(10)
 		username        = rand.String(10)
@@ -81,7 +97,8 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 	)
 	BeforeAll(func() {
 		secretInformer = runSecretInformer(context.TODO(), fakeClientset)
-		prov = NewProvider(prismEndpoint, secretInformer)
+		cmInformer = runCMInformer(context.TODO(), fakeClientset)
+		prov = NewProvider(prismEndpoint, secretInformer, cmInformer)
 	})
 	It("must be able to look up secret", func() {
 		_, err := fakeClientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(),

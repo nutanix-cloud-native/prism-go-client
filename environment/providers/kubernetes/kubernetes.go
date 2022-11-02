@@ -93,9 +93,11 @@ func (prov *provider) Get(topology types.Topology, key string) (
 func NewProvider(
 	prismEndpoint credentials.NutanixPrismEndpoint,
 	secretInformer coreinformers.SecretInformer,
+	cmInformer coreinformers.ConfigMapInformer,
 ) types.Provider {
 	return &provider{
 		prismEndpoint:  prismEndpoint,
 		secretInformer: secretInformer,
+		cmInformer:     cmInformer,
 	}
 }
