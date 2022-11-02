@@ -18,6 +18,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+	"github.com/hashicorp/go-cleanhttp"
 	"go.uber.org/zap"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
@@ -165,7 +166,7 @@ func WithRoundTripper(transport http.RoundTripper) ClientOption {
 // NewClient returns a wrapper around http/https (as per isHTTP flag) httpClient with additions of proxy & session_auth if given
 func NewClient(opts ...ClientOption) (*Client, error) {
 	c := &Client{
-		httpClient: http.DefaultClient,
+		httpClient: cleanhttp.DefaultClient(),
 	}
 
 	certPool, err := x509.SystemCertPool()
