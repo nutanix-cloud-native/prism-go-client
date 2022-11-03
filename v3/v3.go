@@ -2,6 +2,7 @@ package v3
 
 import (
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 
@@ -31,6 +32,25 @@ type ClientOption func(*Client) error
 func WithCertificate(certificate *x509.Certificate) ClientOption {
 	return func(c *Client) error {
 		c.clientOpts = append(c.clientOpts, internal.WithCertificate(certificate))
+		return nil
+	}
+}
+
+// WithPEMEncodedCertBundle sets the certificates for the client
+func WithPEMEncodedCertBundle(certBundle []byte) ClientOption {
+	return func(c *Client) error {
+		for block, rest := pem.Decode(certBundle); block != nil; block, rest = pem.Decode(rest) {
+			if block.Type != "CERTIFICATE" {
+				return fmt.Errorf("unexpected PEM block type %q: was expecting CERTIFICATE", block.Type)
+			}
+			certs, err := x509.ParseCertificates(block.Bytes)
+			if err != nil {
+				return err
+			}
+			for _, cert := range certs {
+				c.clientOpts = append(c.clientOpts, internal.WithCertificate(cert))
+			}
+		}
 		return nil
 	}
 }
