@@ -18,6 +18,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+	"github.com/hashicorp/go-cleanhttp"
 	"go.uber.org/zap"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
@@ -62,7 +63,8 @@ type Client struct {
 	// error message, incase httpClient is in error state
 	ErrorMsg string
 
-	logger *logr.Logger
+	logger   *logr.Logger
+	certpool *x509.CertPool
 }
 
 type ClientOption func(*Client) error
@@ -80,7 +82,11 @@ func WithCredentials(credentials *prismgoclient.Credentials) ClientOption {
 	return func(c *Client) error {
 		c.credentials = credentials
 		if c.credentials.Insecure {
-			c.httpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true
+			transport, ok := c.httpClient.Transport.(*http.Transport)
+			if !ok {
+				return fmt.Errorf("transport is not of type http.Transport: %T", c.httpClient.Transport)
+			}
+			transport.TLSClientConfig.InsecureSkipVerify = true
 		}
 		if c.credentials.ProxyURL != "" {
 			c.logger.V(1).Info("Using proxy:", "proxy", c.credentials.ProxyURL)
@@ -88,7 +94,11 @@ func WithCredentials(credentials *prismgoclient.Credentials) ClientOption {
 			if err != nil {
 				return fmt.Errorf("error parsing proxy url: %s", err)
 			}
-			c.httpClient.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
+			transport, ok := c.httpClient.Transport.(*http.Transport)
+			if !ok {
+				return fmt.Errorf("transport is not of type http.Transport: %T", c.httpClient.Transport)
+			}
+			transport.Proxy = http.ProxyURL(proxy)
 		}
 		return nil
 	}
@@ -143,13 +153,10 @@ func WithAbsolutePath(absolutePath string) ClientOption {
 // WithCertificate adds the certificate to the certificate pool in tls config
 func WithCertificate(cert *x509.Certificate) ClientOption {
 	return func(c *Client) error {
-		certPool, err := x509.SystemCertPool()
-		if err != nil {
-			return fmt.Errorf("failed to get system cert pool: %s", err)
+		if cert == nil {
+			return fmt.Errorf("certificate is nil")
 		}
-
-		certPool.AddCert(cert)
-		c.httpClient.Transport.(*http.Transport).TLSClientConfig.RootCAs = certPool
+		c.certpool.AddCert(cert)
 		return nil
 	}
 }
@@ -167,10 +174,18 @@ func WithRoundTripper(transport http.RoundTripper) ClientOption {
 // NewClient returns a wrapper around http/https (as per isHTTP flag) httpClient with additions of proxy & session_auth if given
 func NewClient(opts ...ClientOption) (*Client, error) {
 	c := &Client{
-		httpClient: http.DefaultClient,
+		httpClient: cleanhttp.DefaultClient(),
 	}
+
+	certPool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get system cert pool: %s", err)
+	}
+	c.certpool = certPool
+
 	c.httpClient.Transport = http.DefaultTransport
 	c.httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{}
+	c.httpClient.Transport.(*http.Transport).TLSClientConfig.RootCAs = c.certpool
 
 	// If the user does not specify a logger, then we'll use zap for a default one
 	// If the user specified a logger, then we'll use that logger
