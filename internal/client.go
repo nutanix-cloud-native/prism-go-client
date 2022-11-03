@@ -82,7 +82,11 @@ func WithCredentials(credentials *prismgoclient.Credentials) ClientOption {
 	return func(c *Client) error {
 		c.credentials = credentials
 		if c.credentials.Insecure {
-			c.httpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true
+			transport, ok := c.httpClient.Transport.(*http.Transport)
+			if !ok {
+				return fmt.Errorf("transport is not of type http.Transport: %T", c.httpClient.Transport)
+			}
+			transport.TLSClientConfig.InsecureSkipVerify = true
 		}
 		if c.credentials.ProxyURL != "" {
 			c.logger.V(1).Info("Using proxy:", "proxy", c.credentials.ProxyURL)
@@ -90,7 +94,11 @@ func WithCredentials(credentials *prismgoclient.Credentials) ClientOption {
 			if err != nil {
 				return fmt.Errorf("error parsing proxy url: %s", err)
 			}
-			c.httpClient.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
+			transport, ok := c.httpClient.Transport.(*http.Transport)
+			if !ok {
+				return fmt.Errorf("transport is not of type http.Transport: %T", c.httpClient.Transport)
+			}
+			transport.Proxy = http.ProxyURL(proxy)
 		}
 		return nil
 	}
