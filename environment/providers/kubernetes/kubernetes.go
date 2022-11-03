@@ -31,7 +31,7 @@ func (prov *provider) getAdditionalTrustBundle() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return cm.Data["ca.crt"], nil
+	return cm.Data[trustBundleRef.Key], nil
 }
 
 func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, error) {
