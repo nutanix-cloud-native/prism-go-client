@@ -78,6 +78,30 @@ type NutanixCredentialReference struct {
 	Namespace string `json:"namespace"`
 }
 
+type NutanixTrustBundleKind string
+
+const (
+	NutanixTrustBundleKindString    = NutanixTrustBundleKind("String")
+	NutanixTrustBundleKindConfigMap = NutanixTrustBundleKind("ConfigMap")
+)
+
+// NutanixTrustBundleReference is a reference to a Nutanix trust bundle.
+// +kubebuilder:object:generate=true
+type NutanixTrustBundleReference struct {
+	// Kind of the Nutanix trust bundle
+	// +kubebuilder:validation:Enum=String,Secret,ConfigMap
+	Kind NutanixTrustBundleKind `json:"kind"`
+	// Data of the trust bundle if Kind is String.
+	// +optional
+	Data string `json:"data"`
+	// Name of the credential.
+	// +optional
+	Name string `json:"name"`
+	// namespace of the credential.
+	// +optional
+	Namespace string `json:"namespace"`
+}
+
 // NutanixPrismEndpoint defines a Nutanix API endpoint with reference to credentials.
 // Credentials are stored in Kubernetes secrets.
 // +kubebuilder:object:generate=true
@@ -96,6 +120,11 @@ type NutanixPrismEndpoint struct {
 	// +kubebuilder:default=false
 	// +optional
 	Insecure bool `json:"insecure"`
+	// AdditionalTrustBundle is a PEM encoded x509 cert for the RootCA that was used to create the certificate
+	// for a Prism Central that uses certificates that were issued by a non-publicly trusted RootCA. The trust
+	// bundle is added to the cert pool used to authenticate the TLS connection to the Prism Central.
+	// +optional
+	AdditionalTrustBundle *NutanixTrustBundleReference `json:"additionalTrustBundle,omitempty"`
 	// Pass credential information for the target Prism instance
 	// +optional
 	CredentialRef *NutanixCredentialReference `json:"credentialRef,omitempty"`

@@ -15,7 +15,23 @@ import (
 
 type provider struct {
 	secretInformer coreinformers.SecretInformer
+	cmInformer     coreinformers.ConfigMapInformer
 	prismEndpoint  credentials.NutanixPrismEndpoint
+}
+
+func (prov *provider) getAdditionalTrustBundle() (string, error) {
+	if prov.prismEndpoint.AdditionalTrustBundle == nil {
+		return "", nil
+	}
+	if prov.prismEndpoint.AdditionalTrustBundle.Kind == credentials.NutanixTrustBundleKindString {
+		return prov.prismEndpoint.AdditionalTrustBundle.Data, nil
+	}
+	trustBundleRef := prov.prismEndpoint.AdditionalTrustBundle
+	cm, err := prov.cmInformer.Lister().ConfigMaps(trustBundleRef.Namespace).Get(trustBundleRef.Name)
+	if err != nil {
+		return "", err
+	}
+	return cm.Data["ca.crt"], nil
 }
 
 func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, error) {
@@ -48,10 +64,15 @@ func (prov *provider) GetManagementEndpoint(
 	if err != nil {
 		return nil, err
 	}
+	trustBundle, err := prov.getAdditionalTrustBundle()
+	if err != nil {
+		return nil, err
+	}
 	return &types.ManagementEndpoint{
-		Address:        addr,
-		Insecure:       prov.prismEndpoint.Insecure,
-		ApiCredentials: *creds,
+		Address:               addr,
+		Insecure:              prov.prismEndpoint.Insecure,
+		AdditionalTrustBundle: trustBundle,
+		ApiCredentials:        *creds,
 	}, nil
 }
 
@@ -72,9 +93,11 @@ func (prov *provider) Get(topology types.Topology, key string) (
 func NewProvider(
 	prismEndpoint credentials.NutanixPrismEndpoint,
 	secretInformer coreinformers.SecretInformer,
+	cmInformer coreinformers.ConfigMapInformer,
 ) types.Provider {
 	return &provider{
 		prismEndpoint:  prismEndpoint,
 		secretInformer: secretInformer,
+		cmInformer:     cmInformer,
 	}
 }

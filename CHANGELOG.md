@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add `AdditionalTrustBundle` property to the `NutanixPrismEndpoint` struct in environment/credential/types.go
+- Add `AdditionalTrustBundle` property to the `ManagementEndpoint` struct in environment/types/types/go
+
+### Changed
+- Add license header to generated file and add a makefile target for generate
+- `NUTANIX_INSECURE` and `NUTANIX_ADDITIONAL_TRUST_BUNDLE` environment variables are used to hydrate environment/local provider
 
 ## [0.3.0] - 2022-09-27
 ### Added

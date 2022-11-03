@@ -19,6 +19,34 @@ build: vendor ## Build your project and put the output binary in bin/
 	mkdir -p bin
 	GO111MODULE=on $(GOCMD) build -mod vendor -o bin/$(BINARY_NAME) .
 
+# go-get-tool will 'go get' any package $2 and install it to $1.
+# originally copied from kubebuilder
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+BIN_PATH=$$(realpath $$(dirname $(1))) ;\
+PKG_BIN_NAME=$$(echo "$(2)" | sed 's,^.*/\(.*\)@v.*$$,\1,') ;\
+BIN_NAME=$$(basename $(1)) ;\
+echo "Install dir $$BIN_PATH" ;\
+echo "Downloading $(2)" ;\
+GOBIN=$$BIN_PATH go install $(2) ;\
+[[ $$PKG_BIN_NAME == $$BIN_NAME ]] || mv -f $$BIN_PATH/$$PKG_BIN_NAME $$BIN_PATH/$$BIN_NAME ;\
+}
+endef
+
+TOOLS_BIN_DIR := hack/tools/bin
+CONTROLLER_GEN_BIN := controller-gen
+CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)
+
+$(TOOLS_BIN_DIR):
+	mkdir -p $(TOOLS_BIN_DIR)
+
+$(CONTROLLER_GEN): $(TOOLS_BIN_DIR)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
+
+generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
+	$(CONTROLLER_GEN) paths="./..." object:headerFile="hack/boilerplate.go.txt"
+
 clean: ## Remove build related file
 	rm -fr ./bin vendor
 	rm -f ./junit-report.xml checkstyle-report.xml ./coverage.xml ./profile.cov yamllint-checkstyle.xml

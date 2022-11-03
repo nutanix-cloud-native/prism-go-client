@@ -17,10 +17,12 @@ import (
 )
 
 const (
-	endpointEnv   = "NUTANIX_ENDPOINT"
-	userEnv       = "NUTANIX_USERNAME"
-	passwordEnv   = "NUTANIX_PASSWORD"
-	categoriesEnv = "NUTANIX_CATEGORIES"
+	endpointEnv    = "NUTANIX_ENDPOINT"
+	userEnv        = "NUTANIX_USERNAME"
+	passwordEnv    = "NUTANIX_PASSWORD"
+	insecureEnv    = "NUTANIX_INSECURE"
+	trustBundleEnv = "NUTANIX_ADDITIONAL_TRUST_BUNDLE"
+	categoriesEnv  = "NUTANIX_CATEGORIES"
 )
 
 type provider struct{}
@@ -40,12 +42,17 @@ func (prov *provider) GetManagementEndpoint(
 	if err != nil {
 		return nil, err
 	}
+
+	insecureTLS := os.Getenv(insecureEnv) == "true"
+	trustBundle := os.Getenv(trustBundleEnv)
 	return &types.ManagementEndpoint{
 		Address: addr,
 		ApiCredentials: types.ApiCredentials{
 			Username: os.Getenv(userEnv),
 			Password: os.Getenv(passwordEnv),
 		},
+		Insecure:              insecureTLS,
+		AdditionalTrustBundle: trustBundle,
 	}, nil
 }
 
