@@ -92,12 +92,19 @@ type NutanixTrustBundleReference struct {
 	// +kubebuilder:validation:Enum=String,Secret,ConfigMap
 	Kind NutanixTrustBundleKind `json:"kind"`
 	// Data of the trust bundle if Kind is String.
+	// +kubebuilder:validation:Type=string
 	// +optional
 	Data string `json:"data"`
+	// Key in the ConfigMap if the type is ConfigMap
+	// +kubebuilder:validation:Type=string
+	// +optional
+	Key string `json:"key"`
 	// Name of the credential.
+	// +kubebuilder:validation:Type=string
 	// +optional
 	Name string `json:"name"`
 	// namespace of the credential.
+	// +kubebuilder:validation:Type=string
 	// +optional
 	Namespace string `json:"namespace"`
 }
