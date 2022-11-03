@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add `AdditionalTrustBundle` property to the `NutanixPrismEndpoint` struct in environment/credential/types.go
 - Add `AdditionalTrustBundle` property to the `ManagementEndpoint` struct in environment/types/types/go
+- Add `Key` to the `AdditionalTrustBundle` struct to denote the key in the config map carrying the cert chain.
 
 ### Changed
 - Add license header to generated file and add a makefile target for generate
