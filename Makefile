@@ -37,6 +37,9 @@ endef
 TOOLS_BIN_DIR := hack/tools/bin
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)
+# CRD_OPTIONS define options to add to the CONTROLLER_GEN
+CRD_OPTIONS ?= "crd:crdVersions=v1"
+
 
 $(TOOLS_BIN_DIR):
 	mkdir -p $(TOOLS_BIN_DIR)
@@ -72,8 +75,7 @@ ifeq ($(EXPORT_RESULT), true)
 endif
 
 ## Lint:
-lint: lint-go lint-yaml ## Run all available linters
-
+lint: lint-go lint-yaml lint-kubebuilder ## Run all available linters
 
 lint-go: ## Use golintci-lint on your project
 	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--out-format checkstyle ./... | tee /dev/tty > checkstyle-report.xml" || echo "" ))
@@ -85,6 +87,10 @@ ifeq ($(EXPORT_RESULT), true)
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | yamllint-checkstyle > yamllint-checkstyle.xml)
 endif
 	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -d relaxed -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
+
+.PHONY: lint-kubebuilder
+lint-kubebuilder: $(CONTROLLER_GEN) ## Lint Kubebuilder annotations by generating objects and checking if it is successful
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=.
 
 ## Help:
 help: ## Show this help.

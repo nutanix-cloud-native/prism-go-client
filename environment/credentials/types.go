@@ -89,7 +89,7 @@ const (
 // +kubebuilder:object:generate=true
 type NutanixTrustBundleReference struct {
 	// Kind of the Nutanix trust bundle
-	// +kubebuilder:validation:Enum=String,Secret,ConfigMap
+	// +kubebuilder:validation:Enum=String;ConfigMap
 	Kind NutanixTrustBundleKind `json:"kind"`
 	// Data of the trust bundle if Kind is String.
 	// +optional
