@@ -34,6 +34,9 @@ jobs:
     - name: Check YAML linting
       run: make lint-yaml
 
+    - name: Check Kubebuilder Annotation linting
+        run: make lint-kubebuilder
+
     - name: Run tests
       run: make test
 
