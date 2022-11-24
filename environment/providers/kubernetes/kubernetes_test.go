@@ -4,16 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/rand"
+	krand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/informers"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -22,6 +20,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/credentials"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/certutils"
 )
 
 func runSecretInformer(ctx context.Context, clientset kubernetes.Interface) coreinformers.SecretInformer {
@@ -55,15 +54,7 @@ func runCMInformer(ctx context.Context, clientset kubernetes.Interface) coreinfo
 }
 
 var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
-	f, err := os.ReadFile("testdata/trustbundle.yaml")
-	Expect(err).ToNot(HaveOccurred())
-
-	type trustBundleFixture struct {
-		data       string
-		binaryData string
-	}
-	expectedTrustBundle := &trustBundleFixture{}
-	err = yaml.Unmarshal(f, expectedTrustBundle)
+	expectedCACert, expectedB64CACert, err := certutils.GenerateCACertForTesting()
 	Expect(err).ToNot(HaveOccurred())
 
 	var (
@@ -73,9 +64,9 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 		secretInformer  coreinformers.SecretInformer
 		cmInformer      coreinformers.ConfigMapInformer
 		prov            types.Provider
-		ip              = rand.String(10)
-		username        = rand.String(10)
-		password        = rand.String(10)
+		ip              = krand.String(10)
+		username        = krand.String(10)
+		password        = krand.String(10)
 
 		fakeSecret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -105,7 +96,7 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 				Namespace: secretNamespace,
 			},
 			BinaryData: map[string][]byte{
-				certBundleKey: []byte(expectedTrustBundle.binaryData),
+				certBundleKey: []byte(expectedB64CACert),
 			},
 		}
 
@@ -155,7 +146,7 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 			},
 			Insecure:              true,
 			Address:               addr,
-			AdditionalTrustBundle: expectedTrustBundle.data,
+			AdditionalTrustBundle: expectedCACert,
 		}))
 	})
 })
