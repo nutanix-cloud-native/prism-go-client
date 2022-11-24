@@ -11,11 +11,14 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	krand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/informers"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/credentials"
@@ -56,22 +59,21 @@ func runCMInformer(ctx context.Context, clientset kubernetes.Interface) coreinfo
 var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 	expectedCACert, expectedB64CACert, err := certutils.GenerateCACertForTesting()
 	Expect(err).ToNot(HaveOccurred())
-
 	var (
-		secretName      = "nutanix-credentials"
-		cmName          = "user-ca-bundle"
-		secretNamespace = "kube-system"
-		secretInformer  coreinformers.SecretInformer
-		cmInformer      coreinformers.ConfigMapInformer
-		prov            types.Provider
-		ip              = krand.String(10)
-		username        = krand.String(10)
-		password        = krand.String(10)
+		cmName         = "user-ca-bundle"
+		namespace      = "kube-system"
+		secretName     = "nutanix-credentials"
+		secretInformer coreinformers.SecretInformer
+		cmInformer     coreinformers.ConfigMapInformer
+		prov           types.Provider
+		ip             = krand.String(10)
+		username       = krand.String(10)
+		password       = krand.String(10)
 
 		fakeSecret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
-				Namespace: secretNamespace,
+				Namespace: namespace,
 			},
 			Data: map[string][]byte{
 				"credentials": []byte(fmt.Sprintf(`
@@ -90,49 +92,53 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 			`, username, password)),
 			},
 		}
-		fakeCM = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      cmName,
-				Namespace: secretNamespace,
-			},
-			BinaryData: map[string][]byte{
-				certBundleKey: []byte(expectedB64CACert),
-			},
-		}
-
-		fakeClientset = fake.NewSimpleClientset(fakeSecret, fakeCM)
-		prismEndpoint = credentials.NutanixPrismEndpoint{
-			Address:  ip,
-			Port:     9440,
-			Insecure: true,
-			CredentialRef: &credentials.NutanixCredentialReference{
-				Kind:      credentials.SecretKind,
-				Name:      secretName,
-				Namespace: secretNamespace,
-			},
-			AdditionalTrustBundle: &credentials.NutanixTrustBundleReference{
-				Kind:      credentials.NutanixTrustBundleKindConfigMap,
-				Name:      cmName,
-				Namespace: secretNamespace,
-			},
-		}
 	)
+
+	const fakeCMTemplate = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: %s
+  namespace: %s
+binaryData:
+  ca.crt: %s`
+	fakeCMStr := fmt.Sprintf(fakeCMTemplate, cmName, namespace, expectedB64CACert)
+	decoder := serializer.NewCodecFactory(scheme.Scheme).UniversalDecoder()
+	fakeCM := &corev1.ConfigMap{}
+	err = runtime.DecodeInto(decoder, []byte(fakeCMStr), fakeCM)
+	Expect(err).ToNot(HaveOccurred())
+
+	fakeClientset := fake.NewSimpleClientset(fakeSecret, fakeCM)
+	prismEndpoint := credentials.NutanixPrismEndpoint{
+		Address:  ip,
+		Port:     9440,
+		Insecure: true,
+		CredentialRef: &credentials.NutanixCredentialReference{
+			Kind:      credentials.SecretKind,
+			Name:      secretName,
+			Namespace: namespace,
+		},
+		AdditionalTrustBundle: &credentials.NutanixTrustBundleReference{
+			Kind:      credentials.NutanixTrustBundleKindConfigMap,
+			Name:      cmName,
+			Namespace: namespace,
+		},
+	}
 	BeforeAll(func() {
 		secretInformer = runSecretInformer(context.TODO(), fakeClientset)
 		cmInformer = runCMInformer(context.TODO(), fakeClientset)
 		prov = NewProvider(prismEndpoint, secretInformer, cmInformer)
 	})
 	It("must be able to look up secret", func() {
-		_, err := fakeClientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+		_, err := fakeClientset.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 		Expect(err).To(Succeed())
 
-		_, err = secretInformer.Lister().Secrets(secretNamespace).Get(secretName)
+		_, err = secretInformer.Lister().Secrets(namespace).Get(secretName)
 		Expect(err).To(Succeed())
 
-		_, err = fakeClientset.CoreV1().ConfigMaps(secretNamespace).Get(context.TODO(), cmName, metav1.GetOptions{})
+		_, err = fakeClientset.CoreV1().ConfigMaps(namespace).Get(context.TODO(), cmName, metav1.GetOptions{})
 		Expect(err).To(Succeed())
 
-		_, err = cmInformer.Lister().ConfigMaps(secretNamespace).Get(cmName)
+		_, err = cmInformer.Lister().ConfigMaps(namespace).Get(cmName)
 		Expect(err).To(Succeed())
 	})
 	It("must get management endpoint", func() {

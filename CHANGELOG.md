@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.3.4] - 2022-11-24
+### Changed
+- Bugfix: Stop explicit base64 decoding of BinaryData from ConfigMap in Kubernetes env provider
+
 ## [0.3.3] - 2022-11-24
 ### Changed
 - Kubernetes env provider can now read the trust bundle from both BinaryData and Data
