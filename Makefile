@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 GOCMD=go
 GOTEST=$(GOCMD) test
 GOVET=$(GOCMD) vet
@@ -39,7 +40,6 @@ CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)
 # CRD_OPTIONS define options to add to the CONTROLLER_GEN
 CRD_OPTIONS ?= "crd:crdVersions=v1"
-
 
 $(TOOLS_BIN_DIR):
 	mkdir -p $(TOOLS_BIN_DIR)
