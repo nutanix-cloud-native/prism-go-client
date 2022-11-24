@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/rand"
+	krand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/informers"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -20,6 +20,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/credentials"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/certutils"
 )
 
 func runSecretInformer(ctx context.Context, clientset kubernetes.Interface) coreinformers.SecretInformer {
@@ -53,16 +54,21 @@ func runCMInformer(ctx context.Context, clientset kubernetes.Interface) coreinfo
 }
 
 var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
+	expectedCACert, expectedB64CACert, err := certutils.GenerateCACertForTesting()
+	Expect(err).ToNot(HaveOccurred())
+
 	var (
 		secretName      = "nutanix-credentials"
+		cmName          = "user-ca-bundle"
 		secretNamespace = "kube-system"
 		secretInformer  coreinformers.SecretInformer
 		cmInformer      coreinformers.ConfigMapInformer
 		prov            types.Provider
-		ip              = rand.String(10)
-		username        = rand.String(10)
-		password        = rand.String(10)
-		fakeClientset   = fake.NewSimpleClientset(&corev1.Secret{
+		ip              = krand.String(10)
+		username        = krand.String(10)
+		password        = krand.String(10)
+
+		fakeSecret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
 				Namespace: secretNamespace,
@@ -83,7 +89,18 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 				]
 			`, username, password)),
 			},
-		})
+		}
+		fakeCM = &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cmName,
+				Namespace: secretNamespace,
+			},
+			BinaryData: map[string][]byte{
+				certBundleKey: []byte(expectedB64CACert),
+			},
+		}
+
+		fakeClientset = fake.NewSimpleClientset(fakeSecret, fakeCM)
 		prismEndpoint = credentials.NutanixPrismEndpoint{
 			Address:  ip,
 			Port:     9440,
@@ -91,6 +108,11 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 			CredentialRef: &credentials.NutanixCredentialReference{
 				Kind:      credentials.SecretKind,
 				Name:      secretName,
+				Namespace: secretNamespace,
+			},
+			AdditionalTrustBundle: &credentials.NutanixTrustBundleReference{
+				Kind:      credentials.NutanixTrustBundleKindConfigMap,
+				Name:      cmName,
 				Namespace: secretNamespace,
 			},
 		}
@@ -101,10 +123,16 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 		prov = NewProvider(prismEndpoint, secretInformer, cmInformer)
 	})
 	It("must be able to look up secret", func() {
-		_, err := fakeClientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(),
-			secretName, metav1.GetOptions{})
+		_, err := fakeClientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 		Expect(err).To(Succeed())
+
 		_, err = secretInformer.Lister().Secrets(secretNamespace).Get(secretName)
+		Expect(err).To(Succeed())
+
+		_, err = fakeClientset.CoreV1().ConfigMaps(secretNamespace).Get(context.TODO(), cmName, metav1.GetOptions{})
+		Expect(err).To(Succeed())
+
+		_, err = cmInformer.Lister().ConfigMaps(secretNamespace).Get(cmName)
 		Expect(err).To(Succeed())
 	})
 	It("must get management endpoint", func() {
@@ -116,8 +144,9 @@ var _ = Describe("Kubernetes Environment Provider", Ordered, func() {
 				Username: username,
 				Password: password,
 			},
-			Insecure: true,
-			Address:  addr,
+			Insecure:              true,
+			Address:               addr,
+			AdditionalTrustBundle: expectedCACert,
 		}))
 	})
 })

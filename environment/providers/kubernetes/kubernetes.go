@@ -5,6 +5,7 @@
 package kubernetes
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/url"
 
@@ -19,6 +20,10 @@ type provider struct {
 	prismEndpoint  credentials.NutanixPrismEndpoint
 }
 
+const (
+	certBundleKey = "ca.crt"
+)
+
 func (prov *provider) getAdditionalTrustBundle() (string, error) {
 	if prov.prismEndpoint.AdditionalTrustBundle == nil {
 		return "", nil
@@ -31,7 +36,17 @@ func (prov *provider) getAdditionalTrustBundle() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return cm.Data["ca.crt"], nil
+	if cert, ok := cm.Data[certBundleKey]; ok {
+		return cert, nil
+	}
+	if b64Cert, ok := cm.BinaryData[certBundleKey]; ok {
+		cert, err := base64.StdEncoding.DecodeString(string(b64Cert))
+		if err != nil {
+			return "", err
+		}
+		return string(cert), nil
+	}
+	return "", nil
 }
 
 func (prov *provider) getCredentials(_ types.Topology) (*types.ApiCredentials, error) {
