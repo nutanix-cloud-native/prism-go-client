@@ -1,10 +1,12 @@
 package karbon
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
@@ -22,7 +24,7 @@ type Client struct {
 	Meta            MetaService
 }
 
-type ClientService struct {
+type ClientService interface {
 	CreateK8sRegistration(createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
 }
 
@@ -39,7 +41,6 @@ func (op Client) CreateK8sRegistration(createRequest *K8sCreateClusterRegistrati
 
 	return karbonClusterActionResponse, op.httpClient.Do(ctx, req, karbonClusterActionResponse)
 }
-
 
 // NewKarbonAPIClient return a internal to operate Karbon resources
 func NewKarbonAPIClient(credentials prismgoclient.Credentials) (*Client, error) {
