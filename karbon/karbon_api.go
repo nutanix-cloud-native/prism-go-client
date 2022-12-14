@@ -22,6 +22,25 @@ type Client struct {
 	Meta            MetaService
 }
 
+type ClientService struct {
+	CreateK8sRegistration(createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
+}
+
+func (op Client) CreateK8sRegistration(createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error) {
+	ctx := context.TODO()
+
+	path := "/v1-alpha.1/k8s/cluster-registrations/"
+	req, err := op.httpClient.NewRequest(http.MethodPost, path, createRequest)
+	karbonClusterActionResponse := new(K8sCreateClusterRegistrationResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return karbonClusterActionResponse, op.httpClient.Do(ctx, req, karbonClusterActionResponse)
+}
+
+
 // NewKarbonAPIClient return a internal to operate Karbon resources
 func NewKarbonAPIClient(credentials prismgoclient.Credentials) (*Client, error) {
 	if credentials.URL == "" || credentials.Username == "" || credentials.Password == "" {
