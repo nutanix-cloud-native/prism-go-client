@@ -15,6 +15,19 @@ type K8sCreateClusterRegistrationResponse struct {
 	TaskUUID *string `json:"task_uuid"`
 }
 
+type K8sClusterRegistrationDeleteResponse struct {
+
+	// Name of the k8s cluster being deleted.
+	ClusterName string `json:"cluster_name,omitempty"`
+
+	// UUID of the k8s cluster being deleted.
+	ClusterUUID string `json:"cluster_uuid,omitempty"`
+
+	// UUID of the task tracking the k8s cluster deletion.
+	// Required: true
+	TaskUUID *string `json:"task_uuid"`
+}
+
 type K8sCreateClusterRegistrationRequest struct {
 
 	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
