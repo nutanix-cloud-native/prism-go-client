@@ -10,20 +10,20 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
-// MetaOperations ...
+// MetaOperations wrap the internal http client and provide the implementation for the MetaService interface
 type MetaOperations struct {
 	httpClient *internal.Client
 }
 
-// Service ...
+// MetaService provides the interface for the karbon metadata e.g. Versions
+// Karbon v2.1
 type MetaService interface {
-	// karbon v2.1
-	GetVersion() (*MetaVersionResponse, error)
-	GetSemanticVersion() (*MetaSemanticVersionResponse, error)
+	GetVersion(ctx context.Context) (*MetaVersionResponse, error)
+	GetSemanticVersion(ctx context.Context) (*MetaSemanticVersionResponse, error)
 }
 
-func (op MetaOperations) GetVersion() (*MetaVersionResponse, error) {
-	ctx := context.TODO()
+// GetVersion returns the karbon version
+func (op MetaOperations) GetVersion(ctx context.Context) (*MetaVersionResponse, error) {
 	path := "/v1-alpha.1/version"
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	karbonMetaVersionResponse := new(MetaVersionResponse)
@@ -33,10 +33,11 @@ func (op MetaOperations) GetVersion() (*MetaVersionResponse, error) {
 	return karbonMetaVersionResponse, op.httpClient.Do(ctx, req, karbonMetaVersionResponse)
 }
 
-func (op MetaOperations) GetSemanticVersion() (*MetaSemanticVersionResponse, error) {
+// GetSemanticVersion is a wrapper on GetVersion and returns the karbon semantic version
+func (op MetaOperations) GetSemanticVersion(ctx context.Context) (*MetaSemanticVersionResponse, error) {
 	const expectedVersionLength int = 3
 	metaSemanticVersionResponse := new(MetaSemanticVersionResponse)
-	rawVersion, err := op.GetVersion()
+	rawVersion, err := op.GetVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
