@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Change the MetaService interface methods to take context.Context as a parameter
+- Local environment provider now fetches port from `NUTANIX_PORT` environment variable
 
 ### Added
 - Add optional function options for the NewKarbonAPIClient constructor
