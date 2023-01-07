@@ -95,6 +95,8 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	test_cluster_uuid := "634F5852-CE1B-465C-A95A-9B8DFFBDDE42"
 	test_category_mapping := map[string]string{
 		"kubernetes-io-cluster-cluster1": "owned",
+		"KubernetesClusterName":          test_cluster_name,
+		"KubernetesClusterUUID":          test_cluster_uuid,
 	}
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
