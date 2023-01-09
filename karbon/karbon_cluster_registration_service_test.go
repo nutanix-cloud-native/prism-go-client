@@ -26,7 +26,8 @@ func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegis
 }
 
 func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	responseGetReg *K8sClusterRegistration) {
+	responseGetReg *K8sClusterRegistration,
+) {
 	assert.NotEmpty(t, *responseGetReg.Name)
 	assert.Equal(t, expected_k8s_cluster_name, *responseGetReg.Name)
 	assert.NotEmpty(t, responseGetReg.Status)
@@ -37,11 +38,12 @@ func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluste
 	// assert.NotEmpty(t, *responseGetReg.Identity.Kind)
 	// assert.NotEmpty(t, *responseGetReg.Identity.UUID)
 	// TODO(deepakm-ntnx) Currently API still allows to pass empty mappings. internal tracker filed
-	//assert.NotZero(t, len(responseGetReg.CategoriesMapping))
+	// assert.NotZero(t, len(responseGetReg.CategoriesMapping))
 }
 
 func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	delResp *K8sClusterRegistrationDeleteResponse) {
+	delResp *K8sClusterRegistrationDeleteResponse,
+) {
 	// TODO(deepakm-ntnx) currently following fails. internal tracker is filed
 	// assert.NotEmpty(t, delResp.ClusterName)
 	// assert.Equal(t, expected_k8s_cluster_name, delResp.ClusterName)
@@ -51,7 +53,8 @@ func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_clu
 }
 
 func validateK8sClusterRegistrationCreateResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	createResp *K8sCreateClusterRegistrationResponse) {
+	createResp *K8sCreateClusterRegistrationResponse,
+) {
 	assert.NotEmpty(t, createResp.ClusterName)
 	assert.Equal(t, expected_k8s_cluster_name, *createResp.ClusterName)
 	assert.NotEmpty(t, createResp.ClusterUUID)
