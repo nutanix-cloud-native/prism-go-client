@@ -2,7 +2,6 @@ package local
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
@@ -20,24 +19,24 @@ func TestLocal(t *testing.T) {
 	g.Expect(val).To(BeNil())
 	g.Expect(err).To(BeIdenticalTo(types.ErrNotFound))
 
-	os.Setenv(userEnv, username)
-	os.Setenv(passwordEnv, password)
-	os.Setenv(categoriesEnv, "k8s/foo,project/bar")
+	t.Setenv(userEnv, username)
+	t.Setenv(passwordEnv, password)
+	t.Setenv(categoriesEnv, "k8s/foo,project/bar")
 
-	endpoint := fmt.Sprintf("https://%s:9440", ip)
-	os.Setenv(endpointEnv, endpoint)
+	t.Setenv(endpointEnv, ip)
 	me, err := prov.GetManagementEndpoint(nil)
 	g.Expect(err).To(Succeed())
-	g.Expect(me.Address.String()).To(BeIdenticalTo(endpoint))
+	expectedAddr := fmt.Sprintf("https://%s:9440", ip)
+	g.Expect(me.Address.String()).To(BeIdenticalTo(expectedAddr))
 
-	os.Setenv(endpointEnv, ":not-valid")
+	t.Setenv(endpointEnv, "not valid")
 	_, err = prov.GetManagementEndpoint(nil)
 	g.Expect(err).NotTo(Succeed())
 
-	os.Setenv(endpointEnv, endpoint)
+	t.Setenv(endpointEnv, ip)
 	me, err = prov.GetManagementEndpoint(nil)
 	g.Expect(err).To(Succeed())
-	g.Expect(me.Address.String()).To(BeIdenticalTo(endpoint))
+	g.Expect(me.Address.String()).To(BeIdenticalTo(expectedAddr))
 	g.Expect(me.ApiCredentials).To(BeIdenticalTo(types.ApiCredentials{
 		Username: username,
 		Password: password,
