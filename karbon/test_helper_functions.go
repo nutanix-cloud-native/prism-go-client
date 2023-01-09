@@ -3,9 +3,10 @@ package karbon
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/providers/local"
-	"github.com/stretchr/testify/require"
 )
 
 func testCredsFromEnv(t *testing.T) prismgoclient.Credentials {

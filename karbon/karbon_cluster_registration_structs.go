@@ -1,7 +1,6 @@
 package karbon
 
 type K8sCreateClusterRegistrationResponse struct {
-
 	// cluster name
 	// Required: true
 	ClusterName *string `json:"cluster_name"`
@@ -16,7 +15,6 @@ type K8sCreateClusterRegistrationResponse struct {
 }
 
 type K8sClusterRegistrationDeleteResponse struct {
-
 	// Name of the k8s cluster being deleted.
 	ClusterName string `json:"cluster_name,omitempty"`
 
@@ -29,7 +27,6 @@ type K8sClusterRegistrationDeleteResponse struct {
 }
 
 type K8sClusterRegistration struct {
-
 	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
 	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
 
@@ -53,7 +50,6 @@ type K8sClusterRegistration struct {
 type K8sClusterRegistrationList []*K8sClusterRegistration
 
 type K8sCreateClusterRegistrationRequest struct {
-
 	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
 	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
 
@@ -77,7 +73,6 @@ type K8sCreateClusterRegistrationRequest struct {
 }
 
 type K8sIdentity struct {
-
 	// kind
 	// Required: true
 	// Enum: [user]
@@ -94,7 +89,6 @@ type K8sIdentity struct {
 }
 
 type Metadata struct {
-
 	// Karbon API version.
 	// Required: true
 	// Pattern: ^v?(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
