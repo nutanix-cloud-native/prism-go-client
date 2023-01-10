@@ -1,0 +1,77 @@
+package karbon
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
+)
+
+// ClusterRegistrationOperations ...
+type ClusterRegistrationOperations struct {
+	httpClient *internal.Client
+}
+
+type ClusterRegistrationService interface {
+	// Cluster Registration
+	CreateK8sRegistration(ctx context.Context, createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
+	DeleteK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistrationDeleteResponse, error)
+	GetK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistration, error)
+	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error)
+}
+
+// CreateK8sRegistration creates the k8s registration
+func (op ClusterRegistrationOperations) CreateK8sRegistration(ctx context.Context, createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/"
+	req, err := op.httpClient.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, err
+	}
+	k8sCreateClusterRegistrationResponse := new(K8sCreateClusterRegistrationResponse)
+	if err := op.httpClient.Do(ctx, req, k8sCreateClusterRegistrationResponse); err != nil {
+		return nil, err
+	}
+	return k8sCreateClusterRegistrationResponse, nil
+}
+
+// DeleteK8sRegistration deletes the k8s registration with UUID
+func (op ClusterRegistrationOperations) DeleteK8sRegistration(ctx context.Context, k8sClusterUUID string) (*K8sClusterRegistrationDeleteResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID
+	req, err := op.httpClient.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistrationDeleteResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+// GetK8sRegistration gets the k8s registration with UUID
+func (op ClusterRegistrationOperations) GetK8sRegistration(ctx context.Context, k8sClusterUUID string) (*K8sClusterRegistration, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistration)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+// GetK8sRegistrationList gets the k8s registration list
+func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/"
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistrationList)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}

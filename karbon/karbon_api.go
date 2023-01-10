@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
@@ -19,11 +19,12 @@ const (
 
 // Client manages the V3 API
 type Client struct {
-	httpClient      *internal.Client
-	clientOpts      []internal.ClientOption
-	Cluster         ClusterService
-	PrivateRegistry PrivateRegistryService
-	Meta            MetaService
+	httpClient                    *internal.Client
+	clientOpts                    []internal.ClientOption
+	Cluster                       ClusterService
+	PrivateRegistry               PrivateRegistryService
+	Meta                          MetaService
+	ClusterRegistrationOperations ClusterRegistrationOperations
 }
 
 // ClientOption is a type alias for functional options for Client
@@ -95,6 +96,7 @@ func NewKarbonAPIClient(credentials prismgoclient.Credentials, opts ...ClientOpt
 	kc.Cluster = ClusterOperations{httpClient: c}
 	kc.PrivateRegistry = PrivateRegistryOperations{httpClient: c}
 	kc.Meta = MetaOperations{httpClient: c}
+	kc.ClusterRegistrationOperations = ClusterRegistrationOperations{httpClient: c}
 
 	return kc, nil
 }

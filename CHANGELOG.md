@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add optional function options for the NewKarbonAPIClient constructor
+- Add ClusterRegistration interface in karbon package
 
 ## [0.3.4] - 2022-11-24
 ### Changed
