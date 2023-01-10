@@ -9,11 +9,13 @@ import (
 	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
 func TestMetaOperations_GetVersion(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testCredsFromEnv(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
 	kc, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
@@ -29,7 +31,7 @@ func TestMetaOperations_GetVersion(t *testing.T) {
 
 func TestMetaOperations_GetSemanticVersion(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testCredsFromEnv(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
 	kc, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
