@@ -1,0 +1,6 @@
+prismCentral:
+  endpoint: prism.nutanix.com
+  port: 9440
+  username: some_user
+  password: some_password
+  insecure: true

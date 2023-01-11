@@ -11,6 +11,8 @@ import (
 	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -70,7 +72,7 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 
 func TestKarbonCreateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testCredsFromEnv(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
@@ -119,7 +121,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 
 func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testCredsFromEnv(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
