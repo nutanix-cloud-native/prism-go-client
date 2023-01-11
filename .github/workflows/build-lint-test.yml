@@ -42,3 +42,7 @@ jobs:
 
     - name: Prepare coverage report
       run: make coverage
+
+    - name: Codecov
+      uses: codecov/codecov-action@v3.1.1
+
