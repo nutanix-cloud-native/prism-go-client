@@ -8,7 +8,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634F5852-CE1B-465C-A95A-9B8DFFBDDE42
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,7 +16,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634F5852-CE1B-465C-A95A-9B8DFFBDDE42
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         header:
             Accept: application/json
             Content-Type: application/json
@@ -28,14 +28,14 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Mon, 09 Jan 2023 19:30:29 GMT
+            Date: Thu, 12 Jan 2023 09:03:05 GMT
             Server: envoy
-            Set-Cookie: Expires=Mon, 09-Jan-2023 19:45:28 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Thu, 12-Jan-2023 09:17:59 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "1589"
+            X-Envoy-Upstream-Service-Time: "6773"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2021.9.0.4
@@ -44,7 +44,7 @@ spec:
             X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: |
-            {"name":"cluster1","status":"kActive","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"name":"cluster1","status":"kActive","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
         body_type: utf-8
         status_message: ""
         proto_major: 0
@@ -63,7 +63,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634F5852-CE1B-465C-A95A-9B8DFFBDDE42
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         name: http-client
         operation: DELETE
         type: HTTP_CLIENT
@@ -71,7 +71,7 @@ spec:
         method: DELETE
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634F5852-CE1B-465C-A95A-9B8DFFBDDE42
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         header:
             Accept: application/json
             Content-Type: application/json
@@ -83,14 +83,14 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Mon, 09 Jan 2023 19:30:29 GMT
+            Date: Thu, 12 Jan 2023 09:03:06 GMT
             Server: envoy
-            Set-Cookie: Expires=Mon, 09-Jan-2023 19:45:29 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Thu, 12-Jan-2023 09:18:06 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "239"
+            X-Envoy-Upstream-Service-Time: "270"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2021.9.0.4
@@ -99,7 +99,7 @@ spec:
             X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: |
-            {"cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"21703dc0-8b7c-46c6-45e7-ba2ff20e577f"}
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"fd0c5d24-e953-4980-54cb-8b429743b7fe"}
         body_type: utf-8
         status_message: ""
         proto_major: 0
@@ -114,7 +114,7 @@ name: TestKarbonCreateClusterRegistration
 spec:
     metadata:
         Body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634F5852-CE1B-465C-A95A-9B8DFFBDDE42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634F5852-CE1B-465C-A95A-9B8DFFBDDE42"}
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
         Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
         Proto: HTTP/1.1
         ProtoMajor: "1"
@@ -133,21 +133,21 @@ spec:
             Content-Type: application/json
             User-Agent: nutanix
         body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634F5852-CE1B-465C-A95A-9B8DFFBDDE42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634F5852-CE1B-465C-A95A-9B8DFFBDDE42"}
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
         body_type: utf-8
     resp:
         status_code: 202
         header:
             Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Mon, 09 Jan 2023 19:30:29 GMT
+            Date: Thu, 12 Jan 2023 09:03:06 GMT
             Server: envoy
-            Set-Cookie: Expires=Mon, 09-Jan-2023 19:45:29 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Thu, 12-Jan-2023 09:18:06 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "247"
+            X-Envoy-Upstream-Service-Time: "258"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2021.9.0.4
@@ -156,7 +156,7 @@ spec:
             X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: |
-            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"1fa75bea-85cb-43ca-52eb-dc8e4f311b1b"}
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"8912641c-78a5-4ecc-4597-85cee9b57d61"}
         body_type: utf-8
         status_message: ""
         proto_major: 0

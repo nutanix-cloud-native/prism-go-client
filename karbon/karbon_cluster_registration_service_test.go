@@ -46,9 +46,8 @@ func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluste
 func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
 	delResp *K8sClusterRegistrationDeleteResponse,
 ) {
-	// TODO(deepakm-ntnx) currently following fails. internal tracker is filed
-	// assert.NotEmpty(t, delResp.ClusterName)
-	// assert.Equal(t, expected_k8s_cluster_name, delResp.ClusterName)
+	assert.NotEmpty(t, delResp.ClusterName)
+	assert.Equal(t, expected_k8s_cluster_name, delResp.ClusterName)
 	assert.NotEmpty(t, delResp.ClusterUUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, delResp.ClusterUUID)
 	assert.NotEmpty(t, *delResp.TaskUUID)
