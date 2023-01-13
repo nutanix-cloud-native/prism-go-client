@@ -48,7 +48,7 @@ CRD_OPTIONS ?= "crd:crdVersions=v1"
 $(CONTROLLER_GEN): $(TOOLS_BIN_DIR)
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
-KEPLOY_VER := v0.7.12
+KEPLOY_VER := v0.7.17
 KEPLOY_BIN := server-$(KEPLOY_VER)
 KEPLOY := $(TOOLS_BIN_DIR)/$(KEPLOY_BIN)
 KEPLOY_PKG := go.keploy.io/server/cmd/server
