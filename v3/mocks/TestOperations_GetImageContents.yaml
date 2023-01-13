@@ -1,0 +1,101 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_GetImageContents
+spec:
+    metadata:
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix/v3]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://prism-test.nutanix.com:9440/api/nutanix/v3/images/c4f95410-57e2-4327-a030-d553743b77aa/file
+        name: http-client
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/images/c4f95410-57e2-4327-a030-d553743b77aa/file
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/octet-stream
+            Date: Thu, 12 Jan 2023 15:12:01 GMT
+            Server: envoy
+            Set-Cookie: Expires=Thu, 12-Jan-2023 15:27:01 GMT; Secure; HttpOnly; Path=/; SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "774"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2022.6.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            dummy_image_content
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_GetImageContents
+spec:
+    metadata:
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix/v3]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://prism-test.nutanix.com:9440/api/nutanix/v3/images/c4f95410-57e2-4327-a030-d553743b77ab/file
+        name: http-client
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/images/c4f95410-57e2-4327-a030-d553743b77ab/file
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 404
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Thu, 12 Jan 2023 15:12:02 GMT
+            Server: envoy
+            Set-Cookie: Expires=Thu, 12-Jan-2023 15:27:02 GMT; Secure; HttpOnly; Path=/; SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "392"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2022.6.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: "{\n  \"api_version\": \"3.1\", \n  \"code\": 404, \n  \"message_list\": [\n    {\n      \"message\": \"image : c4f95410-57e2-4327-a030-d553743b77ab does not exist.\", \n      \"reason\": \"INVALID_ARGUMENT\"\n    }\n  ], \n  \"state\": \"ERROR\"\n}\n"
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

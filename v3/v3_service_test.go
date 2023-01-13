@@ -11,11 +11,16 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
-	"github.com/nutanix-cloud-native/prism-go-client/internal"
-	"github.com/nutanix-cloud-native/prism-go-client/utils"
+	"github.com/keploy/go-sdk/integrations/khttpclient"
+	"github.com/keploy/go-sdk/keploy"
+	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
 func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
@@ -1342,6 +1347,34 @@ func TestOperations_UpdateImage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOperations_GetImageContents(t *testing.T) {
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+
+	expectedResp, err := os.ReadFile("./testdata/imagecontents.iso")
+	require.NoError(t, err)
+
+	client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, client)
+	// expect success - image exists (see testdata/imagecontents.iso) and has been uploaded to a prism cluster to verify
+	resp, err := client.V3.GetImageContents(kctx, "c4f95410-57e2-4327-a030-d553743b77aa")
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResp, resp)
+
+	// expect failure - image does not exist and should throw an error
+	resp, err = client.V3.GetImageContents(kctx, "c4f95410-57e2-4327-a030-d553743b77ab")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "404")
+	assert.Contains(t, err.Error(), "c4f95410-57e2-4327-a030-d553743b77ab does not exist")
+	assert.Empty(t, resp)
 }
 
 func TestOperations_GetCluster(t *testing.T) {

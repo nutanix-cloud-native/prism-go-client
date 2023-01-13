@@ -1,6 +1,7 @@
 package v3
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -12,12 +13,14 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
-// Operations ...
+var _ Service = &Operations{}
+
+// Operations implements the Service interface for the v3 API
 type Operations struct {
 	client *internal.Client
 }
 
-// Service ...
+// Service defines the methods for the v3 API.
 type Service interface {
 	CreateVM(ctx context.Context, createRequest *VMIntentInput) (*VMIntentResponse, error)
 	DeleteVM(ctx context.Context, uuid string) (*DeleteResponse, error)
@@ -35,6 +38,7 @@ type Service interface {
 	ListImage(ctx context.Context, getEntitiesRequest *DSMetadata) (*ImageListIntentResponse, error)
 	UpdateImage(ctx context.Context, uuid string, body *ImageIntentInput) (*ImageIntentResponse, error)
 	UploadImage(ctx context.Context, uuid, filepath string) error
+	GetImageContents(ctx context.Context, uuid string) ([]byte, error)
 	CreateOrUpdateCategoryKey(ctx context.Context, body *CategoryKey) (*CategoryKeyStatus, error)
 	ListCategories(ctx context.Context, getEntitiesRequest *CategoryListMetadata) (*CategoryKeyListResponse, error)
 	DeleteCategoryKey(ctx context.Context, name string) error
@@ -429,6 +433,23 @@ func (op Operations) UpdateImage(ctx context.Context, uuid string, body *ImageIn
 	}
 
 	return imageIntentResponse, op.client.Do(ctx, req, imageIntentResponse)
+}
+
+// GetImageContents gets the image file contents
+func (op Operations) GetImageContents(ctx context.Context, uuid string) ([]byte, error) {
+	path := fmt.Sprintf("/images/%s/file", uuid)
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// response is an octet-stream
+	response := new(bytes.Buffer)
+	if err := op.client.Do(ctx, req, response); err != nil {
+		return nil, err
+	}
+
+	return response.Bytes(), nil
 }
 
 /*GetCluster gets a CLUSTER

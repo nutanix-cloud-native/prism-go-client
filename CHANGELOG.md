@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add optional function options for the NewKarbonAPIClient constructor
 - Add ClusterRegistration interface in karbon package
+- Add `GetImageContents` method on the v3 interface
 
 ## [0.3.4] - 2022-11-24
 ### Changed
