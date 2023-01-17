@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClusterRegistration interface in karbon package
 - Add ClusterRegistration SetInfo and Cluster Addon SetInfo APIs
 
+### Added
+- Added support for specifying volume groups by category in a recovery plan create request.
+- Added support for specifying primary and recovery clusters in a recovery plan.
+
 ## [0.3.4] - 2022-11-24
 ### Changed
 - Bugfix: Stop explicit base64 decoding of BinaryData from ConfigMap in Kubernetes env provider
