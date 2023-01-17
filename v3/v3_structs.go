@@ -3,7 +3,7 @@ package v3
 import (
 	"time"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 // Reference ...
@@ -2356,14 +2356,27 @@ type ProtectionRuleInput struct {
 
 // RecoveryPlanResources represents the resources of recovery plan
 type RecoveryPlanResources struct {
-	StageList  []*StageList `json:"stage_list,omitempty"`
-	Parameters *Parameters  `json:"parameters,omitempty"`
+	VolumeGroupRecoveryInfoList []*VolumeGroupRecoveryInfo `json:"volume_group_recovery_info_list,omitempty"`
+	StageList                   []*StageList               `json:"stage_list,omitempty"`
+	Parameters                  *Parameters                `json:"parameters,omitempty"`
+}
+
+// VolumeGroupRecoveryInfo encapsulates the specification of volume
+// groups to be included in the recovery plan.
+type VolumeGroupRecoveryInfo struct {
+	CategoryFilter *CategoryFilter `json:"category_filter,omitempty"`
 }
 
 // Parameters represents a object for resource of recovery plan
 type Parameters struct {
-	FloatingIPAssignmentList []*FloatingIPAssignmentList `json:"floating_ip_assignment_list,omitempty"`
-	NetworkMappingList       []*NetworkMappingList       `json:"network_mapping_list,omitempty"`
+	FloatingIPAssignmentList []*FloatingIPAssignmentList    `json:"floating_ip_assignment_list,omitempty"`
+	NetworkMappingList       []*NetworkMappingList          `json:"network_mapping_list,omitempty"`
+	AvailabilityZoneList     []*AvailabilityZoneInformation `json:"availability_zone_list,omitempty"`
+}
+
+type AvailabilityZoneInformation struct {
+	ClusterReferenceList []*Reference `json:"cluster_reference_list,omitempty" mapstructure:"cluster_reference_list,omitempty"`
+	AvailabilityZoneURL  *string      `json:"availability_zone_url"`
 }
 
 // FloatingIPAssignmentList represents a object for resource of recovery plan
