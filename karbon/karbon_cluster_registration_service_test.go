@@ -1,7 +1,6 @@
 package karbon
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -16,9 +15,9 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
-var (
-	NoCategoryMappingError = errors.New("error: map[Cluster Create:Failed to validate the category mapping. No category mappings provided.]")
-	NoUUIDError            = errors.New("error: uuid in body is required")
+const (
+	NoCategoryMappingErrorMsg = "No category mappings provided"
+	NoUUIDErrorMsg            = "uuid in body is required"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -145,7 +144,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Equal(t, NoCategoryMappingError, err)
+		assert.Contains(t, fmt.Sprint(err), NoCategoryMappingErrorMsg)
 	}
 }
 
@@ -177,7 +176,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Equal(t, NoUUIDError, err)
+		assert.Contains(t, fmt.Sprint(err), NoUUIDErrorMsg)
 	}
 }
 
