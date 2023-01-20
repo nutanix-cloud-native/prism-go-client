@@ -87,19 +87,15 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
-	t.Log("Get Cluster registration")
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
-		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
 
-	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
 		UUID:              test_cluster_uuid,
@@ -131,19 +127,15 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
-	t.Log("Get Cluster registration")
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
-		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
 
-	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:     &test_cluster_name,
 		UUID:     test_cluster_uuid,
@@ -176,7 +168,6 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
-	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
 		CategoriesMapping: test_category_mapping,
@@ -200,7 +191,6 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
-	t.Log("Get Cluster registration List")
 	// returns type K8sCreateClusterRegistrationResponse
 	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
 	assert.NoError(t, err)
