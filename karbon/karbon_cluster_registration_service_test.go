@@ -25,8 +25,8 @@ func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegis
 	assert.NotEmpty(t, *k8sClusterReg.Name)
 	assert.NotEmpty(t, k8sClusterReg.Status)
 	assert.NotEmpty(t, k8sClusterReg.UUID)
-	//assert.NotEmpty(t, k8sClusterReg.CategoriesMapping)
-	//assert.NotZero(t, k8sClusterReg.CategoriesMapping)
+	assert.NotEmpty(t, k8sClusterReg.CategoriesMapping)
+	assert.NotZero(t, k8sClusterReg.CategoriesMapping)
 }
 
 func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
@@ -122,7 +122,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -164,7 +164,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
