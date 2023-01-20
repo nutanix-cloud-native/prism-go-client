@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	NoCategoryMappingErrorMsg = "No category mappings provided"
-	NoUUIDErrorMsg            = "uuid in body is required"
+	noCategoryMappingErrorMsg = "No category mappings provided"
+	noUUIDErrorMsg            = "uuid in body is required"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -144,7 +144,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), NoCategoryMappingErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), noCategoryMappingErrorMsg)
 	}
 }
 
@@ -176,7 +176,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), NoUUIDErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), noUUIDErrorMsg)
 	}
 }
 
