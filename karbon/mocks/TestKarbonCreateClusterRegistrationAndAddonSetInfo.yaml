@@ -1,0 +1,226 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+spec:
+    metadata:
+        Body: ""
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        name: http-client
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 404
+        header:
+            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Sat, 21 Jan 2023 19:57:30 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 21-Jan-2023 20:12:28 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1842"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2021.9.0.4
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Powered-By: Express
+            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"message_info":{"Cluster Get":"Failed to determine the cluster status"}}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+spec:
+    metadata:
+        Body: |
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        name: http-client
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: |
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        body_type: utf-8
+    resp:
+        status_code: 202
+        header:
+            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Sat, 21 Jan 2023 19:57:30 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 21-Jan-2023 20:12:30 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "262"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2021.9.0.4
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Powered-By: Express
+            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"3efb8a9a-0acf-4999-4567-c3416b5c16c9"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+spec:
+    metadata:
+        Body: |
+            {"cluster_addon_info":{"addon_name":"CSI","addon_version":"v3.x"}}
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
+        name: http-client
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: |
+            {"cluster_addon_info":{"addon_name":"CSI","addon_version":"v3.x"}}
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Sat, 21 Jan 2023 19:57:32 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 21-Jan-2023 20:12:31 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1521"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2021.9.0.4
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Powered-By: Express
+            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+spec:
+    metadata:
+        Body: |
+            {"cluster_addon_info":{"addon_name":"CNDS","addon_version":"v1.x"}}
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
+        name: http-client
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: |
+            {"cluster_addon_info":{"addon_name":"CNDS","addon_version":"v1.x"}}
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Sat, 21 Jan 2023 19:57:33 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 21-Jan-2023 20:12:32 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1589"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2021.9.0.4
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Powered-By: Express
+            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
