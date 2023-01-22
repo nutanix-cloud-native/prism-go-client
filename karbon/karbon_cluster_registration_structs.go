@@ -28,7 +28,6 @@ type K8sClusterRegistrationDeleteResponse struct {
 
 // K8sClusterInfo K8s cluster info
 type K8sClusterInfo struct {
-
 	// k8s distribution
 	// Enum: [Openshift NKE CAPX]
 	K8sDistribution string `json:"k8s_distribution,omitempty"`
@@ -39,7 +38,6 @@ type K8sClusterInfo struct {
 
 // K8sClusterAddonInfo K8s cluster addon info
 type K8sClusterAddonInfo struct {
-
 	// addon name
 	AddonName string `json:"addon_name,omitempty"`
 
@@ -49,7 +47,6 @@ type K8sClusterAddonInfo struct {
 
 // K8sClusterRegistration K8s cluster registration details.
 type K8sClusterRegistration struct {
-
 	// addons info
 	AddonsInfo []*K8sClusterAddonInfo `json:"addons_info,omitempty"`
 
@@ -123,14 +120,12 @@ type Metadata struct {
 
 // K8sUpdateClusterRegistrationInfoRequest k8s update cluster registration info request
 type K8sUpdateClusterRegistrationInfoRequest struct {
-
 	// cluster info
 	ClusterInfo *K8sClusterInfo `json:"cluster_info,omitempty"`
 }
 
 // K8sUpdateClusterRegistrationInfoResponse k8s update cluster registration info response
 type K8sUpdateClusterRegistrationInfoResponse struct {
-
 	// cluster name
 	// Required: true
 	ClusterName *string `json:"cluster_name"`
@@ -142,15 +137,12 @@ type K8sUpdateClusterRegistrationInfoResponse struct {
 
 // K8sUpdateClusterRegistrationAddonInfoRequest k8s update cluster registration addon info request
 type K8sUpdateClusterRegistrationAddonInfoRequest struct {
-
 	// cluster addon info
 	ClusterAddonInfo *K8sClusterAddonInfo `json:"cluster_addon_info,omitempty"`
 }
 
-
 // K8sUpdateClusterRegistrationAddonInfoResponse k8s update cluster registration addon info response
 type K8sUpdateClusterRegistrationAddonInfoResponse struct {
-
 	// cluster name
 	// Required: true
 	ClusterName *string `json:"cluster_name"`

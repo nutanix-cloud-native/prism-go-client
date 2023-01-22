@@ -47,12 +47,6 @@ func validateK8sClusterRegistrationGetResponseWithClusterInfo(t *testing.T, expe
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
-	// TODO(deepakm-ntnx) enable following code once the crash is fixed
-	// assert.NotEmpty(t, responseGetReg.Identity.Name)
-	// assert.NotEmpty(t, *responseGetReg.Identity.Kind)
-	// assert.NotEmpty(t, *responseGetReg.Identity.UUID)
-	// TODO(deepakm-ntnx) Currently API still allows to pass empty mappings. internal tracker filed
-	// assert.NotZero(t, len(responseGetReg.CategoriesMapping))
 	assert.NotEmpty(t, responseGetReg.ClusterInfo)
 	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sDistribution)
 	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sVersion)
@@ -60,17 +54,19 @@ func validateK8sClusterRegistrationGetResponseWithClusterInfo(t *testing.T, expe
 }
 
 func validateK8sClusterRegistrationGetResponseWithAddonInfo(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	test_cluster_info *K8sClusterInfo, responseGetReg *K8sClusterRegistration,
+	test_cluster_addon_info *K8sClusterAddonInfo, responseGetReg *K8sClusterRegistration,
 ) {
 	assert.NotEmpty(t, *responseGetReg.Name)
 	assert.Equal(t, expected_k8s_cluster_name, *responseGetReg.Name)
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
-	assert.NotEmpty(t, responseGetReg.ClusterInfo)
-	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sDistribution)
-	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sVersion)
-	assert.Empty(t, responseGetReg.AddonsInfo)
+	assert.Empty(t, responseGetReg.ClusterInfo)
+	assert.NotEmpty(t, responseGetReg.AddonsInfo)
+	assert.NotEmpty(t, responseGetReg.AddonsInfo[0].AddonName)
+	assert.NotEmpty(t, responseGetReg.AddonsInfo[0].AddonVersion)
+	assert.NotEmpty(t, responseGetReg.AddonsInfo[1].AddonName)
+	assert.NotEmpty(t, responseGetReg.AddonsInfo[1].AddonVersion)
 }
 
 func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
