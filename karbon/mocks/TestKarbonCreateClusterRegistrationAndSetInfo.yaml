@@ -26,7 +26,7 @@ spec:
     resp:
         status_code: 200
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:35 GMT
             Server: envoy
@@ -41,7 +41,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"addons_info":[{"addon_name":"CSI","addon_version":"v3.x"},{"addon_name":"CSI","addon_version":"v3.x"}],"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"cluster_info":{"k8s_distribution":"","k8s_version":""},"name":"cluster1","status":"kActive","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
@@ -81,7 +81,7 @@ spec:
     resp:
         status_code: 202
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:36 GMT
             Server: envoy
@@ -96,7 +96,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"93ee3373-230a-4a9e-4542-14bac4a20167"}
@@ -138,7 +138,7 @@ spec:
     resp:
         status_code: 202
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:36 GMT
             Server: envoy
@@ -153,7 +153,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"145c7c97-0ddc-444a-6bb9-8dfd8b549f5e"}
@@ -195,7 +195,7 @@ spec:
     resp:
         status_code: 200
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:41 GMT
             Server: envoy
@@ -210,7 +210,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
@@ -250,7 +250,7 @@ spec:
     resp:
         status_code: 200
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:43 GMT
             Server: envoy
@@ -265,7 +265,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"addons_info":[],"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"cluster_info":{"k8s_distribution":"CAPX","k8s_version":"v1.25.0"},"name":"cluster1","status":"kActive","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
@@ -305,11 +305,11 @@ spec:
     resp:
         status_code: 202
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             Content-Type: application/json
             Date: Sat, 21 Jan 2023 19:56:43 GMT
             Server: envoy
-            Set-Cookie: NTNX_IGW_SESSION=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VyX3Byb2ZpbGUiOiJ7XCJ1c2VybmFtZVwiOiBcImFkbWluXCIsIFwiZG9tYWluXCI6IG51bGwsIFwibGVnYWN5X2FkbWluX2F1dGhvcml0aWVzXCI6IFtcIlJPTEVfVVNFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9WSUVXRVJcIiwgXCJST0xFX01VTFRJQ0xVU1RFUl9BRE1JTlwiXSwgXCJhdXRoZW50aWNhdGVkXCI6IHRydWUsIFwiX3Blcm1hbmVudFwiOiB0cnVlLCBcInJvbGVzXCI6IFtcIlN1cGVyIEFkbWluXCIsIFwiUHJpc20gQWRtaW5cIiwgXCJQcmlzbSBWaWV3ZXJcIl0sIFwibG9nX3V1aWRcIjogXCI4OWFkYTA5NS01MjFjLTQ1MDktYjY3ZS05NTAyZGQwOWIwOGNcIiwgXCJ1c2VydHlwZVwiOiBcImxvY2FsXCIsIFwiYXBwX2RhdGFcIjoge30sIFwiYXV0aF9pbmZvXCI6IHtcInVzZXJuYW1lXCI6IFwiYWRtaW5cIiwgXCJyZW1vdGVfYXV0aG9yaXphdGlvblwiOiBudWxsLCBcInVzZXJfZ3JvdXBfdXVpZHNcIjogbnVsbCwgXCJyZW1vdGVfYXV0aF9qc29uXCI6IG51bGwsIFwic2VydmljZV9uYW1lXCI6IG51bGwsIFwidG9rZW5fYXVkaWVuY2VcIjogbnVsbCwgXCJ0b2tlbl9pc3N1ZXJcIjogbnVsbCwgXCJ1c2VyX3V1aWRcIjogXCIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDBcIiwgXCJ0ZW5hbnRfdXVpZFwiOiBcIjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMFwifX0iLCJqdGkiOiIxNGE1M2IwNS1mMjVjLTQxNDQtOTUzYS05YTFjYjcwOGE5MTciLCJpc3MiOiJBdGhlbmEiLCJpYXQiOjE2NzQzMzEwMDMsImV4cCI6MTY3NDMzMTkwM30.Daj0aNPLvOQ_OcpkxxyWjc74nQHx-lMDmAIFNTotHGL7V9L8uDP0ae78Au-K-R6CIxaOoIhP8vB3ddMurQiMp_Czh_oBnAC_nlBi2rjzWdduYbZn9RKrX2NNGG6HkyX1zakKzv2Hrn92l2iUM3m8xCEsrYb1q0XPphQbCtECBLAK3vGAsaHVlvjbn9uEF5b9v1b4k3yOnyuu19jiRagblxeehVeLKP789T6yAf6EEa8IwuFJY9T-H5vU5IWxmLSHMx586tFjqkY7f6LaU9HHB0GJY4Y8GnGNo_1qgzvVEuN6c1zrAnOhqzJ0OdeRIcoJkEVzLHveJ56A15DokW0KmQ;Expires=Sat, 21-Jan-2023 20:11:43 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Sat, 21-Jan-2023 20:11:43 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
@@ -320,7 +320,7 @@ spec:
             X-Ntnx-Product: pc.2021.9.0.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            X-Webkit-Csp: "default-src 'self' *.nutanix.com nutanix.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';  style-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src 'self' blob: data:; frame-src 'self' https://*.nutanix.com blob: data:"
             X-Xss-Protection: 1; mode=block
         body: |
             {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"fcbbb878-d874-43c2-5245-d94f2d15fb94"}
