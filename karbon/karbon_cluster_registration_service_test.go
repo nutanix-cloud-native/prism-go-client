@@ -15,14 +15,15 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
+const (
+	noCategoryMappingErrorMsg = "No category mappings provided"
+	noUUIDErrorMsg            = "uuid in body is required"
+)
+
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
 	assert.NotEmpty(t, *k8sClusterReg.Name)
 	assert.NotEmpty(t, k8sClusterReg.Status)
 	assert.NotEmpty(t, k8sClusterReg.UUID)
-	// TODO(deepakm-ntnx) enable following code once the crash is fixed
-	// assert.NotEmpty(t, k8sClusterReg.Identity.Name)
-	// assert.NotEmpty(t, *k8sClusterReg.Identity.Kind)
-	// assert.NotEmpty(t, *k8sClusterReg.Identity.UUID)
 	assert.NotEmpty(t, k8sClusterReg.CategoriesMapping)
 	assert.NotZero(t, k8sClusterReg.CategoriesMapping)
 }
@@ -35,12 +36,7 @@ func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluste
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
-	// TODO(deepakm-ntnx) enable following code once the crash is fixed
-	// assert.NotEmpty(t, responseGetReg.Identity.Name)
-	// assert.NotEmpty(t, *responseGetReg.Identity.Kind)
-	// assert.NotEmpty(t, *responseGetReg.Identity.UUID)
-	// TODO(deepakm-ntnx) Currently API still allows to pass empty mappings. internal tracker filed
-	// assert.NotZero(t, len(responseGetReg.CategoriesMapping))
+	assert.NotZero(t, len(responseGetReg.CategoriesMapping))
 }
 
 func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
@@ -90,19 +86,15 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
-	t.Log("Get Cluster registration")
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
-		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
 
-	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
 		UUID:              test_cluster_uuid,
@@ -118,6 +110,76 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	// TODO get task uuid status
 }
 
+func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster2")
+	test_cluster_uuid := strings.ToLower("E33FD0FD-5673-45FA-825D-7EF869A91577")
+	test_metadata_apiversion := "v1.1.0"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+
+	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	if err == nil {
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
+		// Registration exists. delete it so that we can create it
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
+		assert.NoError(t, err)
+		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+	}
+
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:     &test_cluster_name,
+		UUID:     test_cluster_uuid,
+		Metadata: test_metadata,
+	}
+
+	// check if the error is expected
+	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	if assert.Error(t, err) {
+		assert.Contains(t, fmt.Sprint(err), noCategoryMappingErrorMsg)
+	}
+}
+
+func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster3")
+	test_category_mapping := map[string]string{
+		fmt.Sprintf("kubernetes-io-cluster-%s", test_cluster_name): "owned",
+		"KubernetesClusterName": test_cluster_name,
+	}
+	test_metadata_apiversion := "v1.1.0"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:              &test_cluster_name,
+		CategoriesMapping: test_category_mapping,
+		Metadata:          test_metadata,
+	}
+
+	// check if the error is expected
+	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	if assert.Error(t, err) {
+		assert.Contains(t, fmt.Sprint(err), noUUIDErrorMsg)
+	}
+}
+
 func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
@@ -128,7 +190,6 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
-	t.Log("Get Cluster registration List")
 	// returns type K8sCreateClusterRegistrationResponse
 	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
 	assert.NoError(t, err)
