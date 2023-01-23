@@ -26,12 +26,38 @@ type K8sClusterRegistrationDeleteResponse struct {
 	TaskUUID *string `json:"task_uuid"`
 }
 
+// K8sClusterInfo K8s cluster info
+type K8sClusterInfo struct {
+
+	// k8s distribution
+	// Enum: [Openshift NKE CAPX]
+	K8sDistribution string `json:"k8s_distribution,omitempty"`
+
+	// k8s version
+	K8sVersion string `json:"k8s_version,omitempty"`
+}
+
+// K8sClusterAddonInfo K8s cluster addon info
+type K8sClusterAddonInfo struct {
+
+	// addon name
+	AddonName string `json:"addon_name,omitempty"`
+
+	// addon version
+	AddonVersion string `json:"addon_version,omitempty"`
+}
+
+// K8sClusterRegistration K8s cluster registration details.
 type K8sClusterRegistration struct {
+
+	// addons info
+	AddonsInfo []*K8sClusterAddonInfo `json:"addons_info,omitempty"`
+
 	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
 	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
 
-	// identity
-	Identity *K8sIdentity `json:"identity,omitempty"`
+	// cluster info
+	ClusterInfo *K8sClusterInfo `json:"cluster_info,omitempty"`
 
 	// K8s cluster name.
 	// Required: true
@@ -39,7 +65,7 @@ type K8sClusterRegistration struct {
 	// Min Length: 1
 	Name *string `json:"name"`
 
-	// K8s cluster status.
+	// K8s cluster registration status.
 	Status string `json:"status,omitempty"`
 
 	// The universally unique identifier (UUID) of the k8s cluster.
@@ -93,4 +119,43 @@ type Metadata struct {
 	// Required: true
 	// Pattern: ^v?(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
 	APIVersion *string `json:"api_version"`
+}
+
+// K8sUpdateClusterRegistrationInfoRequest k8s update cluster registration info request
+type K8sUpdateClusterRegistrationInfoRequest struct {
+
+	// cluster info
+	ClusterInfo *K8sClusterInfo `json:"cluster_info,omitempty"`
+}
+
+// K8sUpdateClusterRegistrationInfoResponse k8s update cluster registration info response
+type K8sUpdateClusterRegistrationInfoResponse struct {
+
+	// cluster name
+	// Required: true
+	ClusterName *string `json:"cluster_name"`
+
+	// cluster uuid
+	// Required: true
+	ClusterUUID *string `json:"cluster_uuid"`
+}
+
+// K8sUpdateClusterRegistrationAddonInfoRequest k8s update cluster registration addon info request
+type K8sUpdateClusterRegistrationAddonInfoRequest struct {
+
+	// cluster addon info
+	ClusterAddonInfo *K8sClusterAddonInfo `json:"cluster_addon_info,omitempty"`
+}
+
+
+// K8sUpdateClusterRegistrationAddonInfoResponse k8s update cluster registration addon info response
+type K8sUpdateClusterRegistrationAddonInfoResponse struct {
+
+	// cluster name
+	// Required: true
+	ClusterName *string `json:"cluster_name"`
+
+	// cluster uuid
+	// Required: true
+	ClusterUUID *string `json:"cluster_uuid"`
 }
