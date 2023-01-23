@@ -26,11 +26,17 @@ variable `PRISM_DEV_CONFIG` to point to the path of your config file.
 
 ## Using keploy to create a new test
 We use Keploy (https://keploy.io) to record and replay API calls to Prism Central. This allows us to create a data mock
-for our unit tests. To do this, you need to have a running Prism Central instance. You can then run the following commands
-to start keploy:
-```bash
-make run-keploy
+for our unit tests. To do this, you need to have a running Prism Central instance. 
+
+Ensure that your package has a `TestMain` function defined in the `main_test.go` file that starts a keploy server. See `karbon/main_test.go` for an example.
+```go
+func TestMain(m *testing.M) {
+	kserver.StartAsync()
+	exitVal := m.Run()
+	os.Exit(exitVal)
+}
 ```
+
 The way keploy works here is that it intercepts all API calls to Prism Central and stores them in a file. This file can then
 be used as a data mock for our unit tests. To record a new API call for a unit test using keploy, we can look at an example:
 ```go
@@ -88,10 +94,4 @@ func TestMetaOperations_GetVersion(t *testing.T) {
 }
 ```
 
-Once the unit test is passing, you can commit the changes to the repo. Keploy can be stopped by running the following command:
-```bash
-make stop-keploy
-```
-
-Note: the `make run-keploy` and `make stop-keploy` commands are automatically run before and after (respectively) running
-`make test` or `make coverage`.
+Once the unit test is passing, you can commit the changes to the repo.
