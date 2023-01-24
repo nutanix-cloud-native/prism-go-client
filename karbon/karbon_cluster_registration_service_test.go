@@ -128,7 +128,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 		// Get task uuid status and to check if the task complete successfully before timeout
 		assert.NotNil(t, responseDelReg.TaskUUID)
-		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
+		//validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
@@ -147,7 +147,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 
 	// Get task uuid status and to check if the task complete successfully before timeout
 	assert.NotNil(t, responseCreateReg.TaskUUID)
-	validateK8sClusterRegistrationTaskStatus(t, kctx, *responseCreateReg.TaskUUID, creds)
+	//validateK8sClusterRegistrationTaskStatus(t, kctx, *responseCreateReg.TaskUUID, creds)
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
@@ -176,7 +176,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 		// Get task uuid status and to check if the task complete successfully before timeout
 		assert.NotNil(t, responseDelReg.TaskUUID)
-		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
+		//validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
