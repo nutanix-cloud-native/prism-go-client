@@ -152,7 +152,6 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
 	// TODO get task uuid status
-
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
