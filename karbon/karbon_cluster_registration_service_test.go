@@ -11,7 +11,7 @@ import (
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
 	"github.com/keploy/go-sdk/mock"
-	//v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
+	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
