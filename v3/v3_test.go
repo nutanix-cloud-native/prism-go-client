@@ -1,12 +1,15 @@
 package v3
 
 import (
+	"net/http"
 	"testing"
 
+	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
 func TestNewV3Client(t *testing.T) {
@@ -97,6 +100,17 @@ hag8IyrhFHvBN91i0ZJsumB9iOQct+R2UTjEqUdOqCsukNK1OFHrwZyKarXMsh3o
 wFZUTKiL8IkyhtyTMr5NGvo1dbU=
 -----END CERTIFICATE-----`
 	v3Client, err := NewV3Client(cred, WithPEMEncodedCertBundle([]byte(certBundle)))
+	require.NoError(t, err)
+	assert.NotNil(t, v3Client)
+}
+
+func TestNewV3ClientWithInsecureAndCustomTransport(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	// Changing insecure to true as that leads to modifying the transport underneath
+	creds.Insecure = true
+
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 	assert.NotNil(t, v3Client)
 }
