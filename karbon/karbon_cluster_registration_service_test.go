@@ -1,23 +1,33 @@
 package karbon
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
 	"github.com/keploy/go-sdk/mock"
+	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
 const (
-	noCategoryMappingErrorMsg = "No category mappings provided"
-	noUUIDErrorMsg            = "uuid in body is required"
+	noCategoryMappingErrorMsg  = "No category mappings provided"
+	noUUIDErrorMsg             = "uuid in body is required"
+	noTaskIDCreateRespErrorMsg = "Task ID was not include the create response."
+	timeout                    = 60 * time.Second
+	taskSucceed                = "SUCCEEDED"
+	taskFailed                 = "FAILED"
+	taskAborted                = "ABORTED"
+	taskSuspended              = "SUSPENDED"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -65,6 +75,28 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 	}
 }
 
+func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, taskID string, creds prismgoclient.Credentials) {
+	v3Client, err := v3.NewV3Client(creds)
+	assert.NoError(t, err)
+	assert.NotNil(t, v3Client)
+	timeStart := time.Now()
+	for {
+		timeCur := time.Now()
+		if timeCur.Sub(timeStart) > timeout {
+			assert.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
+		}
+		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
+		assert.NoError(t, err)
+		assert.NotNil(t, responseGetTask.Status)
+		taskStatus := *responseGetTask.Status
+		if taskStatus == taskSucceed {
+			break
+		} else if taskStatus == taskFailed || taskStatus == taskAborted || taskStatus == taskSuspended {
+			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
+		}
+	}
+}
+
 func TestKarbonCreateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
@@ -92,7 +124,11 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
+		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+		// Get task uuid status and to check if the task complete successfully before timeout
+		assert.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
@@ -105,9 +141,13 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	// returns type K8sCreateClusterRegistrationResponse
 	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
+
+	// Valid k8s cluster registration create response
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
-	// TODO get task uuid status
+	// Get task uuid status and to check if the task complete successfully before timeout
+	assert.NotNil(t, responseCreateReg.TaskUUID)
+	validateK8sClusterRegistrationTaskStatus(t, kctx, *responseCreateReg.TaskUUID, creds)
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
