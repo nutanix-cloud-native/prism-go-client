@@ -75,22 +75,22 @@ func WithLogger(logger *logr.Logger) ClientOption {
 
 // NewV3Client return a internal to operate V3 resources
 func NewV3Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	v3Client := &Client{}
-	for _, opt := range opts {
-		if err := opt(v3Client); err != nil {
-			return nil, err
-		}
-	}
-
 	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
 		return nil, fmt.Errorf("username, password and endpoint are required")
 	}
 
+	v3Client := &Client{}
 	v3Client.clientOpts = append(v3Client.clientOpts,
 		internal.WithCredentials(&credentials),
 		internal.WithUserAgent(userAgent),
 		internal.WithAbsolutePath(absolutePath),
 	)
+
+	for _, opt := range opts {
+		if err := opt(v3Client); err != nil {
+			return nil, err
+		}
+	}
 
 	httpClient, err := internal.NewClient(v3Client.clientOpts...)
 	if err != nil {
