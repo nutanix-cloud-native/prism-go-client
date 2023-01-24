@@ -2356,14 +2356,30 @@ type ProtectionRuleInput struct {
 
 // RecoveryPlanResources represents the resources of recovery plan
 type RecoveryPlanResources struct {
-	StageList  []*StageList `json:"stage_list,omitempty"`
-	Parameters *Parameters  `json:"parameters,omitempty"`
+	VolumeGroupRecoveryInfoList []*VolumeGroupRecoveryInfoList `json:"volume_group_recovery_info_list,omitempty"`
+	StageList                   []*StageList                   `json:"stage_list,omitempty"`
+	Parameters                  *Parameters                    `json:"parameters,omitempty"`
+}
+
+// VolumeGroupRecoveryInfoList encapsulates the specification of volume
+// group instances to be included in the recovery plan.
+type VolumeGroupRecoveryInfoList struct {
+	CategoryFilter *CategoryFilter `json:"category_filter,omitempty"`
 }
 
 // Parameters represents a object for resource of recovery plan
 type Parameters struct {
 	FloatingIPAssignmentList []*FloatingIPAssignmentList `json:"floating_ip_assignment_list,omitempty"`
 	NetworkMappingList       []*NetworkMappingList       `json:"network_mapping_list,omitempty"`
+	AvailabilityZoneList     []*AvailabilityZoneList     `json:"availability_zone_list,omitempty"`
+	PrimaryLocationIndex     *int64                      `json:"primary_location_index,omitempty"`
+}
+
+// AvailabilityZoneList represents objects that encapsulate the list of AOS
+// clusters in an AZ.
+type AvailabilityZoneList struct {
+	ClusterReferenceList []*Reference `json:"cluster_reference_list,omitempty" mapstructure:"cluster_reference_list,omitempty"`
+	AvailabilityZoneURL  *string      `json:"availability_zone_url"`
 }
 
 // FloatingIPAssignmentList represents a object for resource of recovery plan
