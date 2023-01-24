@@ -18,6 +18,8 @@ type ClusterRegistrationService interface {
 	DeleteK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistrationDeleteResponse, error)
 	GetK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistration, error)
 	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error)
+	UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error)
+	UpdateK8sRegistrationAddonInfo(ctx context.Context, k8sClusterUUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonInfoRequest) (*K8sUpdateClusterRegistrationAddonInfoResponse, error)
 }
 
 // CreateK8sRegistration creates the k8s registration
@@ -70,6 +72,34 @@ func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Conte
 		return nil, err
 	}
 	karbonClusterActionResponse := new(K8sClusterRegistrationList)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+// UpdateK8sRegistrationInfo updates k8s info
+func (op ClusterRegistrationOperations) UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID + "/setinfo"
+	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateInfoRequest)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationInfoResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+// UpdateK8sRegistrationAddonInfo updates k8s info
+func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonInfo(ctx context.Context, k8sClusterUUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonInfoRequest) (*K8sUpdateClusterRegistrationAddonInfoResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID + "/addons/" + addonName + "/setinfo"
+	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateAddonInfoRequest)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationAddonInfoResponse)
 	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
 		return nil, err
 	}
