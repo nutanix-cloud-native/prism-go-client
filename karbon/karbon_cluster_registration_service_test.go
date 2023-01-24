@@ -102,7 +102,6 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	creds := testhelpers.CredentialsFromEnvironment(t)
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
-
 	kctx := mock.NewContext(mock.Config{
 		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
