@@ -48,23 +48,6 @@ CRD_OPTIONS ?= "crd:crdVersions=v1"
 $(CONTROLLER_GEN): $(TOOLS_BIN_DIR)
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
-KEPLOY_VER := v0.7.12
-KEPLOY_BIN := server-$(KEPLOY_VER)
-KEPLOY := $(TOOLS_BIN_DIR)/$(KEPLOY_BIN)
-KEPLOY_PKG := go.keploy.io/server/cmd/server
-
-.PHONY: $(KEPLOY)
-$(KEPLOY): $(TOOLS_BIN_DIR)
-	$(call go-get-tool,$(KEPLOY),$(KEPLOY_PKG)@$(KEPLOY_VER))
-
-.PHONY: run-keploy
-run-keploy: $(KEPLOY)
-	$(KEPLOY) run &
-
-.PHONY: stop-keploy
-stop-keploy:
-	@-pkill "$(KEPLOY_BIN)"
-
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	$(CONTROLLER_GEN) paths="./..." object:headerFile="hack/boilerplate.go.txt"
 
@@ -76,15 +59,14 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 	$(GOCMD) mod vendor
 
 ## Test:
-test: run-keploy ## Run the tests of the project
+test: ## Run the tests of the project
 ifeq ($(EXPORT_RESULT), true)
 	GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | go-junit-report -set-exit-code > junit-report.xml)
 endif
-	$(GOTEST) -v -race ./... $(OUTPUT_OPTIONS)
-	@$(MAKE) stop-keploy
+	$(GOTEST) -v ./... $(OUTPUT_OPTIONS)
 
-coverage: run-keploy ## Run the tests of the project and export the coverage
+coverage: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -coverprofile=profile.cov ./...
 	$(GOCMD) tool cover -func profile.cov
 ifeq ($(EXPORT_RESULT), true)
@@ -92,7 +74,6 @@ ifeq ($(EXPORT_RESULT), true)
 	GO111MODULE=off go get -u github.com/axw/gocov/gocov
 	gocov convert profile.cov | gocov-xml > coverage.xml
 endif
-	@$(MAKE) stop-keploy
 
 
 ## Lint:
