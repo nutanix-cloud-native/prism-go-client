@@ -88,9 +88,6 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
 		assert.NoError(t, err)
 		assert.NotNil(t, responseGetTask.Status)
-		/*if responseGetTask.Status == nil {
-			assert.FailNow(t, fmt.Sprintf("Task %s was failed: Task status is nil.\n", taskID))
-		}*/
 		taskStatus := *responseGetTask.Status
 		if taskStatus == taskSucceed {
 			break
