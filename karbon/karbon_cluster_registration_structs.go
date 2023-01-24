@@ -76,9 +76,6 @@ type K8sCreateClusterRegistrationRequest struct {
 	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
 	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
 
-	// identity
-	Identity *K8sIdentity `json:"identity,omitempty"`
-
 	// metadata
 	// Required: true
 	Metadata *Metadata `json:"metadata"`
