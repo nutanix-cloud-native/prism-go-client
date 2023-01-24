@@ -8,7 +8,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,7 +16,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         header:
             Accept: application/json
             Content-Type: application/json
@@ -64,7 +64,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
         name: http-client
         operation: POST
         type: HTTP_CLIENT
@@ -72,7 +72,7 @@ spec:
         method: POST
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
         header:
             Accept: application/json
             Content-Type: application/json
@@ -121,7 +121,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
         name: http-client
         operation: POST
         type: HTTP_CLIENT
@@ -129,7 +129,7 @@ spec:
         method: POST
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CSI/setinfo
         header:
             Accept: application/json
             Content-Type: application/json
@@ -178,7 +178,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
         name: http-client
         operation: POST
         type: HTTP_CLIENT
@@ -186,7 +186,7 @@ spec:
         method: POST
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/addons/CNDS/setinfo
         header:
             Accept: application/json
             Content-Type: application/json
@@ -234,7 +234,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -242,7 +242,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         header:
             Accept: application/json
             Content-Type: application/json
@@ -289,7 +289,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         name: http-client
         operation: DELETE
         type: HTTP_CLIENT
@@ -297,7 +297,7 @@ spec:
         method: DELETE
         proto_major: 1
         proto_minor: 1
-        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
         header:
             Accept: application/json
             Content-Type: application/json

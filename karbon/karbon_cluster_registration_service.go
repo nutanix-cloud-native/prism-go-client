@@ -92,7 +92,7 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationInfo(ctx context.Co
 	return karbonClusterActionResponse, nil
 }
 
-// UpdateK8sRegistrationInfo updates k8s info
+// UpdateK8sRegistrationAddonInfo updates k8s info
 func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonInfo(ctx context.Context, k8sClusterUUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonInfoRequest) (*K8sUpdateClusterRegistrationAddonInfoResponse, error) {
 	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID + "/addons/" + addonName + "/setinfo"
 	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateAddonInfoRequest)
