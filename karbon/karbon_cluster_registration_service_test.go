@@ -124,7 +124,11 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
+		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+		// Get task uuid status and to check if the task complete successfully before timeout
+		assert.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
