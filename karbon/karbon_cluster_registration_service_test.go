@@ -75,33 +75,37 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 	}
 }
 
-func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, taskID string, creds prismgoclient.Credentials) {
-	v3Client, err := v3.NewV3Client(creds)
-	assert.NoError(t, err)
-	assert.NotNil(t, v3Client)
+func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
 	timeStart := time.Now()
 	for {
 		timeCur := time.Now()
 		if timeCur.Sub(timeStart) > timeout {
-			assert.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
+			require.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
 		}
 		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
-		assert.NoError(t, err)
-		assert.NotNil(t, responseGetTask.Status)
+		require.NoError(t, err)
+		require.NotNil(t, responseGetTask.Status)
 		taskStatus := *responseGetTask.Status
 		if taskStatus == taskSucceed {
 			break
 		} else if taskStatus == taskFailed || taskStatus == taskAborted || taskStatus == taskSuspended {
 			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
 		}
+		time.Sleep(5 * time.Second)
 	}
 }
 
 func TestKarbonCreateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
+
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
+	require.NotNil(t, nkeClient)
+
+	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
 		Mode: keploy.MODE_TEST,
@@ -124,11 +128,13 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
+
 		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+
 		// Get task uuid status and to check if the task complete successfully before timeout
-		assert.NotNil(t, responseDelReg.TaskUUID)
-		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
+		require.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
@@ -146,15 +152,21 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
 	// Get task uuid status and to check if the task complete successfully before timeout
-	assert.NotNil(t, responseCreateReg.TaskUUID)
-	validateK8sClusterRegistrationTaskStatus(t, kctx, *responseCreateReg.TaskUUID, creds)
+	require.NotNil(t, responseCreateReg.TaskUUID)
+	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseCreateReg.TaskUUID, creds)
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
+
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
+	require.NotNil(t, nkeClient)
+
+	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
 		Mode: keploy.MODE_TEST,
@@ -176,7 +188,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 		// Get task uuid status and to check if the task complete successfully before timeout
 		assert.NotNil(t, responseDelReg.TaskUUID)
-		validateK8sClusterRegistrationTaskStatus(t, kctx, *responseDelReg.TaskUUID, creds)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
