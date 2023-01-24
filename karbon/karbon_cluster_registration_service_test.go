@@ -76,7 +76,6 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 }
 
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, taskID string, creds prismgoclient.Credentials) {
-	return
 	/*v3Client, err := v3.NewV3Client(creds)
 	assert.NoError(t, err)
 	assert.NotNil(t, v3Client)
