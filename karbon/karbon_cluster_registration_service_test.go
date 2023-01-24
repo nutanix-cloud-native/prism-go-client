@@ -76,7 +76,7 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 }
 
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, taskID string, creds prismgoclient.Credentials) {
-	/*v3Client, err := v3.NewV3Client(creds)
+	v3Client, err := v3.NewV3Client(creds)
 	assert.NoError(t, err)
 	assert.NotNil(t, v3Client)
 	timeStart := time.Now()
@@ -94,7 +94,7 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 		} else if taskStatus == taskFailed || taskStatus == taskAborted || taskStatus == taskSuspended {
 			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
 		}
-	}*/
+	}
 }
 
 func TestKarbonCreateClusterRegistration(t *testing.T) {
