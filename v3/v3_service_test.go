@@ -5206,7 +5206,37 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 			},
 			"spec": map[string]interface{}{
 				"resources": map[string]interface{}{
+					"volume_group_recovery_info_list": []interface{}{
+						map[string]interface{}{
+							"category_filter": map[string]interface{}{
+								"params": map[string]interface{}{
+									"catKey": []interface{}{"catVal1", "catVal2"},
+								},
+							},
+						},
+					},
 					"parameters": map[string]interface{}{
+						"primary_location_index": float64(0),
+						"availability_zone_list": []interface{}{
+							map[string]interface{}{
+								"availability_zone_url": "zone url",
+								"cluster_reference_list": []interface{}{
+									map[string]interface{}{
+										"kind": "cluster",
+										"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
+									},
+								},
+							},
+							map[string]interface{}{
+								"availability_zone_url": "zone url",
+								"cluster_reference_list": []interface{}{
+									map[string]interface{}{
+										"kind": "cluster",
+										"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
+									},
+								},
+							},
+						},
 						"network_mapping_list": []interface{}{
 							map[string]interface{}{
 								"are_networks_stretched": false,
@@ -5395,6 +5425,15 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 						Name:        "recovery_plan_name",
 						Description: "description_test",
 						Resources: &RecoveryPlanResources{
+							VolumeGroupRecoveryInfoList: []*VolumeGroupRecoveryInfoList{
+								{
+									CategoryFilter: &CategoryFilter{
+										Params: map[string][]string{
+											"catKey": {"catVal1", "catVal2"},
+										},
+									},
+								},
+							},
 							StageList: []*StageList{
 								{
 									StageUUID:     "cfde831a-4e87-4a75-960f-89b0148aa2cc",
@@ -5416,6 +5455,27 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 								},
 							},
 							Parameters: &Parameters{
+								PrimaryLocationIndex: utils.Int64Ptr(0),
+								AvailabilityZoneList: []*AvailabilityZoneList{
+									{
+										AvailabilityZoneURL: utils.StringPtr("zone url"),
+										ClusterReferenceList: []*Reference{
+											{
+												Kind: utils.StringPtr("cluster"),
+												UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+											},
+										},
+									},
+									{
+										AvailabilityZoneURL: utils.StringPtr("zone url"),
+										ClusterReferenceList: []*Reference{
+											{
+												Kind: utils.StringPtr("cluster"),
+												UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+											},
+										},
+									},
+								},
 								FloatingIPAssignmentList: []*FloatingIPAssignmentList{
 									{
 										AvailabilityZoneURL: "zone url",
