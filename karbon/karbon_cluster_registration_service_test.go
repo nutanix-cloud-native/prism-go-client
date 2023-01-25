@@ -23,6 +23,7 @@ const (
 	_noCategoryMappingErrorMsg = "No category mappings provided"
 	_noUUIDErrorMsg            = "uuid in body is required"
 	_testWaitTimeout           = 60 * time.Second
+	_testWaitInterval          = 2 * time.Second
 	_taskSucceed               = "SUCCEEDED"
 	_taskFailed                = "FAILED"
 	_taskAborted               = "ABORTED"
@@ -105,12 +106,15 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 }
 
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
-	timeStart := time.Now()
-	for {
-		timeCur := time.Now()
-		if timeCur.Sub(timeStart) > _testWaitTimeout {
+	maxRetryTimes := _testWaitTimeout / _testWaitInterval
+	ticker := time.NewTicker(_testWaitInterval)
+	retryTimes := 0
+	for range ticker.C {
+		if retryTimes > int(maxRetryTimes) {
 			require.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
+			break
 		}
+		retryTimes += 1
 		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
 		require.NoError(t, err)
 		require.NotNil(t, responseGetTask.Status)
@@ -120,7 +124,6 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 		} else if taskStatus == _taskFailed || taskStatus == _taskAborted || taskStatus == _taskSuspended {
 			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
 		}
-		time.Sleep(5 * time.Second)
 	}
 }
 
