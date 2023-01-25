@@ -11,12 +11,12 @@ import (
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
 	"github.com/keploy/go-sdk/mock"
-	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 )
 
 const (
@@ -105,7 +105,6 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 	}
 }
 
-
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
 	timeStart := time.Now()
 	for {
@@ -123,6 +122,7 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
 		}
 		time.Sleep(5 * time.Second)
+	}
 }
 
 func validateK8sClusterRegistrationInfoResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string, clusterRegInfoResp *K8sUpdateClusterRegistrationInfoResponse) {
