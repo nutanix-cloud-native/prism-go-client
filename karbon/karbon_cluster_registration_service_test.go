@@ -20,14 +20,13 @@ import (
 )
 
 const (
-	noCategoryMappingErrorMsg  = "No category mappings provided"
-	noUUIDErrorMsg             = "uuid in body is required"
-	noTaskIDCreateRespErrorMsg = "Task ID was not include the create response."
-	timeout                    = 60 * time.Second
-	taskSucceed                = "SUCCEEDED"
-	taskFailed                 = "FAILED"
-	taskAborted                = "ABORTED"
-	taskSuspended              = "SUSPENDED"
+	_noCategoryMappingErrorMsg = "No category mappings provided"
+	_noUUIDErrorMsg            = "uuid in body is required"
+	_testWaitTimeout           = 60 * time.Second
+	_taskSucceed               = "SUCCEEDED"
+	_taskFailed                = "FAILED"
+	_taskAborted               = "ABORTED"
+	_taskSuspended             = "SUSPENDED"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -109,16 +108,16 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 	timeStart := time.Now()
 	for {
 		timeCur := time.Now()
-		if timeCur.Sub(timeStart) > timeout {
+		if timeCur.Sub(timeStart) > _testWaitTimeout {
 			require.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
 		}
 		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
 		require.NoError(t, err)
 		require.NotNil(t, responseGetTask.Status)
 		taskStatus := *responseGetTask.Status
-		if taskStatus == taskSucceed {
+		if taskStatus == _taskSucceed {
 			break
-		} else if taskStatus == taskFailed || taskStatus == taskAborted || taskStatus == taskSuspended {
+		} else if taskStatus == _taskFailed || taskStatus == _taskAborted || taskStatus == _taskSuspended {
 			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
 		}
 		time.Sleep(5 * time.Second)
@@ -244,7 +243,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), noCategoryMappingErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), _noCategoryMappingErrorMsg)
 	}
 }
 
@@ -276,7 +275,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), noUUIDErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), _noUUIDErrorMsg)
 	}
 }
 
