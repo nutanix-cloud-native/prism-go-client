@@ -1,10 +1,12 @@
 package karbon
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
@@ -12,12 +14,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 )
 
 const (
-	noCategoryMappingErrorMsg = "No category mappings provided"
-	noUUIDErrorMsg            = "uuid in body is required"
+	_noCategoryMappingErrorMsg = "No category mappings provided"
+	_noUUIDErrorMsg            = "uuid in body is required"
+	_testWaitTimeout           = 60 * time.Second
+	_testWaitInterval          = 2 * time.Second
+	_taskSucceed               = "SUCCEEDED"
+	_taskFailed                = "FAILED"
+	_taskAborted               = "ABORTED"
+	_taskSuspended             = "SUSPENDED"
 )
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
@@ -95,6 +105,28 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sCluster
 	}
 }
 
+func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
+	maxRetryTimes := _testWaitTimeout / _testWaitInterval
+	ticker := time.NewTicker(_testWaitInterval)
+	retryTimes := 0
+	for range ticker.C {
+		if retryTimes > int(maxRetryTimes) {
+			require.FailNow(t, fmt.Sprintf("Task %s was failed: Task was not completed by timeout.\n", taskID))
+			break
+		}
+		retryTimes += 1
+		responseGetTask, err := v3Client.V3.GetTask(kctx, taskID)
+		require.NoError(t, err)
+		require.NotNil(t, responseGetTask.Status)
+		taskStatus := *responseGetTask.Status
+		if taskStatus == _taskSucceed {
+			break
+		} else if taskStatus == _taskFailed || taskStatus == _taskAborted || taskStatus == _taskSuspended {
+			assert.FailNow(t, fmt.Sprintf("Task %s was failed: the task status is %s.\n", taskID, taskStatus))
+		}
+	}
+}
+
 func validateK8sClusterRegistrationInfoResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string, clusterRegInfoResp *K8sUpdateClusterRegistrationInfoResponse) {
 	assert.NotEmpty(t, clusterRegInfoResp.ClusterName)
 	assert.Equal(t, expected_k8s_cluster_name, *clusterRegInfoResp.ClusterName)
@@ -112,8 +144,14 @@ func validateK8sClusterRegistrationAddonInfoResponse(t *testing.T, expected_k8s_
 func TestKarbonCreateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
+
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
+	require.NotNil(t, nkeClient)
+
+	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
 		Mode: keploy.MODE_TEST,
@@ -136,7 +174,13 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
+
+		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+
+		// Get task uuid status and to check if the task complete successfully before timeout
+		require.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
@@ -149,16 +193,26 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	// returns type K8sCreateClusterRegistrationResponse
 	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
+
+	// Valid k8s cluster registration create response
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
-	// TODO get task uuid status
+	// Get task uuid status and to check if the task complete successfully before timeout
+	require.NotNil(t, responseCreateReg.TaskUUID)
+	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseCreateReg.TaskUUID, creds)
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
+
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
+	require.NotNil(t, nkeClient)
+
+	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
 		Mode: keploy.MODE_TEST,
@@ -176,7 +230,11 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
+		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+		// Get task uuid status and to check if the task complete successfully before timeout
+		assert.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseDelReg.TaskUUID, creds)
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
@@ -188,7 +246,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), noCategoryMappingErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), _noCategoryMappingErrorMsg)
 	}
 }
 
@@ -220,7 +278,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), noUUIDErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), _noUUIDErrorMsg)
 	}
 }
 

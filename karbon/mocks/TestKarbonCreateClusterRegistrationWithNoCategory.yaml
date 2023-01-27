@@ -28,14 +28,14 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Fri, 20 Jan 2023 02:53:02 GMT
+            Date: Tue, 24 Jan 2023 18:19:03 GMT
             Server: envoy
-            Set-Cookie: Expires=Fri, 20-Jan-2023 03:08:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Tue, 24-Jan-2023 18:33:58 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "2259"
+            X-Envoy-Upstream-Service-Time: "5028"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2021.9.0.4
@@ -85,14 +85,14 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Fri, 20 Jan 2023 02:53:03 GMT
+            Date: Tue, 24 Jan 2023 18:19:04 GMT
             Server: envoy
-            Set-Cookie: Expires=Fri, 20-Jan-2023 03:08:03 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: Expires=Tue, 24-Jan-2023 18:34:04 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "280"
+            X-Envoy-Upstream-Service-Time: "346"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2021.9.0.4
