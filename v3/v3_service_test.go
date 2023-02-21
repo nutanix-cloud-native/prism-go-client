@@ -5189,6 +5189,59 @@ func TestOperations_DeleteProtectionRules(t *testing.T) {
 	}
 }
 
+func TestOperations_TestProcessProtectionRule(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/protection_rules/cfde831a-4e87-4a75-960f-89b0148aa2cc/process",
+		func(w http.ResponseWriter, r *http.Request) {
+			testHTTPMethod(t, r, http.MethodPost)
+		},
+	)
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			"Test ProcessProtectionRule OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
+			false,
+		},
+
+		{
+			"Test ProcessProtectionRule Errored",
+			fields{c},
+			args{},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			if err := op.ProcessProtectionRule(context.Background(), tt.args.UUID); (err != nil) != tt.wantErr {
+				t.Errorf("Operations.ProcessProtectionRule() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestOperations_CreateRecoveryPlan(t *testing.T) {
 	mux, c, server := setup(t)
 
@@ -6124,6 +6177,211 @@ func TestOperations_DeleteRecoveryPlan(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plans/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
+		fmt.Fprint(w, `{"status": {"State":"some_state"}}`)
+	})
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *DeleteResponse
+		wantErr bool
+	}{
+		{
+			"Test DeleteRecoveryPlans OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
+			&DeleteResponse{
+				Status: &DeleteStatus{
+					State: "some_state",
+				},
+			},
+			false,
+		},
+		{
+			"Test DeleteRecoveryPlans Errored",
+			fields{c},
+			args{},
+			&DeleteResponse{},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.DeleteRecoveryPlan(context.Background(), tt.args.UUID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.DeleteRecoveryPlan() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.DeleteRecoveryPlan() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOperations_GetRecoveryPlanJob(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+	})
+
+	response := &RecoveryPlanJobIntentResponse{}
+	response.Metadata = &Metadata{
+		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: utils.StringPtr("recovery_plan_jobs"),
+	}
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *RecoveryPlanJobIntentResponse
+		wantErr bool
+	}{
+		{
+			"Test GetRecoveryPlanJob OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
+			response,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.GetRecoveryPlanJob(context.Background(), tt.args.UUID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.GetRecoveryPlanJob() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.GetRecoveryPlanJob() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOperations_GetRecoveryPlanJobStatus(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	// status in the URL can have one of the 2 following values: execution_status, cleanup_status
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/execution_status", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"}}`)
+	})
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/cleanup_status", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"},"preprocessing_status": {"percentage_complete":100,"status":"Complete"}}`)
+	})
+
+	execution_status_response := &RecoveryPlanJobExecutionStatus{
+		OperationStatus: &RecoveryPlanJobPhaseExecutionStatus{
+			PercentageComplete: 55,
+			Status:             "Running",
+		},
+	}
+
+	cleanup_status_response := &RecoveryPlanJobExecutionStatus{
+		OperationStatus: &RecoveryPlanJobPhaseExecutionStatus{
+			PercentageComplete: 55,
+			Status:             "Running",
+		},
+		PreprocessingStatus: &RecoveryPlanJobPhaseExecutionStatus{
+			PercentageComplete: 100,
+			Status:             "Complete",
+		},
+	}
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID   string
+		Status string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *RecoveryPlanJobExecutionStatus
+		wantErr bool
+	}{
+		{
+			"Test GetRecoveryPlanJobStatus ExecutionStatus OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc", "execution_status"},
+			execution_status_response,
+			false,
+		},
+		{
+			"Test GetRecoveryPlanJobStatus CleanupStatus OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc", "cleanup_status"},
+			cleanup_status_response,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.GetRecoveryPlanJobStatus(context.Background(), tt.args.UUID, tt.args.Status)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.GetRecoveryPlanJobStatus() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.GetRecoveryPlanJobStatus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOperations_DeleteRecoveryPlanJob(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodDelete)
 	})
 
 	type fields struct {
@@ -6141,14 +6399,14 @@ func TestOperations_DeleteRecoveryPlan(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"Test DeleteRecoveryPlans OK",
+			"Test DeleteRecoveryPlanJobs OK",
 			fields{c},
 			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			true,
+			false,
 		},
 
 		{
-			"Test DeleteRecoveryPlans Errored",
+			"Test DeleteRecoveryPlanJobs Errored",
 			fields{c},
 			args{},
 			true,
@@ -6161,8 +6419,169 @@ func TestOperations_DeleteRecoveryPlan(t *testing.T) {
 			op := Operations{
 				client: tt.fields.client,
 			}
-			if _, err := op.DeleteRecoveryPlan(context.Background(), tt.args.UUID); (err != nil) != tt.wantErr {
-				t.Errorf("Operations.DeleteRecoveryPlan() error = %v, wantErr %v", err, tt.wantErr)
+			if err := op.DeleteRecoveryPlanJob(context.Background(), tt.args.UUID); (err != nil) != tt.wantErr {
+				t.Errorf("Operations.DeleteRecoveryPlanJob() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestOperations_PerformRecoveryPlanJobAction(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/cleanup", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
+	})
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/rerun", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
+	})
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID    string
+		action  string
+		request *RecoveryPlanJobActionRequest
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *RecoveryPlanJobResponse
+		wantErr bool
+	}{
+		{
+			"Test PerformRecoveryPlanJobAction Cleanup OK",
+			fields{c},
+			args{
+				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
+				"cleanup",
+				&RecoveryPlanJobActionRequest{
+					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+				},
+			},
+			&RecoveryPlanJobResponse{
+				TaskUUID: "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e",
+			},
+			false,
+		},
+		{
+			"Test PerformRecoveryPlanJobAction Rerun OK",
+			fields{c},
+			args{
+				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
+				"rerun",
+				&RecoveryPlanJobActionRequest{
+					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+				},
+			},
+			&RecoveryPlanJobResponse{
+				TaskUUID: "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e",
+			},
+			false,
+		},
+		{
+			"Test PerformRecoveryPlanJobAction Unsupported Action Errored",
+			fields{c},
+			args{
+				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
+				"jump",
+				&RecoveryPlanJobActionRequest{
+					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+				},
+			},
+			&RecoveryPlanJobResponse{},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.PerformRecoveryPlanJobAction(context.Background(),
+				tt.args.UUID, tt.args.action, tt.args.request)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.PerformRecoveryPlanJobAction() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.PerformRecoveryPlanJobAction() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOperations_ListRecoveryPlanJobs(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/list", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+	})
+
+	responseList := &RecoveryPlanJobListResponse{}
+	responseList.Entities = make([]*RecoveryPlanJobIntentResponse, 1)
+	responseList.Entities[0] = &RecoveryPlanJobIntentResponse{}
+	responseList.Entities[0].Metadata = &Metadata{
+		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: utils.StringPtr("recovery_plan_jobs"),
+	}
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		request *DSMetadata
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *RecoveryPlanJobListResponse
+		wantErr bool
+	}{
+		{
+			"Test ListRecoveryPlanJobs OK",
+			fields{c},
+			args{
+				&DSMetadata{
+					Length: utils.Int64Ptr(1.0),
+				},
+			},
+			responseList,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.ListRecoveryPlanJobs(context.Background(), tt.args.request)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.ListRecoveryPlanJobs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.ListRecoveryPlanJobs() = %v, want %v", got, tt.want)
 			}
 		})
 	}
