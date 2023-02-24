@@ -2701,3 +2701,37 @@ type RecoveryPlanJobActionRequest struct {
 	RerunRecoveryPlanJobUUID               string `json:"rerun_recovery_plan_job_uuid,omitempty"`
 	ShouldContinueRerunOnValidationFailure *bool  `json:"should_continue_rerun_on_validation_failure,omitempty"`
 }
+
+type GroupsRequestedAttribute struct {
+	Attribute *string `json:"attribute"`
+}
+
+type GroupsGetEntitiesRequest struct {
+	EntityType            *string                     `json:"entity_type"`
+	FilterCriteria        string                      `json:"filter_criteria,omitempty"`
+	GroupMemberAttributes []*GroupsRequestedAttribute `json:"group_member_attributes"`
+}
+
+type GroupsGetEntitiesResponse struct {
+	FilteredGroupCount int64                `json:"filtered_group_count,omitempty"`
+	GroupResults       []*GroupsGroupResult `json:"group_results"`
+}
+
+type GroupsGroupResult struct {
+	EntityResults []*GroupsEntity `json:"entity_results"`
+}
+
+type GroupsEntity struct {
+	Data     []*GroupsFieldData `json:"data"`
+	EntityID string             `json:"entity_id,omitempty"`
+}
+
+type GroupsFieldData struct {
+	Name   string                 `json:"name,omitempty"`
+	Values []*GroupsTimevaluePair `json:"values"`
+}
+
+type GroupsTimevaluePair struct {
+	Time   int64    `json:"time,omitempty"`
+	Values []string `json:"values"`
+}

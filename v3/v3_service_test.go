@@ -6586,3 +6586,90 @@ func TestOperations_ListRecoveryPlanJobs(t *testing.T) {
 		})
 	}
 }
+
+func TestOperations_GroupsGetEntities(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/groups", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		fmt.Fprint(w, `{"filtered_group_count": 3, "group_results": [{"entity_results": [{"entity_id":"some_entity_id", "data":[{"values":[{"time":100, "values":["a", "b", "c"]}]}]}]}]}`)
+	})
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		request *GroupsGetEntitiesRequest
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *GroupsGetEntitiesResponse
+		wantErr bool
+	}{
+		{
+			"Test GroupsGetEntities OK",
+			fields{c},
+			args{
+				&GroupsGetEntitiesRequest{
+					EntityType: utils.StringPtr("volume_group_config"),
+					GroupMemberAttributes: []*GroupsRequestedAttribute{
+						{
+							Attribute: utils.StringPtr("synchronous_replication_status"),
+						},
+						{
+							Attribute: utils.StringPtr("_master_cluster_uuid_"),
+						},
+					},
+					FilterCriteria: "uuid=in=uuid1|uuid2",
+				},
+			},
+			&GroupsGetEntitiesResponse{
+				FilteredGroupCount: 3,
+				GroupResults: []*GroupsGroupResult{
+					{
+						EntityResults: []*GroupsEntity{
+							{
+								EntityID: "some_entity_id",
+								Data: []*GroupsFieldData{
+									{
+										Values: []*GroupsTimevaluePair{
+											{
+												Time:   100,
+												Values: []string{"a", "b", "c"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.GroupsGetEntities(context.Background(), tt.args.request)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.GroupsGetEntities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.GroupsGetEntities() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

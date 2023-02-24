@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Added support for getting a projection of attributes of entities using the 'groups' API endpoint.
+
+### Added
 - Added support for creating, deleting, listing, and getting the status of recovery plan jobs.
 
 ### Changed
