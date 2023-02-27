@@ -128,6 +128,7 @@ type Service interface {
 	DeleteRecoveryPlanJob(ctx context.Context, uuid string) error
 	CreateRecoveryPlanJob(ctx context.Context, request *RecoveryPlanJobIntentInput) (*RecoveryPlanJobResponse, error)
 	PerformRecoveryPlanJobAction(ctx context.Context, uuid string, action string, request *RecoveryPlanJobActionRequest) (*RecoveryPlanJobResponse, error)
+	GroupsGetEntities(ctx context.Context, request *GroupsGetEntitiesRequest) (*GroupsGetEntitiesResponse, error)
 }
 
 /*CreateVM Creates a VM
@@ -2411,4 +2412,22 @@ func (op Operations) ListRecoveryPlanJobs(ctx context.Context, request *DSMetada
 	}
 
 	return list, op.client.Do(ctx, req, list)
+}
+
+/*Get a projection of the attributes of entities of certain type.
+ * This operation returns the attributes of the entities that match the
+ * filter criteria specified in 'request'.
+ *
+ * @param request pointer to the specification of type GroupsGetEntitiesRequest
+ */
+func (op Operations) GroupsGetEntities(ctx context.Context, request *GroupsGetEntitiesRequest,
+) (*GroupsGetEntitiesResponse, error) {
+	req, err := op.client.NewRequest(http.MethodPost, "/groups", request)
+	response := new(GroupsGetEntitiesResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, op.client.Do(ctx, req, response)
 }
