@@ -26,35 +26,24 @@ type K8sClusterRegistrationDeleteResponse struct {
 	TaskUUID *string `json:"task_uuid"`
 }
 
-// K8sClusterInfo K8s cluster info
-type K8sClusterInfo struct {
-	// k8s distribution
-	// Enum: [Openshift NKE CAPX]
-	K8sDistribution string `json:"k8s_distribution,omitempty"`
-
-	// k8s version
-	K8sVersion string `json:"k8s_version,omitempty"`
-}
-
-// K8sClusterAddonInfo K8s cluster addon info
-type K8sClusterAddonInfo struct {
-	// addon name
-	AddonName string `json:"addon_name,omitempty"`
-
-	// addon version
-	AddonVersion string `json:"addon_version,omitempty"`
-}
+// K8sClusterAddonInfo Addons information for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterAddonInfo map[string]string
 
 // K8sClusterRegistration K8s cluster registration details.
 type K8sClusterRegistration struct {
-	// addons info
-	AddonsInfo []*K8sClusterAddonInfo `json:"addons_info,omitempty"`
 
-	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
-	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
+	// addons info
+	AddonsInfo K8sClusterAddonInfoMapping `json:"addons_info,omitempty"`
+
+	// categories mapping
+	CategoriesMapping K8sClusterCategoriesMapping `json:"categories_mapping,omitempty"`
 
 	// cluster info
-	ClusterInfo *K8sClusterInfo `json:"cluster_info,omitempty"`
+	ClusterInfo K8sClusterInfoMapping `json:"cluster_info,omitempty"`
+
+	// The type of 3rd party k8s cluster.
+	// Enum: [Openshift NKE CAPX]
+	K8sDistribution string `json:"k8s_distribution,omitempty"`
 
 	// K8s cluster name.
 	// Required: true
@@ -70,17 +59,34 @@ type K8sClusterRegistration struct {
 	UUID string `json:"uuid,omitempty"`
 }
 
+// K8sClusterAddonInfoMapping Addons information for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterAddonInfoMapping map[string]K8sClusterAddonInfo
+
+// K8sClusterCategoriesMapping Categories for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterCategoriesMapping map[string]string
+
+// K8sClusterInfoMapping Cluster information for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterInfoMapping map[string]string
+
 type K8sClusterRegistrationList []*K8sClusterRegistration
 
 type K8sCreateClusterRegistrationRequest struct {
-	// Categories for this k8s cluster. This allows setting up multiple values from a single key.
-	CategoriesMapping map[string]string `json:"categories_mapping,omitempty"`
+
+	// categories mapping
+	// Required: true
+	CategoriesMapping K8sClusterCategoriesMapping `json:"categories_mapping"`
+
+	// The type of 3rd party k8s cluster.
+	// Required: true
+	// Enum: [Openshift NKE CAPX]
+	K8sDistribution *string `json:"k8s_distribution"`
 
 	// metadata
 	// Required: true
 	Metadata *Metadata `json:"metadata"`
 
 	// Unique name of the k8s cluster.
+	// Example: prod-cluster
 	// Required: true
 	// Max Length: 40
 	// Min Length: 1
@@ -88,23 +94,8 @@ type K8sCreateClusterRegistrationRequest struct {
 	Name *string `json:"name"`
 
 	// The universally unique identifier (UUID) of the k8s cluster.
+	// Required: true
 	// Pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
-	UUID string `json:"uuid,omitempty"`
-}
-
-type K8sIdentity struct {
-	// kind
-	// Required: true
-	// Enum: [user]
-	Kind *string `json:"kind"`
-
-	// name
-	// Max Length: 1024
-	// Min Length: 1
-	Name string `json:"name,omitempty"`
-
-	// uuid
-	// Required: true
 	UUID *string `json:"uuid"`
 }
 
@@ -118,33 +109,29 @@ type Metadata struct {
 // K8sUpdateClusterRegistrationInfoRequest k8s update cluster registration info request
 type K8sUpdateClusterRegistrationInfoRequest struct {
 	// cluster info
-	ClusterInfo *K8sClusterInfo `json:"cluster_info,omitempty"`
+	// Required: true
+	ClusterInfo K8sClusterInfoMapping `json:"cluster_info"`
 }
 
 // K8sUpdateClusterRegistrationInfoResponse k8s update cluster registration info response
 type K8sUpdateClusterRegistrationInfoResponse struct {
 	// cluster name
-	// Required: true
-	ClusterName *string `json:"cluster_name"`
-
+	ClusterName string `json:"cluster_name,omitempty"`
 	// cluster uuid
-	// Required: true
-	ClusterUUID *string `json:"cluster_uuid"`
+	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
 
 // K8sUpdateClusterRegistrationAddonInfoRequest k8s update cluster registration addon info request
 type K8sUpdateClusterRegistrationAddonInfoRequest struct {
 	// cluster addon info
-	ClusterAddonInfo *K8sClusterAddonInfo `json:"cluster_addon_info,omitempty"`
+	// Required: true
+	ClusterAddonInfo K8sClusterAddonInfo `json:"cluster_addon_info"`
 }
 
 // K8sUpdateClusterRegistrationAddonInfoResponse k8s update cluster registration addon info response
 type K8sUpdateClusterRegistrationAddonInfoResponse struct {
 	// cluster name
-	// Required: true
-	ClusterName *string `json:"cluster_name"`
-
+	ClusterName string `json:"cluster_name,omitempty"`
 	// cluster uuid
-	// Required: true
-	ClusterUUID *string `json:"cluster_uuid"`
+	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
