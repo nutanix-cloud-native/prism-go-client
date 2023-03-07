@@ -22,6 +22,7 @@ import (
 const (
 	_noCategoryMappingErrorMsg = "No category mappings provided"
 	_noUUIDErrorMsg            = "uuid in body is required"
+	_noK8sDistributionMsg      = "k8s_distribution in body is required"
 	_testWaitTimeout           = 60 * time.Second
 	_testWaitInterval          = 2 * time.Second
 	_taskSucceed               = "SUCCEEDED"
@@ -155,7 +156,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -218,7 +219,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -262,7 +263,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -289,6 +290,40 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	}
 }
 
+func TestKarbonCreateClusterRegistrationWithNoK8sDistribution(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster4")
+	test_cluster_uuid := strings.ToLower("FE139669-50F3-4307-8867-F7630241F0DF")
+	test_category_mapping := map[string]string{
+		fmt.Sprintf("kubernetes-io-cluster-%s", test_cluster_name): "owned",
+		"KubernetesClusterName": test_cluster_name,
+	}
+	test_metadata_apiversion := "v1.1.0"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:              &test_cluster_name,
+		UUID:              &test_cluster_uuid,
+		CategoriesMapping: test_category_mapping,
+		Metadata:          test_metadata,
+	}
+
+	// check if the error is expected
+	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	if assert.Error(t, err) {
+		assert.Contains(t, fmt.Sprint(err), _noK8sDistributionMsg)
+	}
+}
+
 func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
@@ -296,7 +331,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -374,7 +409,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -461,7 +496,7 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
