@@ -22,6 +22,7 @@ import (
 const (
 	_noCategoryMappingErrorMsg = "No category mappings provided"
 	_noUUIDErrorMsg            = "uuid in body is required"
+	_noK8sDistributionMsg      = "k8s_distribution in body is required"
 	_testWaitTimeout           = 60 * time.Second
 	_testWaitInterval          = 2 * time.Second
 	_taskSucceed               = "SUCCEEDED"
@@ -34,49 +35,50 @@ func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegis
 	assert.NotEmpty(t, *k8sClusterReg.Name)
 	assert.NotEmpty(t, k8sClusterReg.Status)
 	assert.NotEmpty(t, k8sClusterReg.UUID)
+	assert.NotEmpty(t, k8sClusterReg.K8sDistribution)
 	assert.NotEmpty(t, k8sClusterReg.CategoriesMapping)
 	assert.NotZero(t, k8sClusterReg.CategoriesMapping)
 }
 
-func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	responseGetReg *K8sClusterRegistration,
+func validateK8sClusterRegistrationGetResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid,
+	expected_k8s_distribution string, responseGetReg *K8sClusterRegistration,
 ) {
 	assert.NotEmpty(t, *responseGetReg.Name)
 	assert.Equal(t, expected_k8s_cluster_name, *responseGetReg.Name)
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
+	assert.NotEmpty(t, responseGetReg.K8sDistribution)
+	assert.Equal(t, expected_k8s_distribution, responseGetReg.K8sDistribution)
 	assert.NotZero(t, len(responseGetReg.CategoriesMapping))
 }
 
-func validateK8sClusterRegistrationGetResponseWithClusterInfo(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	test_cluster_info *K8sClusterInfo, responseGetReg *K8sClusterRegistration,
+func validateK8sClusterRegistrationGetResponseWithClusterInfo(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid,
+	expected_k8s_distribution string, responseGetReg *K8sClusterRegistration,
 ) {
 	assert.NotEmpty(t, *responseGetReg.Name)
 	assert.Equal(t, expected_k8s_cluster_name, *responseGetReg.Name)
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
+	assert.NotEmpty(t, responseGetReg.K8sDistribution)
+	assert.Equal(t, expected_k8s_distribution, responseGetReg.K8sDistribution)
 	assert.NotEmpty(t, responseGetReg.ClusterInfo)
-	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sDistribution)
-	assert.NotEmpty(t, responseGetReg.ClusterInfo.K8sVersion)
 	assert.Empty(t, responseGetReg.AddonsInfo)
 }
 
-func validateK8sClusterRegistrationGetResponseWithAddonInfo(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
-	test_cluster_addon_info *K8sClusterAddonInfo, responseGetReg *K8sClusterRegistration,
+func validateK8sClusterRegistrationGetResponseWithAddonInfo(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid,
+	expected_k8s_distribution string, responseGetReg *K8sClusterRegistration,
 ) {
 	assert.NotEmpty(t, *responseGetReg.Name)
 	assert.Equal(t, expected_k8s_cluster_name, *responseGetReg.Name)
 	assert.NotEmpty(t, responseGetReg.Status)
 	assert.NotEmpty(t, responseGetReg.UUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, responseGetReg.UUID)
+	assert.NotEmpty(t, responseGetReg.K8sDistribution)
+	assert.Equal(t, expected_k8s_distribution, responseGetReg.K8sDistribution)
 	assert.Empty(t, responseGetReg.ClusterInfo)
 	assert.NotEmpty(t, responseGetReg.AddonsInfo)
-	assert.NotEmpty(t, responseGetReg.AddonsInfo[0].AddonName)
-	assert.NotEmpty(t, responseGetReg.AddonsInfo[0].AddonVersion)
-	assert.NotEmpty(t, responseGetReg.AddonsInfo[1].AddonName)
-	assert.NotEmpty(t, responseGetReg.AddonsInfo[1].AddonVersion)
 }
 
 func validateK8sClusterRegistrationDeleteResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string,
@@ -129,16 +131,16 @@ func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context
 
 func validateK8sClusterRegistrationInfoResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string, clusterRegInfoResp *K8sUpdateClusterRegistrationInfoResponse) {
 	assert.NotEmpty(t, clusterRegInfoResp.ClusterName)
-	assert.Equal(t, expected_k8s_cluster_name, *clusterRegInfoResp.ClusterName)
+	assert.Equal(t, expected_k8s_cluster_name, clusterRegInfoResp.ClusterName)
 	assert.NotEmpty(t, clusterRegInfoResp.ClusterUUID)
-	assert.Equal(t, expected_k8s_cluster_uuid, *clusterRegInfoResp.ClusterUUID)
+	assert.Equal(t, expected_k8s_cluster_uuid, clusterRegInfoResp.ClusterUUID)
 }
 
 func validateK8sClusterRegistrationAddonInfoResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string, clusterRegAddonInfoResp *K8sUpdateClusterRegistrationAddonInfoResponse) {
 	assert.NotEmpty(t, clusterRegAddonInfoResp.ClusterName)
-	assert.Equal(t, expected_k8s_cluster_name, *clusterRegAddonInfoResp.ClusterName)
+	assert.Equal(t, expected_k8s_cluster_name, clusterRegAddonInfoResp.ClusterName)
 	assert.NotEmpty(t, clusterRegAddonInfoResp.ClusterUUID)
-	assert.Equal(t, expected_k8s_cluster_uuid, *clusterRegAddonInfoResp.ClusterUUID)
+	assert.Equal(t, expected_k8s_cluster_uuid, clusterRegAddonInfoResp.ClusterUUID)
 }
 
 func TestKarbonCreateClusterRegistration(t *testing.T) {
@@ -166,11 +168,12 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		"KubernetesClusterUUID": test_cluster_uuid,
 	}
 	test_metadata_apiversion := "v1.1.0"
+	test_k8s_distribution := "Openshift"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
-		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
@@ -185,9 +188,10 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
-		UUID:              test_cluster_uuid,
+		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
@@ -223,10 +227,11 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	test_cluster_uuid := strings.ToLower("E33FD0FD-5673-45FA-825D-7EF869A91577")
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
 
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
-		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
 		assert.NoError(t, err)
@@ -238,9 +243,10 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
-		Name:     &test_cluster_name,
-		UUID:     test_cluster_uuid,
-		Metadata: test_metadata,
+		Name:            &test_cluster_name,
+		UUID:            &test_cluster_uuid,
+		Metadata:        test_metadata,
+		K8sDistribution: &test_k8s_distribution,
 	}
 
 	// check if the error is expected
@@ -268,9 +274,45 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	}
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
+		CategoriesMapping: test_category_mapping,
+		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
+	}
+
+	// check if the error is expected
+	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	if assert.Error(t, err) {
+		assert.Contains(t, fmt.Sprint(err), _noUUIDErrorMsg)
+	}
+}
+
+func TestKarbonCreateClusterRegistrationWithNoK8sDistribution(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster4")
+	test_cluster_uuid := strings.ToLower("FE139669-50F3-4307-8867-F7630241F0DF")
+	test_category_mapping := map[string]string{
+		fmt.Sprintf("kubernetes-io-cluster-%s", test_cluster_name): "owned",
+		"KubernetesClusterName": test_cluster_name,
+	}
+	test_metadata_apiversion := "v1.1.0"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:              &test_cluster_name,
+		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
 	}
@@ -278,7 +320,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	// check if the error is expected
 	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
-		assert.Contains(t, fmt.Sprint(err), _noUUIDErrorMsg)
+		assert.Contains(t, fmt.Sprint(err), _noK8sDistributionMsg)
 	}
 }
 
@@ -302,12 +344,13 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	}
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
 
 	t.Log("Get Cluster registration")
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
-		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
@@ -318,8 +361,9 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
-		UUID:              test_cluster_uuid,
+		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
+		K8sDistribution:   &test_k8s_distribution,
 		Metadata:          test_metadata,
 	}
 
@@ -331,12 +375,13 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	// TODO get task uuid status
 
 	t.Log("Update K8S Info")
-	test_k8s_distribution := "CAPX"
+	test_k8s_distribution = "Openshift"
 	test_k8s_version := "v1.25.0"
-	test_cluster_info := &K8sClusterInfo{
-		K8sDistribution: test_k8s_distribution,
-		K8sVersion:      test_k8s_version,
+
+	test_cluster_info := map[string]string{
+		"k8s_version": test_k8s_version,
 	}
+
 	updateInfoRequest := &K8sUpdateClusterRegistrationInfoRequest{
 		ClusterInfo: test_cluster_info,
 	}
@@ -348,7 +393,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
-		validateK8sClusterRegistrationGetResponseWithClusterInfo(t, test_cluster_name, test_cluster_uuid, test_cluster_info, responseGetReg)
+		validateK8sClusterRegistrationGetResponseWithClusterInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
@@ -377,12 +422,13 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	}
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
 
 	t.Log("Get Cluster registration")
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
-		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, responseGetReg)
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
 		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
@@ -393,9 +439,10 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	t.Log("Create Cluster registration")
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
-		UUID:              test_cluster_uuid,
+		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
@@ -408,9 +455,8 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	t.Log("Update CSI Info")
 	test_addon_name := "CSI"
 	test_addon_version := "v3.x"
-	test_cluster_addon_info := &K8sClusterAddonInfo{
-		AddonName:    test_addon_name,
-		AddonVersion: test_addon_version,
+	test_cluster_addon_info := map[string]string{
+		test_addon_name: test_addon_version,
 	}
 	updateAddonInfoRequest := &K8sUpdateClusterRegistrationAddonInfoRequest{
 		ClusterAddonInfo: test_cluster_addon_info,
@@ -422,9 +468,8 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	t.Log("Update CNDS Info")
 	test_addon_name = "CNDS"
 	test_addon_version = "v1.x"
-	test_cluster_addon_info = &K8sClusterAddonInfo{
-		AddonName:    test_addon_name,
-		AddonVersion: test_addon_version,
+	test_cluster_addon_info = map[string]string{
+		test_addon_name: test_addon_version,
 	}
 	updateAddonInfoRequest = &K8sUpdateClusterRegistrationAddonInfoRequest{
 		ClusterAddonInfo: test_cluster_addon_info,
@@ -436,7 +481,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	t.Log("Get Cluster registration")
 	responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	assert.NoError(t, err)
-	validateK8sClusterRegistrationGetResponseWithAddonInfo(t, test_cluster_name, test_cluster_uuid, test_cluster_addon_info, responseGetReg)
+	validateK8sClusterRegistrationGetResponseWithAddonInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 
 	t.Log("Delete Cluster registration")
 	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)

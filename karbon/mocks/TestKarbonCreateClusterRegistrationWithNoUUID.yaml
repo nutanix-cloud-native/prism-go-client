@@ -4,7 +4,7 @@ name: TestKarbonCreateClusterRegistrationWithNoUUID
 spec:
     metadata:
         Body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster3","kubernetes-io-cluster-cluster3":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster3"}
+            {"categories_mapping":{"KubernetesClusterName":"cluster3","kubernetes-io-cluster-cluster3":"owned"},"k8s_distribution":"Openshift","metadata":{"api_version":"v1.1.0"},"name":"cluster3","uuid":null}
         Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
         Proto: HTTP/1.1
         ProtoMajor: "1"
@@ -23,27 +23,26 @@ spec:
             Content-Type: application/json
             User-Agent: nutanix
         body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster3","kubernetes-io-cluster-cluster3":"owned"},"metadata":{"api_version":"v1.1.0"},"name":"cluster3"}
+            {"categories_mapping":{"KubernetesClusterName":"cluster3","kubernetes-io-cluster-cluster3":"owned"},"k8s_distribution":"Openshift","metadata":{"api_version":"v1.1.0"},"name":"cluster3","uuid":null}
         body_type: utf-8
     resp:
         status_code: 422
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Fri, 20 Jan 2023 02:56:20 GMT
+            Date: Tue, 07 Mar 2023 07:31:48 GMT
             Server: envoy
-            Set-Cookie: Expires=Fri, 20-Jan-2023 03:11:21 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: NTNX_IGW_SESSION=Expires=Tue, 07-Mar-2023 07:46:48 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "210"
+            X-Envoy-Upstream-Service-Time: "209"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
-            X-Ntnx-Product: pc.2021.9.0.4
+            X-Ntnx-Product: pc.2022.6.0.3
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: '{"code":602,"message":"uuid in body is required"}'
         body_type: utf-8
