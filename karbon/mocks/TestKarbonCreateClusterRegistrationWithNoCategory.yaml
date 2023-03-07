@@ -4,11 +4,11 @@ name: TestKarbonCreateClusterRegistrationWithNoCategory
 spec:
     metadata:
         Body: ""
-        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+        Header: map[Accept:[application/json] Authorization:[Basic YWRtaW46TnV0YW5peC4xMjM=] Content-Type:[application/json] User-Agent:[nutanix]]
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/e33fd0fd-5673-45fa-825d-7ef869a91577
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/e33fd0fd-5673-45fa-825d-7ef869a91577
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,9 +16,10 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/e33fd0fd-5673-45fa-825d-7ef869a91577
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/e33fd0fd-5673-45fa-825d-7ef869a91577
         header:
             Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
             Content-Type: application/json
             User-Agent: nutanix
         body: ""
@@ -26,22 +27,21 @@ spec:
     resp:
         status_code: 404
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Tue, 24 Jan 2023 18:19:03 GMT
+            Date: Tue, 07 Mar 2023 07:01:25 GMT
             Server: envoy
-            Set-Cookie: Expires=Tue, 24-Jan-2023 18:33:58 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: NTNX_IGW_SESSION=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VyX3Byb2ZpbGUiOiJ7XCJ1c2VybmFtZVwiOiBcImFkbWluXCIsIFwiZG9tYWluXCI6IG51bGwsIFwibGVnYWN5X2FkbWluX2F1dGhvcml0aWVzXCI6IFtcIlJPTEVfVVNFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9WSUVXRVJcIiwgXCJST0xFX01VTFRJQ0xVU1RFUl9BRE1JTlwiXSwgXCJhdXRoZW50aWNhdGVkXCI6IHRydWUsIFwiX3Blcm1hbmVudFwiOiB0cnVlLCBcInJvbGVzXCI6IFtcIlN1cGVyIEFkbWluXCIsIFwiUHJpc20gQWRtaW5cIiwgXCJQcmlzbSBWaWV3ZXJcIl0sIFwibG9nX3V1aWRcIjogXCI4M2VhYjcxOS0yNGNlLTRlNTgtYWQ1YS03MzlmMDI1NWE5MTJcIiwgXCJ1c2VydHlwZVwiOiBcImxvY2FsXCIsIFwiYXBwX2RhdGFcIjoge30sIFwiYXV0aF9pbmZvXCI6IHtcInVzZXJuYW1lXCI6IFwiYWRtaW5cIiwgXCJyZW1vdGVfYXV0aG9yaXphdGlvblwiOiBudWxsLCBcInVzZXJfZ3JvdXBfdXVpZHNcIjogbnVsbCwgXCJyZW1vdGVfYXV0aF9qc29uXCI6IG51bGwsIFwic2VydmljZV9uYW1lXCI6IG51bGwsIFwidG9rZW5fYXVkaWVuY2VcIjogbnVsbCwgXCJ0b2tlbl9pc3N1ZXJcIjogbnVsbCwgXCJ1c2VyX3V1aWRcIjogXCIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDBcIiwgXCJ0ZW5hbnRfdXVpZFwiOiBcIjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMFwifX0iLCJqdGkiOiJiNWVkNmM0ZC01NjAzLTM5YmYtYmJmYy00Zjc4Y2E2MDkxOTkiLCJpc3MiOiJBdGhlbmEiLCJpYXQiOjE2NzgxNzI0ODUsImV4cCI6MTY3ODE3MzM4NX0.I-C2nrZlLGCGb1tRPwhS5LAPUKA6w2QNYBoEEqBzrbWz3xX5qRw0_RyRhvQy0AU9PivTsK2bIR12esbsNmaX7Mrx2tub9Jux8DiOMsvavrcQkcEBXD_0aW-TukJZsqcqiTsc06hqF8vuz35sluM4kTbOr-6v5ocKq5c3m4_3Ju1uZJIhdU9rva2zEy_U6cAJ_lmu87LPSKcA6tQ0cLSxBtGkTi9SfuwBF0JJeVji7RSeqcWrAt6r6-8GurKLLkdVygeyV3btpCR5pnVvjTg4jrcBm9CwKaIr9cThq__jQ6iyzNjQoixBOqpXMmoYS1Ev46ebSWKO64_tHfE6UIrTgQ;Expires=Tue, 07-Mar-2023 07:16:25 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "5028"
+            X-Envoy-Upstream-Service-Time: "442"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
-            X-Ntnx-Product: pc.2021.9.0.4
+            X-Ntnx-Product: pc.2022.6.0.3
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: |
             {"message_info":{"Cluster Get":"Failed to determine the cluster status"}}
@@ -59,12 +59,12 @@ name: TestKarbonCreateClusterRegistrationWithNoCategory
 spec:
     metadata:
         Body: |
-            {"metadata":{"api_version":"v1.1.0"},"name":"cluster2","uuid":"e33fd0fd-5673-45fa-825d-7ef869a91577"}
-        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
+            {"categories_mapping":null,"k8s_distribution":"Openshift","metadata":{"api_version":"v1.1.0"},"name":"cluster2","uuid":"e33fd0fd-5673-45fa-825d-7ef869a91577"}
+        Header: map[Accept:[application/json] Authorization:[Basic YWRtaW46TnV0YW5peC4xMjM=] Content-Type:[application/json] User-Agent:[nutanix]]
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        URL: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
         name: http-client
         operation: POST
         type: HTTP_CLIENT
@@ -72,33 +72,33 @@ spec:
         method: POST
         proto_major: 1
         proto_minor: 1
-        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        url: https://10.45.30.138:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
         header:
             Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
             Content-Type: application/json
             User-Agent: nutanix
         body: |
-            {"metadata":{"api_version":"v1.1.0"},"name":"cluster2","uuid":"e33fd0fd-5673-45fa-825d-7ef869a91577"}
+            {"categories_mapping":null,"k8s_distribution":"Openshift","metadata":{"api_version":"v1.1.0"},"name":"cluster2","uuid":"e33fd0fd-5673-45fa-825d-7ef869a91577"}
         body_type: utf-8
     resp:
         status_code: 500
         header:
-            Content-Security-Policy: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Tue, 24 Jan 2023 18:19:04 GMT
+            Date: Tue, 07 Mar 2023 07:01:26 GMT
             Server: envoy
-            Set-Cookie: Expires=Tue, 24-Jan-2023 18:34:04 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: NTNX_IGW_SESSION=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VyX3Byb2ZpbGUiOiJ7XCJ1c2VybmFtZVwiOiBcImFkbWluXCIsIFwiZG9tYWluXCI6IG51bGwsIFwibGVnYWN5X2FkbWluX2F1dGhvcml0aWVzXCI6IFtcIlJPTEVfVVNFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9BRE1JTlwiLCBcIlJPTEVfQ0xVU1RFUl9WSUVXRVJcIiwgXCJST0xFX01VTFRJQ0xVU1RFUl9BRE1JTlwiXSwgXCJhdXRoZW50aWNhdGVkXCI6IHRydWUsIFwiX3Blcm1hbmVudFwiOiB0cnVlLCBcInJvbGVzXCI6IFtcIlN1cGVyIEFkbWluXCIsIFwiUHJpc20gQWRtaW5cIiwgXCJQcmlzbSBWaWV3ZXJcIl0sIFwibG9nX3V1aWRcIjogXCI4ZDdmMTZhYS00NmU5LTQzNTMtOTg4NC0zOTMxODRkZGFjODlcIiwgXCJ1c2VydHlwZVwiOiBcImxvY2FsXCIsIFwiYXBwX2RhdGFcIjoge30sIFwiYXV0aF9pbmZvXCI6IHtcInVzZXJuYW1lXCI6IFwiYWRtaW5cIiwgXCJyZW1vdGVfYXV0aG9yaXphdGlvblwiOiBudWxsLCBcInVzZXJfZ3JvdXBfdXVpZHNcIjogbnVsbCwgXCJyZW1vdGVfYXV0aF9qc29uXCI6IG51bGwsIFwic2VydmljZV9uYW1lXCI6IG51bGwsIFwidG9rZW5fYXVkaWVuY2VcIjogbnVsbCwgXCJ0b2tlbl9pc3N1ZXJcIjogbnVsbCwgXCJ1c2VyX3V1aWRcIjogXCIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDBcIiwgXCJ0ZW5hbnRfdXVpZFwiOiBcIjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMFwifX0iLCJqdGkiOiJlN2QzMjYxMS1hNWU4LTNhMGEtYWJlMC01M2MxMjQ2OTU5MjAiLCJpc3MiOiJBdGhlbmEiLCJpYXQiOjE2NzgxNzI0ODYsImV4cCI6MTY3ODE3MzM4Nn0.ZrIw4eHGZKqJDSryNjU0KdTb39ryeZD7iJ8jUs2zZCGA6qPeKeqNO8Kti2tLrw4eI0DvCysA3g_R7x_cS5z6lp0gAcsEbZlbPHM3W1AbIHFkiNnv7Xn0BZx6BcUcBoCkgr5Pnisx44ZhuOOTcdTDmqb1oAXS0z9CnHA66bo_0SMW6ZPJts0Uj7AIKXev9LNnSuy03xtwzYXklOTkOb7lig4Rtjz2ABnREVzEiTDB6ynJ54vs9uKgZ69CPfcW1Yk1lW8QzEBHV4L5UHBX5VRdFs1s7QK5XxPEMm8jfxTiqkkVU--KmODLx0v7RrhI7zOx700J2rlOG4xiJCQSFCpNOw;Expires=Tue, 07-Mar-2023 07:16:26 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "346"
+            X-Envoy-Upstream-Service-Time: "277"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
-            X-Ntnx-Product: pc.2021.9.0.4
+            X-Ntnx-Product: pc.2022.6.0.3
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
-            X-Webkit-Csp: 'default-src ''self'' *.nutanix.com nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'';  style-src ''self'' ''unsafe-inline'' ''unsafe-eval''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             X-Xss-Protection: 1; mode=block
         body: |
             {"message_info":{"Cluster Create":"Failed to validate the category mapping. No category mappings provided."}}

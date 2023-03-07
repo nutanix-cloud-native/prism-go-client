@@ -155,7 +155,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 
@@ -190,6 +190,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
@@ -217,7 +218,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	require.NotNil(t, v3Client)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 
@@ -225,7 +226,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	test_cluster_uuid := strings.ToLower("E33FD0FD-5673-45FA-825D-7EF869A91577")
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
-	test_k8s_distribution := "CAPX"
+	test_k8s_distribution := "Openshift"
 
 	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
@@ -241,9 +242,10 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	}
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
-		Name:     &test_cluster_name,
-		UUID:     &test_cluster_uuid,
-		Metadata: test_metadata,
+		Name:            &test_cluster_name,
+		UUID:            &test_cluster_uuid,
+		Metadata:        test_metadata,
+		K8sDistribution: &test_k8s_distribution,
 	}
 
 	// check if the error is expected
@@ -260,7 +262,7 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 
@@ -271,11 +273,13 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	}
 	test_metadata_apiversion := "v1.1.0"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
 
 	createRequest := &K8sCreateClusterRegistrationRequest{
 		Name:              &test_cluster_name,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
 	}
 
 	// check if the error is expected
@@ -292,7 +296,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 
@@ -324,6 +328,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 		Name:              &test_cluster_name,
 		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
+		K8sDistribution:   &test_k8s_distribution,
 		Metadata:          test_metadata,
 	}
 
@@ -335,7 +340,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	// TODO get task uuid status
 
 	t.Log("Update K8S Info")
-	test_k8s_distribution = "CAPX"
+	test_k8s_distribution = "Openshift"
 	test_k8s_version := "v1.25.0"
 
 	test_cluster_info := map[string]string{
@@ -369,7 +374,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 
@@ -402,6 +407,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 		UUID:              &test_cluster_uuid,
 		CategoriesMapping: test_category_mapping,
 		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
@@ -455,7 +461,7 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
+		Mode: keploy.MODE_RECORD,
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
