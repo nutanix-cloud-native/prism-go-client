@@ -31,7 +31,6 @@ type K8sClusterAddonInfo map[string]string
 
 // K8sClusterRegistration K8s cluster registration details.
 type K8sClusterRegistration struct {
-
 	// addons info
 	AddonsInfo K8sClusterAddonInfoMapping `json:"addons_info,omitempty"`
 
@@ -71,7 +70,6 @@ type K8sClusterInfoMapping map[string]string
 type K8sClusterRegistrationList []*K8sClusterRegistration
 
 type K8sCreateClusterRegistrationRequest struct {
-
 	// categories mapping
 	// Required: true
 	CategoriesMapping K8sClusterCategoriesMapping `json:"categories_mapping"`
