@@ -64,11 +64,11 @@ type K8sClusterAddonInfoMapping map[string]K8sClusterAddonInfo
 // K8sClusterCategoriesMapping Categories for this k8s cluster. This allows setting up multiple values from a single key.
 type K8sClusterCategoriesMapping map[string]string
 
-// K8sClusterCounterMapping Cluster counters for this k8s cluster. This allows setting up multiple values from a single key.
-type K8sClusterCounterMapping map[string]string
+// K8sClusterMetricsMapping Cluster metrics for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterMetricsMapping map[string]string
 
-// K8sClusterAddonCounter Addons counters for this k8s cluster. This allows setting up multiple values from a single key.
-type K8sClusterAddonCounter map[string]string
+// K8sClusterAddonMetrics Addons metrics for this k8s cluster. This allows setting up multiple values from a single key.
+type K8sClusterAddonMetrics map[string]string
 
 // K8sClusterInfoMapping Cluster information for this k8s cluster. This allows setting up multiple values from a single key.
 type K8sClusterInfoMapping map[string]string
@@ -140,30 +140,30 @@ type K8sUpdateClusterRegistrationAddonInfoResponse struct {
 	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
 
-// K8sUpdateClusterRegistrationCounterRequest k8s update cluster registration counter request
-type K8sUpdateClusterRegistrationCounterRequest struct {
-	// cluster counter
+// K8sUpdateClusterRegistrationMetricsRequest k8s update cluster registration metrics request
+type K8sUpdateClusterRegistrationMetricsRequest struct {
+	// cluster metrics
 	// Required: true
-	ClusterCounter K8sClusterCounterMapping `json:"cluster_counter"`
+	ClusterMetrics K8sClusterMetricsMapping `json:"cluster_metrics"`
 }
 
-// K8sUpdateClusterRegistrationCounterResponse k8s update cluster registration counter response
-type K8sUpdateClusterRegistrationCounterResponse struct {
+// K8sUpdateClusterRegistrationMetricsResponse k8s update cluster registration metrics response
+type K8sUpdateClusterRegistrationMetricsResponse struct {
 	// cluster name
 	ClusterName string `json:"cluster_name,omitempty"`
 	// cluster uuid
 	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
 
-// K8sUpdateClusterRegistrationAddonCounterRequest k8s update cluster registration addon counter request
-type K8sUpdateClusterRegistrationAddonCounterRequest struct {
-	// cluster addon counter
+// K8sUpdateClusterRegistrationAddonMetricsRequest k8s update cluster registration addon metrics request
+type K8sUpdateClusterRegistrationAddonMetricsRequest struct {
+	// cluster addon metrics
 	// Required: true
-	ClusterAddonCounter K8sClusterAddonCounter `json:"cluster_addon_counter"`
+	ClusterAddonMetrics K8sClusterAddonMetrics `json:"cluster_addon_metrics"`
 }
 
-// K8sUpdateClusterRegistrationAddonCounterResponse k8s update cluster registration addon counter response
-type K8sUpdateClusterRegistrationAddonCounterResponse struct {
+// K8sUpdateClusterRegistrationAddonMetricsResponse k8s update cluster registration addon metrics response
+type K8sUpdateClusterRegistrationAddonMetricsResponse struct {
 	// cluster name
 	ClusterName string `json:"cluster_name,omitempty"`
 	// cluster uuid
