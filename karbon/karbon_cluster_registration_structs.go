@@ -64,12 +64,6 @@ type K8sClusterAddonInfoMapping map[string]K8sClusterAddonInfo
 // K8sClusterCategoriesMapping Categories for this k8s cluster. This allows setting up multiple values from a single key.
 type K8sClusterCategoriesMapping map[string]string
 
-// K8sClusterMetricsMapping Cluster metrics for this k8s cluster. This allows setting up multiple values from a single key.
-type K8sClusterMetricsMapping map[string]string
-
-// K8sClusterAddonMetrics Addons metrics for this k8s cluster. This allows setting up multiple values from a single key.
-type K8sClusterAddonMetrics map[string]string
-
 // K8sClusterInfoMapping Cluster information for this k8s cluster. This allows setting up multiple values from a single key.
 type K8sClusterInfoMapping map[string]string
 
@@ -143,8 +137,7 @@ type K8sUpdateClusterRegistrationAddonInfoResponse struct {
 // K8sUpdateClusterRegistrationMetricsRequest k8s update cluster registration metrics request
 type K8sUpdateClusterRegistrationMetricsRequest struct {
 	// cluster metrics
-	// Required: true
-	ClusterMetrics K8sClusterMetricsMapping `json:"cluster_metrics"`
+	ClusterMetrics K8sClusterMetrics `json:"cluster_metrics"`
 }
 
 // K8sUpdateClusterRegistrationMetricsResponse k8s update cluster registration metrics response
@@ -158,7 +151,6 @@ type K8sUpdateClusterRegistrationMetricsResponse struct {
 // K8sUpdateClusterRegistrationAddonMetricsRequest k8s update cluster registration addon metrics request
 type K8sUpdateClusterRegistrationAddonMetricsRequest struct {
 	// cluster addon metrics
-	// Required: true
 	ClusterAddonMetrics K8sClusterAddonMetrics `json:"cluster_addon_metrics"`
 }
 
@@ -168,4 +160,23 @@ type K8sUpdateClusterRegistrationAddonMetricsResponse struct {
 	ClusterName string `json:"cluster_name,omitempty"`
 	// cluster uuid
 	ClusterUUID string `json:"cluster_uuid,omitempty"`
+}
+
+// K8sClusterMetrics Metrics information for this k8s cluster.
+type K8sClusterMetrics map[string]K8sClusterResourceList
+
+type K8sClusterResourceList []*K8sClusterResource
+
+type K8sClusterAddonMetrics map[string]K8sClusterResourceList
+
+// K8sClusterResource k8s cluster resource
+type K8sClusterResource struct {
+	// child resource name
+	ChildResourceName map[string]K8sClusterResource `json:"ChildResourceName,omitempty"`
+	// metadata
+	Metadata map[string]string `json:"Metadata,omitempty"`
+	// name
+	Name string `json:"Name,omitempty"`
+	// UUID
+	UUID string `json:"UUID,omitempty"`
 }
