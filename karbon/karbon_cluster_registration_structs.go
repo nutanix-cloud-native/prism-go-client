@@ -171,8 +171,8 @@ type K8sClusterResourceList []*K8sClusterResource
 
 // K8sClusterResource k8s cluster resource
 type K8sClusterResource struct {
-	// child resource name
-	ChildResourceName map[string]K8sClusterResource `json:"ChildResourceName,omitempty"`
+	// child resource
+	ChildResource map[string]K8sClusterResourceList `json:"ChildResource,omitempty"`
 	// metadata
 	Metadata map[string]string `json:"Metadata,omitempty"`
 	// name
