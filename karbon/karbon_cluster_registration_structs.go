@@ -165,9 +165,9 @@ type K8sUpdateClusterRegistrationAddonMetricsResponse struct {
 // K8sClusterMetrics Metrics information for this k8s cluster.
 type K8sClusterMetrics map[string]K8sClusterResourceList
 
-type K8sClusterResourceList []*K8sClusterResource
-
 type K8sClusterAddonMetrics map[string]K8sClusterResourceList
+
+type K8sClusterResourceList []*K8sClusterResource
 
 // K8sClusterResource k8s cluster resource
 type K8sClusterResource struct {
