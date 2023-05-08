@@ -162,14 +162,16 @@ type K8sUpdateClusterRegistrationAddonMetricsResponse struct {
 	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
 
-// K8sClusterMetrics Metrics information for this k8s cluster.
+// K8sClusterMetrics metrics information gathered for resources under k8s cluster.
 type K8sClusterMetrics map[string]K8sClusterResourceList
 
+// K8sClusterAddonMetrics addon metrics information gathered for resources under k8s cluster
 type K8sClusterAddonMetrics map[string]K8sClusterResourceList
 
+// K8sClusterResourceList list of the resources gathered under k8s cluster
 type K8sClusterResourceList []*K8sClusterResource
 
-// K8sClusterResource k8s cluster resource
+// K8sClusterResource k8s cluster resource includes name, UUID, metadata and children resources
 type K8sClusterResource struct {
 	// child resource
 	ChildResource map[string]K8sClusterResourceList `json:"ChildResource,omitempty"`
