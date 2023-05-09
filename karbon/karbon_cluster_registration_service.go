@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
@@ -107,8 +108,8 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonInfo(ctx conte
 }
 
 // UpdateK8sRegistrationInfo updates k8s info
-func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context.Context, UUID string, updateInfoRequest *K8sUpdateClusterRegistrationMetricsRequest) (*K8sUpdateClusterRegistrationMetricsResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations/" + UUID + "/metrics"
+func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, updateInfoRequest *K8sUpdateClusterRegistrationMetricsRequest) (*K8sUpdateClusterRegistrationMetricsResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID.String() + "/metrics"
 	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateInfoRequest)
 	if err != nil {
 		return nil, err
@@ -121,8 +122,8 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context
 }
 
 // UpdateK8sRegistrationAddonInfo updates k8s info
-func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonMetrics(ctx context.Context, UUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonMetricsRequest) (*K8sUpdateClusterRegistrationAddonMetricsResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations/" + UUID + "/addons/" + addonName + "/metrics"
+func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonMetricsRequest) (*K8sUpdateClusterRegistrationAddonMetricsResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID.String() + "/addons/" + addonName + "/metrics"
 	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateAddonInfoRequest)
 	if err != nil {
 		return nil, err
