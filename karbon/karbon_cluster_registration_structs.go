@@ -133,3 +133,52 @@ type K8sUpdateClusterRegistrationAddonInfoResponse struct {
 	// cluster uuid
 	ClusterUUID string `json:"cluster_uuid,omitempty"`
 }
+
+// K8sUpdateClusterRegistrationMetricsRequest k8s update cluster registration metrics request
+type K8sUpdateClusterRegistrationMetricsRequest struct {
+	// cluster metrics
+	ClusterMetrics K8sClusterMetrics `json:"cluster_metrics"`
+}
+
+// K8sUpdateClusterRegistrationMetricsResponse k8s update cluster registration metrics response
+type K8sUpdateClusterRegistrationMetricsResponse struct {
+	// cluster name
+	ClusterName string `json:"cluster_name,omitempty"`
+	// cluster uuid
+	ClusterUUID string `json:"cluster_uuid,omitempty"`
+}
+
+// K8sUpdateClusterRegistrationAddonMetricsRequest k8s update cluster registration addon metrics request
+type K8sUpdateClusterRegistrationAddonMetricsRequest struct {
+	// cluster addon metrics
+	ClusterAddonMetrics K8sClusterAddonMetrics `json:"cluster_addon_metrics"`
+}
+
+// K8sUpdateClusterRegistrationAddonMetricsResponse k8s update cluster registration addon metrics response
+type K8sUpdateClusterRegistrationAddonMetricsResponse struct {
+	// cluster name
+	ClusterName string `json:"cluster_name,omitempty"`
+	// cluster uuid
+	ClusterUUID string `json:"cluster_uuid,omitempty"`
+}
+
+// K8sClusterMetrics metrics information gathered for resources under k8s cluster.
+type K8sClusterMetrics map[string]K8sClusterResourceList
+
+// K8sClusterAddonMetrics addon metrics information gathered for resources under k8s cluster
+type K8sClusterAddonMetrics map[string]K8sClusterResourceList
+
+// K8sClusterResourceList list of the resources gathered under k8s cluster
+type K8sClusterResourceList []*K8sClusterResource
+
+// K8sClusterResource k8s cluster resource includes name, UUID, metadata and children resources
+type K8sClusterResource struct {
+	// child resource
+	ChildResource map[string]K8sClusterResourceList `json:"ChildResource,omitempty"`
+	// metadata
+	Metadata map[string]string `json:"Metadata,omitempty"`
+	// name
+	Name string `json:"Name,omitempty"`
+	// UUID
+	UUID string `json:"UUID,omitempty"`
+}
