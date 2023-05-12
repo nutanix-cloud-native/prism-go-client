@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
 	"github.com/keploy/go-sdk/mock"
@@ -141,6 +142,13 @@ func validateK8sClusterRegistrationAddonInfoResponse(t *testing.T, expected_k8s_
 	assert.Equal(t, expected_k8s_cluster_name, clusterRegAddonInfoResp.ClusterName)
 	assert.NotEmpty(t, clusterRegAddonInfoResp.ClusterUUID)
 	assert.Equal(t, expected_k8s_cluster_uuid, clusterRegAddonInfoResp.ClusterUUID)
+}
+
+func validateK8sClusterRegistrationMetricsResponse(t *testing.T, expected_k8s_cluster_name, expected_k8s_cluster_uuid string, clusterRegMetricsResp *K8sUpdateClusterRegistrationMetricsResponse) {
+	assert.NotEmpty(t, clusterRegMetricsResp.ClusterName)
+	assert.Equal(t, expected_k8s_cluster_name, clusterRegMetricsResp.ClusterName)
+	assert.NotEmpty(t, clusterRegMetricsResp.ClusterUUID)
+	assert.Equal(t, expected_k8s_cluster_uuid, clusterRegMetricsResp.ClusterUUID)
 }
 
 func TestKarbonCreateClusterRegistration(t *testing.T) {
@@ -503,4 +511,129 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationList(t, response)
+}
+
+func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster1")
+	test_cluster_uuid := strings.ToLower("634F5852-CE1B-465C-A95A-9B8DFFBDDE42")
+	test_category_mapping := map[string]string{
+		fmt.Sprintf("kubernetes-io-cluster-%s", test_cluster_name): "owned",
+		"KubernetesClusterName": test_cluster_name,
+		"KubernetesClusterUUID": test_cluster_uuid,
+	}
+	test_metadata_apiversion := "v1.1.0"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	test_k8s_distribution := "Openshift"
+
+	t.Log("Get Cluster registration")
+	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	if err == nil {
+		t.Log("Get Cluster registration exists")
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
+		// Registration exists. delete it so that we can create it
+		t.Log("Delete Cluster registration")
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
+		assert.NoError(t, err)
+		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+	}
+
+	t.Log("Create Cluster registration")
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:              &test_cluster_name,
+		UUID:              &test_cluster_uuid,
+		CategoriesMapping: test_category_mapping,
+		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
+	}
+
+	// returns type K8sCreateClusterRegistrationResponse
+	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	assert.NoError(t, err)
+	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
+
+	updateClusterRegistrationMetricsReq := K8sUpdateClusterRegistrationMetricsRequest{
+		ClusterMetrics: K8sClusterMetrics{
+			"Node": K8sClusterResourceList{
+				&K8sClusterResource{
+					ChildResource: map[string]K8sClusterResourceList{
+						"Pod": K8sClusterResourceList{
+							&K8sClusterResource{
+								ChildResource: nil,
+								Name:          "test-pod-1",
+								UUID:          test_cluster_uuid,
+							},
+							&K8sClusterResource{
+								ChildResource: nil,
+								Name:          "test-pod-2",
+								UUID:          test_cluster_uuid,
+							},
+						},
+					},
+					Name: "test-node-1",
+					UUID: test_cluster_uuid,
+				},
+				&K8sClusterResource{
+					ChildResource: map[string]K8sClusterResourceList{
+						"Pod": K8sClusterResourceList{
+							&K8sClusterResource{
+								ChildResource: nil,
+								Name:          "test-pod-3",
+								UUID:          test_cluster_uuid,
+							},
+							&K8sClusterResource{
+								ChildResource: nil,
+								Name:          "test-pod-4",
+								UUID:          test_cluster_uuid,
+							},
+						},
+					},
+					Name: "test-node-2",
+					UUID: test_cluster_uuid,
+				},
+			},
+			"Storageclass": K8sClusterResourceList{
+				&K8sClusterResource{
+					ChildResource: map[string]K8sClusterResourceList{
+						"PVC": K8sClusterResourceList{
+							&K8sClusterResource{
+								ChildResource: nil,
+								Metadata: map[string]string{
+									"chapAuth":        "ENABLED",
+									"whitelistIPMode": "ENABLED",
+									"flashMode":       "ENABLED",
+								},
+								Name: "test-pvc-1",
+								UUID: test_cluster_uuid,
+							},
+						},
+					},
+					Metadata: map[string]string{
+						"flashMode": "ENABLED",
+					},
+					Name: "test-storageclass-1",
+					UUID: test_cluster_uuid,
+				},
+			},
+		},
+	}
+	test_uuid, err := uuid.Parse(test_cluster_uuid)
+	assert.NoError(t, err)
+	responseUpdateMetrics, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistrationMetrics(kctx, test_uuid, &updateClusterRegistrationMetricsReq)
+	assert.NoError(t, err)
+	validateK8sClusterRegistrationMetricsResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateMetrics)
+
+	t.Log("Delete Cluster registration")
+	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid)
+	assert.NoError(t, err)
+	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }
