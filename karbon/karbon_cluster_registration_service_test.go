@@ -566,7 +566,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 			"Node": K8sClusterResourceList{
 				&K8sClusterResource{
 					ChildResource: map[string]K8sClusterResourceList{
-						"Pod": K8sClusterResourceList{
+						"Pod": {
 							&K8sClusterResource{
 								ChildResource: nil,
 								Name:          "test-pod-1",
@@ -584,7 +584,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 				},
 				&K8sClusterResource{
 					ChildResource: map[string]K8sClusterResourceList{
-						"Pod": K8sClusterResourceList{
+						"Pod": {
 							&K8sClusterResource{
 								ChildResource: nil,
 								Name:          "test-pod-3",
@@ -604,7 +604,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 			"Storageclass": K8sClusterResourceList{
 				&K8sClusterResource{
 					ChildResource: map[string]K8sClusterResourceList{
-						"PVC": K8sClusterResourceList{
+						"PVC": {
 							&K8sClusterResource{
 								ChildResource: nil,
 								Metadata: map[string]string{
