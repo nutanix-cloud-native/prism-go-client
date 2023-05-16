@@ -129,6 +129,7 @@ type Service interface {
 	CreateRecoveryPlanJob(ctx context.Context, request *RecoveryPlanJobIntentInput) (*RecoveryPlanJobResponse, error)
 	PerformRecoveryPlanJobAction(ctx context.Context, uuid string, action string, request *RecoveryPlanJobActionRequest) (*RecoveryPlanJobResponse, error)
 	GroupsGetEntities(ctx context.Context, request *GroupsGetEntitiesRequest) (*GroupsGetEntitiesResponse, error)
+	GetAvailabilityZone(ctx context.Context, uuid string) (*AvailabilityZoneIntentResponse, error)
 }
 
 /*CreateVM Creates a VM
@@ -2425,6 +2426,23 @@ func (op Operations) GroupsGetEntities(ctx context.Context, request *GroupsGetEn
 	req, err := op.client.NewRequest(http.MethodPost, "/groups", request)
 	response := new(GroupsGetEntitiesResponse)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return response, op.client.Do(ctx, req, response)
+}
+
+/*Get information about an availability zone (AZ).
+ * This operation gets the information about an AZ identified by 'uuid'.
+ *
+ * @param uuid UUID of the AZ.
+ */
+func (op Operations) GetAvailabilityZone(ctx context.Context, uuid string) (*AvailabilityZoneIntentResponse, error) {
+	path := fmt.Sprintf("/availability_zones/%s", uuid)
+	response := new(AvailabilityZoneIntentResponse)
+
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}

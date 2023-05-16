@@ -2735,3 +2735,30 @@ type GroupsTimevaluePair struct {
 	Time   int64    `json:"time,omitempty"`
 	Values []string `json:"values"`
 }
+
+type AvailabilityZoneIntentResponse struct {
+	APIVersion *string                 `json:"api_version"`
+	Metadata   *Metadata               `json:"metadata"`
+	Spec       *AvailabilityZoneSpec   `json:"spec,omitempty"`
+	Status     *AvailabilityZoneStatus `json:"status,omitempty"`
+}
+
+// AvailabilityZone Input Definition.
+type AvailabilityZoneSpec struct {
+	Name      *string                    `json:"name,omitempty"`      // The name of the AZ
+	Resources *AvailabilityZoneResources `json:"resources,omitempty"` // AvailabilityZone Resource Definition
+}
+
+// AvailabilityZone Resource Definition
+type AvailabilityZoneResources struct {
+	ManagementUrl       *string `json:"management_url,omitempty"` // The URL of the management server
+	ManagementPlaneType *string `json:"management_plane_type"`    // The type of the management plane
+}
+
+// AvailabilityZone status definition.
+type AvailabilityZoneStatus struct {
+	Name        *string                    `json:"name,omitempty"`      // The name of the AZ
+	Resources   *AvailabilityZoneResources `json:"resources,omitempty"` // AvailabilityZone Resource Definition
+	MessageList []MessageResource          `json:"message_list,omitempty"`
+	State       *string                    `json:"state,omitempty"` // The state of the entity
+}

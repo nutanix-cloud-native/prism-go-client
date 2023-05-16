@@ -6673,3 +6673,67 @@ func TestOperations_GroupsGetEntities(t *testing.T) {
 		})
 	}
 }
+
+func TestOperations_GetAvailabilityZone(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/availability_zones/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{"metadata": {"kind":"availability_zone","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}, "status":{"resources":{"management_url":"dfde831a-4e87-4a75-960f-89b0148aa2cc"}}}`)
+	})
+
+	response := &AvailabilityZoneIntentResponse{}
+	response.Metadata = &Metadata{
+		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: utils.StringPtr("availability_zone"),
+	}
+	resources := &AvailabilityZoneResources{
+		ManagementUrl: utils.StringPtr("dfde831a-4e87-4a75-960f-89b0148aa2cc"),
+	}
+	response.Status = &AvailabilityZoneStatus{
+		Resources: resources,
+	}
+
+	type fields struct {
+		client *internal.Client
+	}
+
+	type args struct {
+		UUID string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *AvailabilityZoneIntentResponse
+		wantErr bool
+	}{
+		{
+			"Test GetAvailabilityZone OK",
+			fields{c},
+			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
+			response,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			op := Operations{
+				client: tt.fields.client,
+			}
+			got, err := op.GetAvailabilityZone(context.Background(), tt.args.UUID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Operations.GetAvailabilityZone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Operations.GetAvailabilityZone() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
