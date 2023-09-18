@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Added support for v4 client creation.
+
+### Added
 - Added support for getting information about an AZ given a uuid.
 
 ### Added
