@@ -21,6 +21,8 @@ type ClusterRegistrationService interface {
 	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error)
 	UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error)
 	UpdateK8sRegistrationAddonInfo(ctx context.Context, k8sClusterUUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonInfoRequest) (*K8sUpdateClusterRegistrationAddonInfoResponse, error)
+	UpdateK8sRegistrationMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, updateInfoRequest *K8sUpdateClusterRegistrationMetricsRequest) (*K8sUpdateClusterRegistrationMetricsResponse, error)
+	UpdateK8sRegistrationAddonMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonMetricsRequest) (*K8sUpdateClusterRegistrationAddonMetricsResponse, error)
 }
 
 // CreateK8sRegistration creates the k8s registration
@@ -107,7 +109,7 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonInfo(ctx conte
 	return karbonClusterActionResponse, nil
 }
 
-// UpdateK8sRegistrationInfo updates k8s info
+// UpdateK8sRegistrationMetrics updates k8s cluster metrics
 func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, updateInfoRequest *K8sUpdateClusterRegistrationMetricsRequest) (*K8sUpdateClusterRegistrationMetricsResponse, error) {
 	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID.String() + "/metrics"
 	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateInfoRequest)
@@ -121,7 +123,7 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context
 	return karbonClusterActionResponse, nil
 }
 
-// UpdateK8sRegistrationAddonInfo updates k8s info
+// UpdateK8sRegistrationAddonMetrics updates k8s cluster addon metrics
 func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonMetrics(ctx context.Context, k8sClusterUUID uuid.UUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonMetricsRequest) (*K8sUpdateClusterRegistrationAddonMetricsResponse, error) {
 	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID.String() + "/addons/" + addonName + "/metrics"
 	req, err := op.httpClient.NewRequest(http.MethodPost, path, updateAddonInfoRequest)
