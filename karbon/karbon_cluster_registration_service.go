@@ -18,7 +18,7 @@ type ClusterRegistrationService interface {
 	CreateK8sRegistration(ctx context.Context, createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
 	DeleteK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistrationDeleteResponse, error)
 	GetK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistration, error)
-	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error)
+	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationListResponse, error)
 	UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error)
 	UpdateK8sRegistrationAddonInfo(ctx context.Context, k8sClusterUUID, addonName string, updateAddonInfoRequest *K8sUpdateClusterRegistrationAddonInfoRequest) (*K8sUpdateClusterRegistrationAddonInfoResponse, error)
 }
@@ -66,13 +66,13 @@ func (op ClusterRegistrationOperations) GetK8sRegistration(ctx context.Context, 
 }
 
 // GetK8sRegistrationList gets the k8s registration list
-func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error) {
+func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
 	path := "/v1-alpha.1/k8s/cluster-registrations/"
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationList)
+	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
 	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
 		return nil, err
 	}

@@ -26,6 +26,20 @@ type K8sClusterRegistrationDeleteResponse struct {
 	TaskUUID *string `json:"task_uuid"`
 }
 
+type K8sClusterRegistrationListResponse struct {
+	// data
+	Data []*K8sClusterRegistration `json:"data"`
+
+	// offset
+	Offset int64 `json:"offset,omitempty"`
+
+	// page size
+	PageSize int64 `json:"page_size,omitempty"`
+
+	// total
+	Total int64 `json:"total,omitempty"`
+}
+
 // K8sClusterAddonInfo Addons information for this k8s cluster. This allows setting up multiple values from a single key.
 type K8sClusterAddonInfo map[string]string
 
