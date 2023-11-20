@@ -79,6 +79,45 @@ func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Conte
 	return karbonClusterActionResponse, nil
 }
 
+func (op ClusterRegistrationOperations) GetK8sRegistrationListPage1(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1"
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+func (op ClusterRegistrationOperations) GetK8sRegistrationListPage2(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations?offset=1&page_size=1"
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+func (op ClusterRegistrationOperations) GetK8sRegistrationListEmpty(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations?offset=100&page_size=20"
+	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
 // UpdateK8sRegistrationInfo updates k8s info
 func (op ClusterRegistrationOperations) UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error) {
 	path := "/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID + "/setinfo"
