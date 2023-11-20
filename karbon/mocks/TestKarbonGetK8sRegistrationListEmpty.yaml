@@ -8,7 +8,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=20
+        URL: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=100&page_size=20
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,7 +16,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=20
+        url: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=100&page_size=20
         header:
             Accept: application/json
             Content-Type: application/json
@@ -28,22 +28,21 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Tue, 07 Mar 2023 07:31:54 GMT
+            Date: Mon, 20 Nov 2023 23:30:31 GMT
             Server: envoy
-            Set-Cookie: NTNX_IGW_SESSION=Expires=Tue, 07-Mar-2023 07:46:53 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "383"
+            X-Envoy-Upstream-Service-Time: "492"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
-            X-Ntnx-Product: pc.2022.6.0.3
+            X-Ntnx-Product: pc.2023.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
             X-Xss-Protection: 1; mode=block
         body: |
-          {"total": 0, "data": [], "offset": 0, "page_size": 20}
+            {"data":[],"offset":100,"page_size":20,"total":1}
         body_type: utf-8
         status_message: ""
         proto_major: 0

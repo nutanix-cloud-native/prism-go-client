@@ -1,6 +1,6 @@
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonGetK8sRegistrationListPaginated
+name: TestKarbonGetK8sRegistrationListPage1
 spec:
     metadata:
         Body: ""
@@ -8,7 +8,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
+        URL: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,7 +16,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
+        url: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
         header:
             Accept: application/json
             Content-Type: application/json
@@ -28,22 +28,21 @@ spec:
         header:
             Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Tue, 07 Mar 2023 07:31:54 GMT
+            Date: Mon, 20 Nov 2023 23:30:33 GMT
             Server: envoy
-            Set-Cookie: NTNX_IGW_SESSION=Expires=Tue, 07-Mar-2023 07:46:53 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "383"
+            X-Envoy-Upstream-Service-Time: "1058"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
-            X-Ntnx-Product: pc.2022.6.0.3
+            X-Ntnx-Product: pc.2023.4
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
             X-Xss-Protection: 1; mode=block
         body: |
-          {"total": 2, "data": [{"addons_info":{"CNDS":{"addon_version":"v1.0"},"CSI":{"addon_version":"v2.0"}},"categories_mapping":{"KubernetesClusterUUID":"fd201401-480b-4583-bf69-1726f444f6b9","kubernetes-io-cluster-source-k8s-cluster":"owned"},"cluster_info":{"k8s_version":"v1.23.15"},"k8s_distribution":"Openshift","name":"source-k8s-cluster","status":"kActive","uuid":"fd201401-480b-4583-bf69-1726f444f6b9"}], "offset": 0, "page_size": 1}
+            {"data":[{"addons_info":{"NDK":{"addon_chart_name":"nutanix-juno","addon_description":"Juno is the service responsible for providing the AOS storage and data management features to workload running on Kubernetes.","addon_release_name":"juno","addon_release_status":"deployed","addon_version":"0.1.0"}},"categories_mapping":{"KubernetesClusterName":"nutest-capx-10191136"},"cluster_info":{"cluster_hb_timestamp":"2023-11-20 23:23:24.480776839 +0000 UTC","cpu_count":"16","k8s_version":"v1.23.10","memory_bytes":"34359738368","os_image":"Ubuntu 20.04.5 LTS","projects":"[{\"name\":\"onboarding-test1\",\"uuid\":\"986f9e44-1716-4cac-b411-6693cea10185\"}]","storage_capacity_bytes":"0","storage_used_bytes":"0","vg_count":"0","vm_count":"4"},"k8s_distribution":"CNCF Kubernetes","name":"nutest-capx-10191136","status":"kActive","uuid":"ffe36421-9d4d-4332-b416-34d0df74a172"}],"offset":0,"page_size":1,"total":1}
         body_type: utf-8
         status_message: ""
         proto_major: 0

@@ -110,15 +110,15 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegListResponse *K8
 
 func validateEmptyK8sClusterRegistrationList(t *testing.T, actual *K8sClusterRegistrationListResponse, expected K8sClusterRegistrationListResponse) {
 	assert.Equal(t, expected.Total, actual.Total)
-  assert.Equal(t, expected.Offset, actual.Offset)
-  assert.Equal(t, len(expected.Data), len(actual.Data))
+	assert.Equal(t, expected.Offset, actual.Offset)
+	assert.Equal(t, len(expected.Data), len(actual.Data))
 }
 
 func validatePaginatedK8sClusterRegistrationList(t *testing.T, actual *K8sClusterRegistrationListResponse, expectedLen int, expectedTotal, expectedOffset, expectedPageSize int64) {
 	assert.Equal(t, expectedTotal, actual.Total)
-  assert.Equal(t, expectedOffset, actual.Offset)
-  assert.Equal(t, expectedPageSize, actual.PageSize)
-  assert.Equal(t, expectedLen, len(actual.Data))
+	assert.Equal(t, expectedOffset, actual.Offset)
+	assert.Equal(t, expectedPageSize, actual.PageSize)
+	assert.Equal(t, expectedLen, len(actual.Data))
 }
 
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
@@ -537,18 +537,18 @@ func TestKarbonGetK8sRegistrationListEmpty(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListEmpty(kctx)
 	assert.NoError(t, err)
 	expected := K8sClusterRegistrationListResponse{
 		Data:     []*K8sClusterRegistration{},
-		Total:    0,
+		Total:    1,
 		PageSize: 20,
-		Offset:   0,
+		Offset:   100,
 	}
 	validateEmptyK8sClusterRegistrationList(t, response, expected)
 }
 
-func TestKarbonGetK8sRegistrationListPaginated(t *testing.T) {
+func TestKarbonGetK8sRegistrationListPage1(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
 	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
@@ -559,12 +559,12 @@ func TestKarbonGetK8sRegistrationListPaginated(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListPage1(kctx)
 	assert.NoError(t, err)
-  expectedLen := 1 
-  expectedTotal := int64(2)
-  expectedOffset := int64(0)
-  expectedPageSize := int64(1)
+	expectedLen := 1
+	expectedTotal := int64(1)
+	expectedOffset := int64(0)
+	expectedPageSize := int64(1)
 	validatePaginatedK8sClusterRegistrationList(t, response, expectedLen, expectedTotal, expectedOffset, expectedPageSize)
 }
 
@@ -579,12 +579,12 @@ func TestKarbonGetK8sRegistrationListPage2(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListPage2(kctx)
 	assert.NoError(t, err)
-  expectedLen := 1
-  expectedTotal := int64(2)
-  expectedOffset := int64(1)
-  expectedPageSize := int64(1)
+	expectedLen := 0
+	expectedTotal := int64(1)
+	expectedOffset := int64(1)
+	expectedPageSize := int64(1)
 	validatePaginatedK8sClusterRegistrationList(t, response, expectedLen, expectedTotal, expectedOffset, expectedPageSize)
 }
 
