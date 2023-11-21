@@ -521,7 +521,7 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationList(t, response)
 }
@@ -537,7 +537,7 @@ func TestKarbonGetK8sRegistrationListEmpty(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListEmpty(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 100, 20)
 	assert.NoError(t, err)
 	expected := K8sClusterRegistrationListResponse{
 		Data:     []*K8sClusterRegistration{},
@@ -559,7 +559,7 @@ func TestKarbonGetK8sRegistrationListPage1(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListPage1(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1)
 	assert.NoError(t, err)
 	expectedLen := 1
 	expectedTotal := int64(1)
@@ -579,7 +579,7 @@ func TestKarbonGetK8sRegistrationListPage2(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationListPage2(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 1, 1)
 	assert.NoError(t, err)
 	expectedLen := 0
 	expectedTotal := int64(1)

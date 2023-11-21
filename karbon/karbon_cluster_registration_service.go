@@ -2,6 +2,7 @@ package karbon
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -66,47 +67,8 @@ func (op ClusterRegistrationOperations) GetK8sRegistration(ctx context.Context, 
 }
 
 // GetK8sRegistrationList gets the k8s registration list
-func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations/"
-	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
-	if err != nil {
-		return nil, err
-	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
-		return nil, err
-	}
-	return karbonClusterActionResponse, nil
-}
-
-func (op ClusterRegistrationOperations) GetK8sRegistrationListPage1(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1"
-	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
-	if err != nil {
-		return nil, err
-	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
-		return nil, err
-	}
-	return karbonClusterActionResponse, nil
-}
-
-func (op ClusterRegistrationOperations) GetK8sRegistrationListPage2(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations?offset=1&page_size=1"
-	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
-	if err != nil {
-		return nil, err
-	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationListResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
-		return nil, err
-	}
-	return karbonClusterActionResponse, nil
-}
-
-func (op ClusterRegistrationOperations) GetK8sRegistrationListEmpty(ctx context.Context) (*K8sClusterRegistrationListResponse, error) {
-	path := "/v1-alpha.1/k8s/cluster-registrations?offset=100&page_size=20"
+func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context, offset, page_size int) (*K8sClusterRegistrationListResponse, error) {
+	path := fmt.Sprintf("/v1-alpha.1/k8s/cluster-registrations?offset=%d&page_size=%d", offset, page_size)
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
