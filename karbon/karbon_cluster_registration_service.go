@@ -67,8 +67,8 @@ func (op ClusterRegistrationOperations) GetK8sRegistration(ctx context.Context, 
 }
 
 // GetK8sRegistrationList gets the k8s registration list
-func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context, offset, page_size int) (*K8sClusterRegistrationListResponse, error) {
-	path := fmt.Sprintf("/v1-alpha.1/k8s/cluster-registrations?offset=%d&page_size=%d", offset, page_size)
+func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Context, offset, pageSize int) (*K8sClusterRegistrationListResponse, error) {
+	path := fmt.Sprintf("/v1-alpha.1/k8s/cluster-registrations?offset=%d&page_size=%d", offset, pageSize)
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
