@@ -30,7 +30,24 @@ const (
 	_taskFailed                = "FAILED"
 	_taskAborted               = "ABORTED"
 	_taskSuspended             = "SUSPENDED"
+	_ascending                 = "asc"
+	_descending                = "desc"
 )
+
+type listResponseExpected struct {
+	total          int64
+	offset         int64
+	pageSize       int64
+	len            int
+	firstClusterId string
+}
+
+type testCase struct {
+	offset    int
+	pageSize  int
+	sortOrder string
+	expected  listResponseExpected
+}
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
 	assert.NotEmpty(t, *k8sClusterReg.Name)
@@ -106,19 +123,6 @@ func validateK8sClusterRegistrationList(t *testing.T, clusterRegListResponse *K8
 	for _, k8sRegistration := range clusterRegListResponse.Data {
 		validateK8sClusterRegistration(t, k8sRegistration)
 	}
-}
-
-func validateEmptyK8sClusterRegistrationList(t *testing.T, actual *K8sClusterRegistrationListResponse, expected K8sClusterRegistrationListResponse) {
-	assert.Equal(t, expected.Total, actual.Total)
-	assert.Equal(t, expected.Offset, actual.Offset)
-	assert.Equal(t, len(expected.Data), len(actual.Data))
-}
-
-func validatePaginatedK8sClusterRegistrationList(t *testing.T, actual *K8sClusterRegistrationListResponse, expectedLen int, expectedTotal, expectedOffset, expectedPageSize int64) {
-	assert.Equal(t, expectedTotal, actual.Total)
-	assert.Equal(t, expectedOffset, actual.Offset)
-	assert.Equal(t, expectedPageSize, actual.PageSize)
-	assert.Equal(t, expectedLen, len(actual.Data))
 }
 
 func validateK8sClusterRegistrationTaskStatus(t *testing.T, kctx context.Context, v3Client *v3.Client, taskID string, creds prismgoclient.Credentials) {
@@ -510,6 +514,85 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }
 
+func TestKarbonGetRegistrationListPagination(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	tests := []testCase{
+		{
+			// empty response
+			offset:    100,
+			pageSize:  20,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         100,
+				pageSize:       20,
+				total:          0,
+				len:            0,
+				firstClusterId: "",
+			},
+		},
+		{
+			// page 1
+			offset:    0,
+			pageSize:  1,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         0,
+				pageSize:       1,
+				total:          5,
+				len:            1,
+				firstClusterId: "ca1a5ef8-bb00-4f85-9c59-a24a252c49b0",
+			},
+		},
+		{
+			// page 2
+			offset:    1,
+			pageSize:  1,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         1,
+				pageSize:       1,
+				total:          5,
+				len:            1,
+				firstClusterId: "4d7f4ec6-4182-4789-af38-800bd0cc5b60",
+			},
+		},
+		{
+			// descending order
+			offset:    0,
+			pageSize:  2,
+			sortOrder: _descending,
+			expected: listResponseExpected{
+				offset:         0,
+				pageSize:       2,
+				total:          5,
+				len:            2,
+				firstClusterId: "7979a5eb-4470-44e6-b946-2b0e0f8d13b2",
+			},
+		},
+	}
+	for _, tc := range tests {
+		response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, tc.offset, tc.pageSize, tc.sortOrder)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected.total, response.Total)
+		assert.Equal(t, tc.expected.offset, response.Offset)
+		assert.Equal(t, tc.expected.pageSize, response.PageSize)
+		assert.Equal(t, tc.expected.len, len(response.Data))
+		if len(response.Data) > 0 {
+			responseFirstClusterId := response.Data[0].UUID
+			assert.Equal(t, tc.expected.firstClusterId, responseFirstClusterId)
+		}
+	}
+}
+
 func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
@@ -521,71 +604,9 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1, _ascending)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationList(t, response)
-}
-
-func TestKarbonGetK8sRegistrationListEmpty(t *testing.T) {
-	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
-	require.NoError(t, err)
-
-	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
-		Name: t.Name(),
-	})
-	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 100, 20)
-	assert.NoError(t, err)
-	expected := K8sClusterRegistrationListResponse{
-		Data:     []*K8sClusterRegistration{},
-		Total:    1,
-		PageSize: 20,
-		Offset:   100,
-	}
-	validateEmptyK8sClusterRegistrationList(t, response, expected)
-}
-
-func TestKarbonGetK8sRegistrationListPage1(t *testing.T) {
-	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
-	require.NoError(t, err)
-
-	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
-		Name: t.Name(),
-	})
-	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1)
-	assert.NoError(t, err)
-	expectedLen := 1
-	expectedTotal := int64(1)
-	expectedOffset := int64(0)
-	expectedPageSize := int64(1)
-	validatePaginatedK8sClusterRegistrationList(t, response, expectedLen, expectedTotal, expectedOffset, expectedPageSize)
-}
-
-func TestKarbonGetK8sRegistrationListPage2(t *testing.T) {
-	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
-	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
-	require.NoError(t, err)
-
-	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_TEST,
-		Name: t.Name(),
-	})
-	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 1, 1)
-	assert.NoError(t, err)
-	expectedLen := 0
-	expectedTotal := int64(1)
-	expectedOffset := int64(1)
-	expectedPageSize := int64(1)
-	validatePaginatedK8sClusterRegistrationList(t, response, expectedLen, expectedTotal, expectedOffset, expectedPageSize)
 }
 
 func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
