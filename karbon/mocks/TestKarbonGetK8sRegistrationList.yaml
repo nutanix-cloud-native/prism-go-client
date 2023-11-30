@@ -8,7 +8,7 @@ spec:
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
-        URL: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
+        URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
         name: http-client
         operation: GET
         type: HTTP_CLIENT
@@ -16,7 +16,7 @@ spec:
         method: GET
         proto_major: 1
         proto_minor: 1
-        url: https://10.44.193.89:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
+        url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations?offset=0&page_size=1
         header:
             Accept: application/json
             Content-Type: application/json
