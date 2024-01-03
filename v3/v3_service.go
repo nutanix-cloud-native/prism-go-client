@@ -111,7 +111,6 @@ type Service interface {
 	UpdateRecoveryPlan(ctx context.Context, uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error)
 	DeleteRecoveryPlan(ctx context.Context, uuid string) (*DeleteResponse, error)
 	GetServiceGroup(ctx context.Context, uuid string) (*ServiceGroupResponse, error)
-	listServiceGroups(ctx context.Context, getEntitiesRequest *DSMetadata) (*ServiceGroupListResponse, error)
 	ListAllServiceGroups(ctx context.Context, filter string) (*ServiceGroupListResponse, error)
 	CreateServiceGroup(ctx context.Context, request *ServiceGroupInput) (*Reference, error)
 	UpdateServiceGroup(ctx context.Context, uuid string, body *ServiceGroupInput) error
