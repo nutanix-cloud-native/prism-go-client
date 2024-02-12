@@ -27,7 +27,7 @@ jobs:
       run: make build
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3.7.0
+      uses: golangci/golangci-lint-action@v4.0.0
       with:
         args: --enable gofmt --enable gofumpt --timeout 5m
 
