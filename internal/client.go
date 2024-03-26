@@ -221,23 +221,9 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 
 	if c.credentials.SessionAuth {
 		c.logger.V(1).Info("Using session_auth")
-
-		req, err := c.NewRequest(http.MethodGet, "/users/me", nil)
-		if err != nil {
+		if err := c.refreshCookies(); err != nil {
 			return nil, err
 		}
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		if err := CheckResponse(resp); err != nil {
-			return nil, err
-		}
-
-		c.cookies = resp.Cookies()
 	}
 
 	return c, nil
@@ -245,43 +231,56 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 
 // NewRequest creates a request
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-	// check if httpClient exists or not
-	if c.httpClient == nil {
-		return nil, fmt.Errorf(c.ErrorMsg)
-	}
-
-	rel, err := url.Parse(c.absolutePath + urlStr)
+	req, err := c.NewUnAuthRequest(method, urlStr, body)
 	if err != nil {
 		return nil, err
 	}
 
-	u := c.BaseURL.ResolveReference(rel)
-
-	buf := new(bytes.Buffer)
-
-	if body != nil {
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	req, err := http.NewRequest(method, u.String(), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", mediaType)
-	req.Header.Add("Accept", mediaType)
-	req.Header.Add("User-Agent", c.UserAgent)
 	if c.cookies != nil {
-		for _, i := range c.cookies {
-			req.AddCookie(i)
-		}
+		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		req.Header.Add("Authorization", "Basic "+
-			base64.StdEncoding.EncodeToString([]byte(c.credentials.Username+":"+c.credentials.Password)))
+		decorateRequestWithAuthHeaders(req, c.credentials.Username, c.credentials.Password)
 	}
+
 	return req, nil
+}
+
+func (c *Client) refreshCookies() error {
+	req, err := c.NewUnAuthRequest(http.MethodGet, "/users/me", nil)
+	if err != nil {
+		return err
+	}
+
+	decorateRequestWithAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if err := CheckResponse(resp); err != nil {
+		return err
+	}
+
+	c.cookies = resp.Cookies()
+
+	return nil
+}
+
+func decorateRequestWithAuthHeaders(req *http.Request, username, password string) {
+	req.Header.Add("Authorization",
+		"Basic "+base64.StdEncoding.EncodeToString([]byte(username+":"+password)))
+}
+
+func decorateRequestWithCookies(req *http.Request, cookies []*http.Cookie) {
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+}
+
+func clearCookiesInRequest(req *http.Request) {
+	req.Header.Del("Cookie")
 }
 
 // NewUnAuthRequest creates a request without authorisation headers
@@ -296,15 +295,17 @@ func (c *Client) NewUnAuthRequest(method, urlStr string, body interface{}) (*htt
 	if err != nil {
 		return nil, err
 	}
+
 	u := c.BaseURL.ResolveReference(rel)
 
 	buf := new(bytes.Buffer)
 	if body != nil {
-		er := json.NewEncoder(buf).Encode(body)
+		err := json.NewEncoder(buf).Encode(body)
 		if err != nil {
-			return nil, er
+			return nil, err
 		}
 	}
+
 	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {
 		return nil, err
@@ -431,50 +432,69 @@ func (c *Client) OnRequestCompleted(rc RequestCompletionCallback) {
 	c.onRequestCompleted = rc
 }
 
+func (c *Client) clearCookies() {
+	c.cookies = nil
+}
+
 // Do performs request passed
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
 	// check if httpClient exists or not
+	maxRetries := 1
+	currentTry := 0
+
 	if c.httpClient == nil {
 		return fmt.Errorf(c.ErrorMsg)
 	}
 
-	req = req.WithContext(ctx)
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
+	for currentTry <= maxRetries {
+		req = req.WithContext(ctx)
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			return err
+		}
+
+		defer func() {
+			if rerr := resp.Body.Close(); err == nil {
+				err = rerr
+			}
+		}()
+
+		if err := CheckResponse(resp); err != nil {
+			if resp.StatusCode == http.StatusUnauthorized && c.credentials.SessionAuth && currentTry < maxRetries {
+				currentTry++
+				c.clearCookies()
+				if err := c.refreshCookies(); err != nil {
+					return err
+				}
+				c.logger.V(1).Info("Retrying request", "try", currentTry)
+				clearCookiesInRequest(req)
+				decorateRequestWithCookies(req, c.cookies)
+				continue
+			}
+			return err
+		}
+
+		if v != nil {
+			if w, ok := v.(io.Writer); ok {
+				_, err = io.Copy(w, resp.Body)
+				if err != nil {
+					fmt.Printf("Error io.Copy %s", err)
+					return err
+				}
+			} else {
+				err = json.NewDecoder(resp.Body).Decode(v)
+				if err != nil {
+					return fmt.Errorf("error unmarshalling json: %s", err)
+				}
+			}
+		}
+
+		if c.onRequestCompleted != nil {
+			c.onRequestCompleted(req, resp, v)
+		}
 		return err
 	}
-
-	defer func() {
-		if rerr := resp.Body.Close(); err == nil {
-			err = rerr
-		}
-	}()
-
-	err = CheckResponse(resp)
-
-	if err != nil {
-		return err
-	}
-
-	if v != nil {
-		if w, ok := v.(io.Writer); ok {
-			_, err = io.Copy(w, resp.Body)
-			if err != nil {
-				fmt.Printf("Error io.Copy %s", err)
-				return err
-			}
-		} else {
-			err = json.NewDecoder(resp.Body).Decode(v)
-			if err != nil {
-				return fmt.Errorf("error unmarshalling json: %s", err)
-			}
-		}
-	}
-
-	if c.onRequestCompleted != nil {
-		c.onRequestCompleted(req, resp, v)
-	}
-	return err
+	return fmt.Errorf("maximum retries exceeded")
 }
 
 func searchSlice(slice []string, key string) bool {
@@ -504,8 +524,7 @@ func (c *Client) DoWithFilters(ctx context.Context, req *http.Request, v interfa
 		}
 	}()
 
-	err = CheckResponse(resp)
-	if err != nil {
+	if err := CheckResponse(resp); err != nil {
 		return err
 	}
 
