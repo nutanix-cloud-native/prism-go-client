@@ -7,28 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added support for v4 client creation.
-
-### Added
 - Added support for getting information about an AZ given a uuid.
-
-### Added
 - Added support for getting a projection of attributes of entities using the 'groups' API endpoint.
-
-### Added
 - Added support for creating, deleting, listing, and getting the status of recovery plan jobs.
+- Add optional function options for the NewKarbonAPIClient constructor
+- Add ClusterRegistration interface in karbon package
+- Add ClusterRegistration SetInfo and Cluster Addon SetInfo APIs
+- Added support for specifying volume groups by category in a recovery plan create request.
+- Added support for specifying primary and recovery clusters in a recovery plan.
+- Added WithUserAgent client option for v3 client constructor.
 
 ### Changed
 - Change the MetaService interface methods to take context.Context as a parameter
 - Local environment provider now fetches port from `NUTANIX_PORT` environment variable
-
-### Added
-- Add optional function options for the NewKarbonAPIClient constructor
-- Add ClusterRegistration interface in karbon package
-- Add ClusterRegistration SetInfo and Cluster Addon SetInfo APIs
-
-### Added
-- Added support for specifying volume groups by category in a recovery plan create request.
-- Added support for specifying primary and recovery clusters in a recovery plan.
+- Add logic to internal.Client for auto retry once after refreshing auth cookie on a 401 response in case of session auth.
 
 ## [0.3.4] - 2022-11-24
 ### Changed
