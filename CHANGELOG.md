@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for specifying volume groups by category in a recovery plan create request.
 - Added support for specifying primary and recovery clusters in a recovery plan.
 - Added WithUserAgent client option for v3 client constructor.
+- Added Cache for v3 Clients in v3 package.
 
 ### Changed
 - Change the MetaService interface methods to take context.Context as a parameter

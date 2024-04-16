@@ -867,7 +867,6 @@ func (op Operations) ListAllVM(ctx context.Context, filter string) (*VMListInten
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -909,7 +908,6 @@ func (op Operations) ListAllSubnet(ctx context.Context, filter string, clientSid
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -951,7 +949,6 @@ func (op Operations) ListAllNetworkSecurityRule(ctx context.Context, filter stri
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -993,7 +990,6 @@ func (op Operations) ListAllImage(ctx context.Context, filter string) (*ImageLis
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1035,7 +1031,6 @@ func (op Operations) ListAllCluster(ctx context.Context, filter string) (*Cluste
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1077,7 +1072,6 @@ func (op Operations) ListAllCategoryValues(ctx context.Context, categoryName, fi
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1157,7 +1151,6 @@ func (op Operations) ListAllHost(ctx context.Context) (*HostListResponse, error)
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1255,7 +1248,6 @@ func (op Operations) ListAllProject(ctx context.Context, filter string) (*Projec
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1389,7 +1381,6 @@ func (op Operations) ListAllAccessControlPolicy(ctx context.Context, filter stri
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1524,7 +1515,6 @@ func (op Operations) ListAllRole(ctx context.Context, filter string) (*RoleListR
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1692,7 +1682,6 @@ func (op Operations) ListAllUser(ctx context.Context, filter string) (*UserListR
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1787,7 +1776,6 @@ func (op Operations) ListAllUserGroup(ctx context.Context, filter string) (*User
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1863,7 +1851,6 @@ func (op Operations) ListAllPermission(ctx context.Context, filter string) (*Per
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -1931,7 +1918,6 @@ func (op Operations) ListAllProtectionRules(ctx context.Context, filter string) 
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -2055,7 +2041,6 @@ func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -2169,7 +2154,6 @@ func (op Operations) ListAllServiceGroups(ctx context.Context, filter string) (*
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}
@@ -2245,7 +2229,6 @@ func (op Operations) ListAllAddressGroups(ctx context.Context, filter string) (*
 				Length: utils.Int64Ptr(itemsPerPage),
 				Offset: utils.Int64Ptr(offset),
 			})
-
 			if err != nil {
 				return nil, err
 			}

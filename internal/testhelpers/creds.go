@@ -12,6 +12,7 @@ import (
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/providers/local"
+	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
 const (
@@ -97,6 +98,20 @@ func getDeveloperConfig(t *testing.T, filePath string) devConf {
 // Alternatively, the path to the developer config file can be set in the environment variable `PRISM_DEV_CONFIG`.
 // More information about the developer config file can be found in the DEVELOPMENT.md in repo root.
 func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
+	endpoint := ManagementEndpointFromEnvironment(t)
+
+	return prismgoclient.Credentials{
+		Endpoint: endpoint.Address.Host,
+		Port:     endpoint.Address.Port(),
+		URL:      endpoint.Address.String(),
+		Username: endpoint.Username,
+		Password: endpoint.Password,
+		Insecure: endpoint.Insecure,
+	}
+}
+
+// ManagementEndpointFromEnvironment returns a ManagementEndpoint object from the developer environment
+func ManagementEndpointFromEnvironment(t *testing.T) *types.ManagementEndpoint {
 	confFile, err := prismDevConfigFilePath()
 	require.NoError(t, err)
 	conf := getDeveloperConfig(t, confFile)
@@ -109,15 +124,8 @@ func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
 	t.Setenv("NUTANIX_USERNAME", conf.PrismCentral.Username)
 	t.Setenv("NUTANIX_PASSWORD", conf.PrismCentral.Password)
 	t.Setenv("NUTANIX_INSECURE", strconv.FormatBool(conf.PrismCentral.Insecure))
-	provider, err := local.NewProvider().GetManagementEndpoint(nil)
+	endpoint, err := local.NewProvider().GetManagementEndpoint(nil)
 	require.NoError(t, err)
 
-	return prismgoclient.Credentials{
-		Endpoint: conf.PrismCentral.Endpoint,
-		Port:     conf.PrismCentral.Port,
-		URL:      provider.Address.String(),
-		Username: provider.Username,
-		Password: provider.Password,
-		Insecure: provider.Insecure,
-	}
+	return endpoint
 }
