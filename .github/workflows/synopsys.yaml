@@ -20,10 +20,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.17'
-
-      - name: Build Project
-        run: make build
+          go-version: '^1.21'
 
       - name: Run Synopsys Detect
         uses: synopsys-sig/detect-action@v0.3.4
