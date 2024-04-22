@@ -78,7 +78,7 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 ## Test:
 test: run-keploy ## Run the tests of the project
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
+	go get -u github.com/jstemmer/go-junit-report
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | go-junit-report -set-exit-code > junit-report.xml)
 endif
 	$(GOTEST) -v -race ./... $(OUTPUT_OPTIONS)
@@ -88,8 +88,8 @@ coverage: run-keploy ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -coverprofile=profile.cov ./...
 	$(GOCMD) tool cover -func profile.cov
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/AlekSi/gocov-xml
-	GO111MODULE=off go get -u github.com/axw/gocov/gocov
+	go get -u github.com/AlekSi/gocov-xml
+	go get -u github.com/axw/gocov/gocov
 	gocov convert profile.cov | gocov-xml > coverage.xml
 endif
 	@$(MAKE) stop-keploy
@@ -104,7 +104,7 @@ lint-go: ## Use golintci-lint on your project
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/thomaspoignant/yamllint-checkstyle
+	go get -u github.com/thomaspoignant/yamllint-checkstyle
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | yamllint-checkstyle > yamllint-checkstyle.xml)
 endif
 	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -d relaxed -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
