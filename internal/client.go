@@ -221,7 +221,7 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 
 	if c.credentials.SessionAuth {
 		c.logger.V(1).Info("Using session_auth")
-		if err := c.refreshCookies(); err != nil {
+		if err := c.refreshCookies(context.Background()); err != nil {
 			return nil, err
 		}
 	}
@@ -239,19 +239,20 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.cookies != nil {
 		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		decorateRequestWithAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
 	}
 
 	return req, nil
 }
 
-func (c *Client) refreshCookies() error {
+func (c *Client) refreshCookies(ctx context.Context) error {
 	req, err := c.NewUnAuthRequest(http.MethodGet, "/users/me", nil)
 	if err != nil {
 		return err
 	}
 
-	decorateRequestWithAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+	req = req.WithContext(ctx)
+	decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -268,7 +269,7 @@ func (c *Client) refreshCookies() error {
 	return nil
 }
 
-func decorateRequestWithAuthHeaders(req *http.Request, username, password string) {
+func decorateRequestWithBasicAuthHeaders(req *http.Request, username, password string) {
 	req.Header.Add("Authorization",
 		"Basic "+base64.StdEncoding.EncodeToString([]byte(username+":"+password)))
 }
@@ -436,65 +437,59 @@ func (c *Client) clearCookies() {
 	c.cookies = nil
 }
 
-// Do performs request passed
-func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
-	// check if httpClient exists or not
-	maxRetries := 1
-	currentTry := 0
-
-	if c.httpClient == nil {
-		return fmt.Errorf(c.ErrorMsg)
+// do will perform the request and handle retries. This is a recursive function
+// that will retry the request if the response is a 401 and the client is configured
+// to use session authentication. It will retry up to maxRetries times.
+// do performs the request and handles retries. It is not exported.
+func (c *Client) do(ctx context.Context, req *http.Request, v interface{}, retryCount int, maxRetries int) error {
+	req = req.WithContext(ctx)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
 	}
 
-	for currentTry <= maxRetries {
-		req = req.WithContext(ctx)
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return err
-		}
+	defer resp.Body.Close()
 
-		defer func() {
-			if rerr := resp.Body.Close(); err == nil {
-				err = rerr
+	if err := CheckResponse(resp); err != nil {
+		if resp.StatusCode == http.StatusUnauthorized && retryCount < maxRetries {
+			c.clearCookies()
+			if err := c.refreshCookies(ctx); err != nil {
+				return err
 			}
-		}()
-
-		if err := CheckResponse(resp); err != nil {
-			if resp.StatusCode == http.StatusUnauthorized && c.credentials.SessionAuth && currentTry < maxRetries {
-				currentTry++
-				c.clearCookies()
-				if err := c.refreshCookies(); err != nil {
-					return err
-				}
-				c.logger.V(1).Info("Retrying request", "try", currentTry)
-				clearCookiesInRequest(req)
-				decorateRequestWithCookies(req, c.cookies)
-				continue
-			}
-			return err
-		}
-
-		if v != nil {
-			if w, ok := v.(io.Writer); ok {
-				_, err = io.Copy(w, resp.Body)
-				if err != nil {
-					fmt.Printf("Error io.Copy %s", err)
-					return err
-				}
-			} else {
-				err = json.NewDecoder(resp.Body).Decode(v)
-				if err != nil {
-					return fmt.Errorf("error unmarshalling json: %s", err)
-				}
-			}
-		}
-
-		if c.onRequestCompleted != nil {
-			c.onRequestCompleted(req, resp, v)
+			clearCookiesInRequest(req)
+			decorateRequestWithCookies(req, c.cookies)
+			return c.do(ctx, req, v, retryCount+1, maxRetries)
 		}
 		return err
 	}
-	return fmt.Errorf("maximum retries exceeded")
+
+	if v != nil {
+		if w, ok := v.(io.Writer); ok {
+			_, err = io.Copy(w, resp.Body)
+		} else {
+			err = json.NewDecoder(resp.Body).Decode(v)
+		}
+		if err != nil {
+			return fmt.Errorf("error unmarshalling json: %s", err)
+		}
+	}
+
+	if c.onRequestCompleted != nil {
+		c.onRequestCompleted(req, resp, v)
+	}
+	return nil
+}
+
+// Do performs request passed
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
+	noRetries := 0
+	retryOnce := 1
+
+	if c.credentials.SessionAuth {
+		return c.do(ctx, req, v, noRetries, retryOnce)
+	}
+
+	return c.do(ctx, req, v, noRetries, noRetries)
 }
 
 func searchSlice(slice []string, key string) bool {

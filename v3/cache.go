@@ -76,10 +76,14 @@ type CachedClientParams interface {
 // func (c *ClientCache) GetOrCreate(clientName string, endpoint types.ManagementEndpoint, opts ...ClientOption) (*Client, error) {
 func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ...ClientOption) (*Client, error) {
 	currentValidationHash, err := validationHashFromEndpoint(cachedClientParams.ManagementEndpoint())
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate validation hash for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
+	}
+
 	client, validationHash, err := c.get(cachedClientParams.Key())
 	if err != nil {
 		if !errors.Is(err, ErrorClientNotFound) {
-			return nil, err
+			return nil, fmt.Errorf("failed to get client with key %s from cache: %w", cachedClientParams.Key(), err)
 		}
 	}
 
@@ -102,7 +106,7 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 
 	setDefaultsForCredentials(&credentials)
 	if err := validateCredentials(credentials); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
 	if cachedClientParams.ManagementEndpoint().AdditionalTrustBundle != "" {
@@ -111,7 +115,7 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 
 	client, err = NewV3Client(credentials, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new nutanix prism central client: %w", err)
+		return nil, fmt.Errorf("failed to create client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
 	c.set(cachedClientParams.Key(), currentValidationHash, client)
