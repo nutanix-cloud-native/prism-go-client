@@ -40,6 +40,8 @@ type ClientCache struct {
 type CacheOpts func(*ClientCache)
 
 // WithSessionAuth sets the session auth for the ClientCache
+// If sessionAuth is true, the client will use session auth instead of basic auth for authentication of requests
+// If sessionAuth is false, the client will use basic auth for authentication of requests
 func WithSessionAuth(sessionAuth bool) CacheOpts {
 	return func(c *ClientCache) {
 		c.useSessionAuth = sessionAuth
@@ -64,7 +66,11 @@ func NewClientCache(opts ...CacheOpts) *ClientCache {
 // CachedClientParams define the interface that needs to be implemented by an object that will be used to create
 // a cached client.
 type CachedClientParams interface {
+	// ManagementEndpoint returns the struct containing all information needed to construct a new client
+	// and is used to calculate the validation hash for the client for the purpose of cache invalidation.
+	// The validation hash is calculated based on the serialized version of the ManagementEndpoint.
 	ManagementEndpoint() types.ManagementEndpoint
+	// Key returns a unique key for the client that is used to store the client in the cache
 	Key() string
 }
 

@@ -485,6 +485,11 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	noRetries := 0
 	retryOnce := 1
 
+	// It's recommend that the clients use session-auth cookies instead of basic auth for requests to Prism Central
+	// where possible. Session tokens are alive for 15m and then replaced. The session-auth handling mechanism in
+	// the client should be resilient to session token refresh. As long the credentials are accurate and session
+	// auth mechanism is in play, the client upon receiving the first 401 should refresh the session cookie and
+	// retry the request. Only if the requests fails the second time, should the client return a 401 back to the caller.
 	if c.credentials.SessionAuth {
 		return c.do(ctx, req, v, noRetries, retryOnce)
 	}
