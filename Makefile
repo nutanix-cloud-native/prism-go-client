@@ -11,16 +11,16 @@ WHITE  := $(shell tput -Txterm setaf 7)
 CYAN   := $(shell tput -Txterm setaf 6)
 RESET  := $(shell tput -Txterm sgr0)
 
-.PHONY: all test build vendor
+.PHONY: all test build
 
 all: help
 
 ## Build:
-build: vendor ## Build your project and put the output binary in bin/
+build: ## Build your project and put the output binary in bin/
 	mkdir -p bin
-	GO111MODULE=on $(GOCMD) build -mod vendor -o bin/$(BINARY_NAME) .
+	$(GOCMD) build -o bin/$(BINARY_NAME) .
 
-# go-get-tool will 'go get' any package $2 and install it to $1.
+# go-get-tool will 'go install' any package $2 and install it to $1.
 # originally copied from kubebuilder
 define go-get-tool
 @[ -f $(1) ] || { \
@@ -72,13 +72,10 @@ clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
 	rm -f ./junit-report.xml checkstyle-report.xml ./coverage.xml ./profile.cov yamllint-checkstyle.xml
 
-vendor: ## Copy of all packages needed to support builds and tests in the vendor directory
-	$(GOCMD) mod vendor
-
 ## Test:
 test: run-keploy ## Run the tests of the project
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
+	go install github.com/jstemmer/go-junit-report
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | go-junit-report -set-exit-code > junit-report.xml)
 endif
 	$(GOTEST) -v -race ./... $(OUTPUT_OPTIONS)
@@ -88,12 +85,11 @@ coverage: run-keploy ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -coverprofile=profile.cov ./...
 	$(GOCMD) tool cover -func profile.cov
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/AlekSi/gocov-xml
-	GO111MODULE=off go get -u github.com/axw/gocov/gocov
+	go install github.com/AlekSi/gocov-xml
+	go install github.com/axw/gocov/gocov
 	gocov convert profile.cov | gocov-xml > coverage.xml
 endif
 	@$(MAKE) stop-keploy
-
 
 ## Lint:
 lint: lint-go lint-yaml lint-kubebuilder ## Run all available linters
@@ -104,10 +100,10 @@ lint-go: ## Use golintci-lint on your project
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
 ifeq ($(EXPORT_RESULT), true)
-	GO111MODULE=off go get -u github.com/thomaspoignant/yamllint-checkstyle
+	go install github.com/thomaspoignant/yamllint-checkstyle
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | yamllint-checkstyle > yamllint-checkstyle.xml)
 endif
-	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -d relaxed -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
+	docker run --rm -it -v $(shell pwd):/data cytopia/yamllint -c yamllint-config.yaml -f parsable $(shell git ls-files '*.yml' '*.yaml') $(OUTPUT_OPTIONS)
 
 .PHONY: lint-kubebuilder
 lint-kubebuilder: $(CONTROLLER_GEN) ## Lint Kubebuilder annotations by generating objects and checking if it is successful
