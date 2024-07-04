@@ -26,10 +26,14 @@ require (
 )
 
 require (
+	bitbucket.org/creachadair/shell v0.0.6 // indirect
 	github.com/99designs/gqlgen v0.15.1 // indirect
+	github.com/AlekSi/gocov-xml v1.1.0 // indirect
 	github.com/PaesslerAG/gval v1.0.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
+	github.com/axw/gocov v1.1.0 // indirect
+	github.com/bitfield/script v0.18.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/creasty/defaults v1.5.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -55,6 +59,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/k0kubun/pp/v3 v3.1.0 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -70,6 +75,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/thomaspoignant/yamllint-checkstyle v1.0.2 // indirect
 	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

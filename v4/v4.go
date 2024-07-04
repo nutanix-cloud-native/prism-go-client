@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
@@ -17,6 +16,8 @@ import (
 	storageClient "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
+
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
@@ -26,13 +27,14 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	VmApiInstance          *vmApi.VmApi
+	CategoriesApiInstance  *prismApi.CategoriesApi
+	ClustersApiInstance    *clusterApi.ClustersApi
 	ImagesApiInstance      *vmApi.ImagesApi
+	StorageContainerAPI    *storageApi.StorageContainerApi
 	SubnetsApiInstance     *networkingApi.SubnetsApi
 	SubnetIPReservationApi *networkingApi.SubnetIPReservationApi
-	ClustersApiInstance    *clusterApi.ClustersApi
 	TasksApiInstance       *prismApi.TasksApi
-	StorageContainerAPI    *storageApi.StorageContainerApi
+	VmApiInstance          *vmApi.VmApi
 }
 
 type endpointInfo struct {
@@ -40,8 +42,11 @@ type endpointInfo struct {
 	port int
 }
 
+// ClientOption is a functional option for the Client
+type ClientOption func(*Client) error
+
 // NewV4Client return an internal to operate V4 resources
-func NewV4Client(credentials prismgoclient.Credentials) (*Client, error) {
+func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
 	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
 		return nil, fmt.Errorf("username, password and endpoint are required")
 	}
