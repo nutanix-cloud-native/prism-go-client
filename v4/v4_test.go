@@ -25,9 +25,9 @@ func TestNewV4Client(t *testing.T) {
 	assert.NotNil(t, v4Client)
 	assert.NotNil(t, v4Client.VmApiInstance)
 	assert.NotNil(t, v4Client.ImagesApiInstance)
-	assert.NotNil(t, v4Client.SubnetApiInstance)
-	assert.NotNil(t, v4Client.SubnetReserveUnreserveIPAPIInstance)
-	assert.NotNil(t, v4Client.ClusterApiInstance)
+	assert.NotNil(t, v4Client.SubnetsApiInstance)
+	assert.NotNil(t, v4Client.SubnetIPReservationApi)
+	assert.NotNil(t, v4Client.ClustersApiInstance)
 	assert.NotNil(t, v4Client.TasksApiInstance)
 	assert.NotNil(t, v4Client.StorageContainerAPI)
 

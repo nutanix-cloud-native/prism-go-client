@@ -26,13 +26,13 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	VmApiInstance                       *vmApi.VmApi
-	ImagesApiInstance                   *vmApi.ImagesApi
-	SubnetApiInstance                   *networkingApi.SubnetApi
-	SubnetReserveUnreserveIPAPIInstance *networkingApi.SubnetReserveUnreserveIpApi
-	ClusterApiInstance                  *clusterApi.ClusterApi
-	TasksApiInstance                    *prismApi.TaskApi
-	StorageContainerAPI                 *storageApi.StorageContainerApi
+	VmApiInstance          *vmApi.VmApi
+	ImagesApiInstance      *vmApi.ImagesApi
+	SubnetsApiInstance     *networkingApi.SubnetsApi
+	SubnetIPReservationApi *networkingApi.SubnetIPReservationApi
+	ClustersApiInstance    *clusterApi.ClustersApi
+	TasksApiInstance       *prismApi.TasksApi
+	StorageContainerAPI    *storageApi.StorageContainerApi
 }
 
 type endpointInfo struct {
@@ -40,7 +40,7 @@ type endpointInfo struct {
 	port int
 }
 
-// NewV4Client return a internal to operate V4 resources
+// NewV4Client return an internal to operate V4 resources
 func NewV4Client(credentials prismgoclient.Credentials) (*Client, error) {
 	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
 		return nil, fmt.Errorf("username, password and endpoint are required")
@@ -98,7 +98,7 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.ClusterApiInstance = clusterApi.NewClusterApi(apiClientInstance)
+	v4Client.ClustersApiInstance = clusterApi.NewClustersApi(apiClientInstance)
 	return nil
 }
 
@@ -113,7 +113,7 @@ func initTasksApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.TasksApiInstance = prismApi.NewTaskApi(apiClientInstance)
+	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	return nil
 }
 
@@ -128,8 +128,8 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.SubnetApiInstance = networkingApi.NewSubnetApi(apiClientInstance)
-	v4Client.SubnetReserveUnreserveIPAPIInstance = networkingApi.NewSubnetReserveUnreserveIpApi(apiClientInstance)
+	v4Client.SubnetsApiInstance = networkingApi.NewSubnetsApi(apiClientInstance)
+	v4Client.SubnetIPReservationApi = networkingApi.NewSubnetIPReservationApi(apiClientInstance)
 	return nil
 }
 
