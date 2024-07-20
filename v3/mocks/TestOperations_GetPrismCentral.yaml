@@ -1,0 +1,53 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_GetPrismCentral
+spec:
+    metadata:
+        Body: |
+            {"resources":null}
+        Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix/v3]]
+        Proto: HTTP/1.1
+        ProtoMajor: "1"
+        ProtoMinor: "1"
+        URL: https://prism-test.nutanix.com:9440/api/nutanix/v3/prism_central
+        name: http-client
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/prism_central
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: |
+            {"resources":null}
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Sat, 20 Jul 2024 19:12:59 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 20-Jul-2024 19:27:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1576"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.1.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"resources": {"should_auto_register": false, "is_registered_to_hosting_pe": true, "cmsp_config": {"platform_ip_block_list": ["192.168.6.2 192.168.6.25"], "platform_network_configuration": {"subnet_mask": "255.255.255.0", "type": "kPrivateNetwork", "default_gateway": "192.168.6.1"}, "pc_domain_name": "msp.cluster.local", "cmsp_args": "{\"cmsp_service_ip_network\": \"10.200.32.0/24\", \"cmsp_pod_network\": \"10.100.0.0/16\"}"}, "pc_size": "kSmall", "version": "pc.2024.1.0.1", "pc_vm_list": [{"vm_name": "ganon-pc-vm-2", "data_disk_size_bytes": 536870912000, "dns_server_ip_list": ["127.0.0.1", "10.40.64.15"], "container_uuid": "abf45ab8-2b98-490e-8584-79f93ffe522d", "nic_list": [{"network_configuration": {"subnet_mask": "255.255.255.0", "network_uuid": "c7938dc6-7659-453e-a688-e26020c68e43", "default_gateway": "10.40.142.1"}, "ip_list": ["10.40.142.15"]}], "num_sockets": 10, "memory_size_bytes": 70866960384, "status": "NORMAL", "power_state": "ON", "vm_uuid": "6e089aea-5f86-4c2a-92aa-b1dc7053d32f", "ntp_server_list": ["0.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "cluster_reference": {"kind": "cluster", "uuid": "0005b0f1-8f43-a0f2-02b7-3cecef193712"}}, {"vm_name": "ganon-pc-vm-1", "data_disk_size_bytes": 536870912000, "dns_server_ip_list": ["127.0.0.1", "10.40.64.15"], "container_uuid": "abf45ab8-2b98-490e-8584-79f93ffe522d", "nic_list": [{"network_configuration": {"subnet_mask": "255.255.255.0", "network_uuid": "c7938dc6-7659-453e-a688-e26020c68e43", "default_gateway": "10.40.142.1"}, "ip_list": ["10.40.142.14"]}], "num_sockets": 10, "memory_size_bytes": 70866960384, "status": "NORMAL", "power_state": "ON", "vm_uuid": "e0cb9f2d-8c9b-46fd-8b12-149cd82cc738", "ntp_server_list": ["0.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "cluster_reference": {"kind": "cluster", "uuid": "0005b0f1-8f43-a0f2-02b7-3cecef193712"}}, {"vm_name": "ganon-pc-vm-3", "data_disk_size_bytes": 536870912000, "dns_server_ip_list": ["127.0.0.1", "10.40.64.15"], "container_uuid": "abf45ab8-2b98-490e-8584-79f93ffe522d", "nic_list": [{"network_configuration": {"subnet_mask": "255.255.255.0", "network_uuid": "c7938dc6-7659-453e-a688-e26020c68e43", "default_gateway": "10.40.142.1"}, "ip_list": ["10.40.142.16"]}], "num_sockets": 10, "memory_size_bytes": 70866960384, "status": "NORMAL", "power_state": "ON", "vm_uuid": "aeae848f-e4b0-4953-a0ed-c2d8762d0a41", "ntp_server_list": ["0.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "cluster_reference": {"kind": "cluster", "uuid": "0005b0f1-8f43-a0f2-02b7-3cecef193712"}}], "cluster_uuid": "710e3779-0030-4d55-9827-be11e7fd2d0e", "type": "PC", "virtual_ip": "10.40.142.17"}}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

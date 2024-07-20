@@ -337,6 +337,54 @@
         }
       }
     },
+    "go-swagger@0.31.0": {
+      "last_modified": "2024-07-07T07:43:47Z",
+      "resolved": "github:NixOS/nixpkgs/b60793b86201040d9dee019a05089a9150d08b5b#go-swagger",
+      "source": "devbox-search",
+      "version": "0.31.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2hgdipfam6qzbik0idip7y3gksi90isq-go-swagger-0.31.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2hgdipfam6qzbik0idip7y3gksi90isq-go-swagger-0.31.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/bnpbh9qaswwbbapqik3w1q72xv49627p-go-swagger-0.31.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/bnpbh9qaswwbbapqik3w1q72xv49627p-go-swagger-0.31.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9vzdfxv7gyx0pqzc5jvc48ycqahgyr6r-go-swagger-0.31.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9vzdfxv7gyx0pqzc5jvc48ycqahgyr6r-go-swagger-0.31.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/rbim3gwp9kcywxdpl7vpl8hqj3vw9jjg-go-swagger-0.31.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/rbim3gwp9kcywxdpl7vpl8hqj3vw9jjg-go-swagger-0.31.0"
+        }
+      }
+    },
     "go@1.22.1": {
       "last_modified": "2024-03-22T11:26:23Z",
       "resolved": "github:NixOS/nixpkgs/a3ed7406349a9335cb4c2a71369b697cecd9d351#go",

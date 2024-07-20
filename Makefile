@@ -17,11 +17,6 @@ build: ## Build your project and put the output binary in bin/
 	mkdir -p bin
 	$(GOCMD) build -o bin/$(BINARY_NAME) .
 
-TOOLS_BIN_DIR := hack/tools/bin
-
-$(TOOLS_BIN_DIR):
-	mkdir -p $(TOOLS_BIN_DIR)
-
 # CRD_OPTIONS define options to add to the CONTROLLER_GEN
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 
@@ -34,7 +29,23 @@ stop-keploy:
 	@-pkill "server"
 
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
-	$(CONTROLLER_GEN) paths="./..." object:headerFile="hack/boilerplate.go.txt"
+	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
+
+generate-v3-models: ## Generate V3 models using go-swagger
+	swagger generate model \
+		--spec=v3/swagger.json \
+		--target=v3 \
+		--skip-validation \
+		--model=prism_central \
+		--model=pc_vm \
+		--model=mcm_config \
+		--model=cmsp_config \
+		--model=cmsp_network_config \
+		--model=deployment_settings \
+		--model=my_ntnx_token \
+		--model=cluster_reference \
+		--model=pc_vm_nic_configuration \
+		--model=network_config
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
@@ -77,3 +88,4 @@ help: ## Show this help.
 		if (/^[a-zA-Z_-]+:.*?##.*$$/) {printf "    ${YELLOW}%-20s${GREEN}%s${RESET}\n", $$1, $$2} \
 		else if (/^## .*$$/) {printf "  ${CYAN}%s${RESET}\n", substr($$1,4)} \
 		}' $(MAKEFILE_LIST)
+
