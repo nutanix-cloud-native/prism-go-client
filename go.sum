@@ -188,6 +188,8 @@ github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4 v4.0.2-alpha.3 h
 github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4 v4.0.2-alpha.3/go.mod h1:kz3gO87xtWnPOCP2kN7yw5LvCDVRnvg8BOWL7CarqXA=
 github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.1-beta.1 h1:XuTRvYu1kiNjdXOYVwyjhKlFWyo9nMit6GsOYV8+5Cg=
 github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.1-beta.1/go.mod h1:CaWm4GFpAjQQDc6YXl/dUDrHpuW54h8j6Cj7EslE4Qk=
+github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.0.1-beta.1 h1:VJSaQDnnYeNEk1mkQqEbt573OdM62+5s/B0e9kszdas=
+github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.0.1-beta.1/go.mod h1:Z+RKLwsHYxAcFbZPy2ft3QAK9kBPt9bQdqXSp7eYWkY=
 github.com/onsi/ginkgo/v2 v2.7.0 h1:/XxtEV3I3Eif/HobnVx9YmJgk8ENdRsuUmM+fLCFNow=
 github.com/onsi/ginkgo/v2 v2.7.0/go.mod h1:yjiuMwPokqY1XauOgju45q3sJt6VzQ/Fict1LFVcsAo=
 github.com/onsi/gomega v1.26.0 h1:03cDLK28U6hWvCAns6NeydX3zIm4SF3ci69ulidS32Q=
