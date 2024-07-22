@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
@@ -17,6 +16,8 @@ import (
 	storageClient "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
+
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
@@ -26,13 +27,14 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	VmApiInstance                       *vmApi.VmApi
-	ImagesApiInstance                   *vmApi.ImagesApi
-	SubnetApiInstance                   *networkingApi.SubnetApi
-	SubnetReserveUnreserveIPAPIInstance *networkingApi.SubnetReserveUnreserveIpApi
-	ClusterApiInstance                  *clusterApi.ClusterApi
-	TasksApiInstance                    *prismApi.TaskApi
-	StorageContainerAPI                 *storageApi.StorageContainerApi
+	CategoriesApiInstance  *prismApi.CategoriesApi
+	ClustersApiInstance    *clusterApi.ClustersApi
+	ImagesApiInstance      *vmApi.ImagesApi
+	StorageContainerAPI    *storageApi.StorageContainerApi
+	SubnetsApiInstance     *networkingApi.SubnetsApi
+	SubnetIPReservationApi *networkingApi.SubnetIPReservationApi
+	TasksApiInstance       *prismApi.TasksApi
+	VmApiInstance          *vmApi.VmApi
 }
 
 type endpointInfo struct {
@@ -40,8 +42,11 @@ type endpointInfo struct {
 	port int
 }
 
-// NewV4Client return a internal to operate V4 resources
-func NewV4Client(credentials prismgoclient.Credentials) (*Client, error) {
+// ClientOption is a functional option for the Client
+type ClientOption func(*Client) error
+
+// NewV4Client return an internal to operate V4 resources
+func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
 	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
 		return nil, fmt.Errorf("username, password and endpoint are required")
 	}
@@ -98,7 +103,7 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.ClusterApiInstance = clusterApi.NewClusterApi(apiClientInstance)
+	v4Client.ClustersApiInstance = clusterApi.NewClustersApi(apiClientInstance)
 	return nil
 }
 
@@ -113,7 +118,7 @@ func initTasksApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.TasksApiInstance = prismApi.NewTaskApi(apiClientInstance)
+	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	return nil
 }
 
@@ -128,8 +133,8 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.SubnetApiInstance = networkingApi.NewSubnetApi(apiClientInstance)
-	v4Client.SubnetReserveUnreserveIPAPIInstance = networkingApi.NewSubnetReserveUnreserveIpApi(apiClientInstance)
+	v4Client.SubnetsApiInstance = networkingApi.NewSubnetsApi(apiClientInstance)
+	v4Client.SubnetIPReservationApi = networkingApi.NewSubnetIPReservationApi(apiClientInstance)
 	return nil
 }
 

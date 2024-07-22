@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Added v4 Categories beta APIs to v4 client
 
 ### Changed
+- Updated v4 API clients from v4 alpha to v4 beta  APIs
 
 ## [0.4.0] - 2024-05-03
 ### Added
