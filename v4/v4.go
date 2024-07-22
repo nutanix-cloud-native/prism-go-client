@@ -16,6 +16,8 @@ import (
 	storageClient "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
+	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
+	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
@@ -27,14 +29,15 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	CategoriesApiInstance  *prismApi.CategoriesApi
-	ClustersApiInstance    *clusterApi.ClustersApi
-	ImagesApiInstance      *vmApi.ImagesApi
-	StorageContainerAPI    *storageApi.StorageContainerApi
-	SubnetsApiInstance     *networkingApi.SubnetsApi
-	SubnetIPReservationApi *networkingApi.SubnetIPReservationApi
-	TasksApiInstance       *prismApi.TasksApi
-	VmApiInstance          *vmApi.VmApi
+	CategoriesApiInstance   *prismApi.CategoriesApi
+	ClustersApiInstance     *clusterApi.ClustersApi
+	ImagesApiInstance       *vmApi.ImagesApi
+	StorageContainerAPI     *storageApi.StorageContainerApi
+	SubnetsApiInstance      *networkingApi.SubnetsApi
+	SubnetIPReservationApi  *networkingApi.SubnetIPReservationApi
+	TasksApiInstance        *prismApi.TasksApi
+	VolumeGroupsApiInstance *volumesApi.VolumeGroupsApi
+	VmApiInstance           *vmApi.VmApi
 }
 
 type endpointInfo struct {
@@ -65,12 +68,16 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*
 		return nil, fmt.Errorf("failed to create Cluster API instance: %v", err)
 	}
 
-	if err := initTasksApiInstance(v4Client, credentials); err != nil {
+	if err := initPrismApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Tasks API instance: %v", err)
 	}
 
 	if err := initStorageApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Storage API instance: %v", err)
+	}
+
+	if err := initVolumesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Volumes API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -107,7 +114,7 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	return nil
 }
 
-func initTasksApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
 	ep, err := getEndpointInfo(credentials)
 	if err != nil {
 		return err
@@ -119,6 +126,7 @@ func initTasksApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
+	v4Client.CategoriesApiInstance = prismApi.NewCategoriesApi(apiClientInstance)
 	return nil
 }
 
@@ -150,6 +158,21 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.StorageContainerAPI = storageApi.NewStorageContainerApi(apiClientInstance)
+	return nil
+}
+
+func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := volumesClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	apiClientInstance.AddDefaultHeader(
+		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
 	return nil
 }
 
