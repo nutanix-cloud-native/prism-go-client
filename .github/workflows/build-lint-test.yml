@@ -3,9 +3,9 @@ env:
   EXPORT_RESULT: true
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -15,30 +15,40 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
+    - uses: actions/cache@v4
       with:
-        go-version: '^1.21'
+        path: |
+          ~/.cache/golangci-lint
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
-    - name: Check build
-      run: make build
+    - name: Install devbox
+      uses: jetify-com/devbox-install-action@v0.11.0
+      with:
+        enable-cache: "true"
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3.7.0
-      with:
-        args: --enable gofmt --enable gofumpt --timeout 5m
+      run: devbox run -- make lint-go
 
     - name: Check YAML linting
-      run: make lint-yaml
+      run: devbox run -- make lint-yaml
 
     - name: Check Kubebuilder Annotation linting
-      run: make lint-kubebuilder
+      run: devbox run -- make lint-kubebuilder
 
     - name: Run tests
-      run: make test
+      run: devbox run -- make test
 
     - name: Prepare coverage report
-      run: make coverage
+      run: devbox run -- make coverage
 
     - name: Codecov
       uses: codecov/codecov-action@v3.1.4
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      with:
+        file: ./coverage.out  # Replace with the path to your coverage report
+        fail_ci_if_error: true
