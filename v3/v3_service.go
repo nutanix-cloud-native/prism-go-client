@@ -10,6 +10,7 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
+	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
 // Operations ...
@@ -129,6 +130,7 @@ type Service interface {
 	PerformRecoveryPlanJobAction(ctx context.Context, uuid string, action string, request *RecoveryPlanJobActionRequest) (*RecoveryPlanJobResponse, error)
 	GroupsGetEntities(ctx context.Context, request *GroupsGetEntitiesRequest) (*GroupsGetEntitiesResponse, error)
 	GetAvailabilityZone(ctx context.Context, uuid string) (*AvailabilityZoneIntentResponse, error)
+	GetPrismCentral(ctx context.Context) (*models.PrismCentral, error)
 }
 
 /*CreateVM Creates a VM
@@ -2425,6 +2427,19 @@ func (op Operations) GetAvailabilityZone(ctx context.Context, uuid string) (*Ava
 	response := new(AvailabilityZoneIntentResponse)
 
 	req, err := op.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, op.client.Do(ctx, req, response)
+}
+
+// GetPrismCentral gets the information about the Prism Central
+func (op Operations) GetPrismCentral(ctx context.Context) (*models.PrismCentral, error) {
+	path := "/prism_central"
+	response := new(models.PrismCentral)
+
+	req, err := op.client.NewRequest(http.MethodGet, path, response)
 	if err != nil {
 		return nil, err
 	}
