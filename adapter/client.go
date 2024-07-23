@@ -43,6 +43,9 @@ type Client interface {
 	Initialize(ctx context.Context) error
 	IsEnvV4Compatible() bool
 
+	V3() *v3.Client
+	V4() *v4.Client
+
 	Networking() NetworkingClient
 	Prism() PrismClient
 	Cluster() ClusterClient
@@ -72,6 +75,18 @@ func (c *client) Initialize(ctx context.Context) error {
 // IsEnvV4Compatible returns true if the environment is v4 compatible
 func (c *client) IsEnvV4Compatible() bool {
 	return c.envIsv4Compatible
+}
+
+// V3 returns the v3 client
+// TODO: Having this method exposed helps move existing code to use the new client as the only client but should be removed in the future
+func (c *client) V3() *v3.Client {
+	return c.v3Client
+}
+
+// V4 returns the v4 client
+// TODO: Having this method exposed helps move existing code to use the new client as the only client but should be removed in the future
+func (c *client) V4() *v4.Client {
+	return c.v4Client
 }
 
 func (c *client) setV4Compatibility(ctx context.Context) error {
