@@ -11,32 +11,40 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	networkingcommonapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/common/v1/config"
 	networkingapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
+
+	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
 
+// NetworkingClient is the interface for the networking client
 type NetworkingClient interface {
 	ReserveIP(ctx context.Context, subnet string, opts ReserveIPOpts) (net.IP, error)
 	UnreserveIP(ctx context.Context, ip net.IP, subnet string, opts UnreserveIPOpts) error
 	GetSubnet(subnet string, opts GetSubnetOpts) (*Subnet, error)
 }
 
+// Networking returns a NetworkingClient
 func (c *client) Networking() NetworkingClient {
 	return &networkingClient{
 		client: c,
 	}
 }
 
+// networkingClient implements the NetworkingClient interface
 type networkingClient struct {
 	*client
 }
+
+// type assertion to ensure networkingClient implements NetworkingClient
+var _ NetworkingClient = &networkingClient{}
 
 type ReserveIPOpts struct {
 	Cluster string
 }
 
+// ReserveIP reserves an IP address in the specified subnet
 func (n *networkingClient) ReserveIP(ctx context.Context, subnet string, opts ReserveIPOpts) (ip net.IP, err error) {
 	subnetUUID, err := uuid.Parse(subnet)
 	if err != nil {
@@ -126,6 +134,7 @@ func (n *networkingClient) ReserveIP(ctx context.Context, subnet string, opts Re
 
 type UnreserveIPOpts = ReserveIPOpts
 
+// UnreserveIP unreserves an IP address in the specified subnet
 func (n *networkingClient) UnreserveIP(ctx context.Context, ip net.IP, subnet string, opts UnreserveIPOpts) error {
 	subnetUUID, err := uuid.Parse(subnet)
 	if err != nil {
@@ -187,6 +196,8 @@ func (s *Subnet) ExtID() uuid.UUID {
 	return s.extID
 }
 
+// GetSubnet returns a Subnet by name or extID
+// TODO: This function can also be handled via v3 in absence of v4 support.
 func (n *networkingClient) GetSubnet(subnet string, opts GetSubnetOpts) (*Subnet, error) {
 	subnetUUID, err := uuid.Parse(subnet)
 	if err == nil {

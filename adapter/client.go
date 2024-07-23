@@ -4,25 +4,109 @@
 package adapter
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
+	v3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 	v4 "github.com/nutanix-cloud-native/prism-go-client/v4"
 )
 
-func NewClient(creds prismgoclient.Credentials) (Client, error) {
+// ClientOption is a functional option for the Client
+type ClientOption func(*Client) error
+
+// NewClient creates a new adapter Client
+func NewClient(creds prismgoclient.Credentials, opts ...ClientOption) (Client, error) {
+	v3Client, err := v3.NewV3Client(creds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create v3 API client: %w", err)
+	}
+
 	v4Client, err := v4.NewV4Client(creds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create v4 API client: %w", err)
 	}
-	return &client{v4Client: v4Client}, nil
+
+	c := &client{
+		v3Client: v3Client,
+		v4Client: v4Client,
+	}
+
+	return c, nil
 }
 
+// Client is the interface for the adapter client
 type Client interface {
+	Initialize(ctx context.Context) error
+	IsEnvV4Compatible() bool
+
 	Networking() NetworkingClient
 	Prism() PrismClient
+	Cluster() ClusterClient
+	Volumes() VolumesClient
+	VirtualMachines() VirtualMachinesClient
 }
 
+// client implements the Client interface
 type client struct {
-	v4Client *v4.Client
+	v4Client          *v4.Client
+	v3Client          *v3.Client
+	envIsv4Compatible bool
+}
+
+// type assertion to ensure client implements Client
+var _ Client = &client{}
+
+// Initialize initializes the client
+func (c *client) Initialize(ctx context.Context) error {
+	if err := c.setV4Compatibility(ctx); err != nil {
+		return fmt.Errorf("failed to set v4 compatibility: %w", err)
+	}
+
+	return nil
+}
+
+// IsEnvV4Compatible returns true if the environment is v4 compatible
+func (c *client) IsEnvV4Compatible() bool {
+	return c.envIsv4Compatible
+}
+
+func (c *client) setV4Compatibility(ctx context.Context) error {
+	pcVersion, err := c.Prism().GetPrismCentralVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get Prism Central version: %w", err)
+	}
+
+	// Check if the version is v4 compatible
+	// PC versions look like pc.2024.1.0.1
+	// We can check if the version is greater than or equal to 2024
+
+	if pcVersion == "" {
+		return errors.New("version is empty")
+	}
+
+	// Remove the prefix "pc."
+	version := strings.TrimPrefix(pcVersion, "pc.")
+	// Split the version string by "." to extract the year part
+	parts := strings.Split(version, ".")
+	if len(parts) < 1 {
+		return errors.New("invalid version format")
+	}
+
+	// Convert the year part to an integer
+	year, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return errors.New("invalid version: failed to parse year from PC version")
+	}
+
+	if year >= 2024 {
+		c.envIsv4Compatible = true
+	} else {
+		c.envIsv4Compatible = false
+	}
+
+	return nil
 }

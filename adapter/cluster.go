@@ -8,14 +8,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
-	v4 "github.com/nutanix-cloud-native/prism-go-client/v4"
 	clustersapi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
+// ClusterClient is the interface for the cluster client
 type ClusterClient interface {
 	GetCluster(cluster string) (*Cluster, error)
 }
 
+// Cluster represents a Nutanix cluster
 type Cluster struct {
 	extID uuid.UUID
 }
@@ -26,15 +27,17 @@ func (c *Cluster) ExtID() uuid.UUID {
 
 func (c *client) Cluster() ClusterClient {
 	return &clusterClient{
-		v4Client: c.v4Client,
-		client:   c,
+		client: c,
 	}
 }
 
+// clusterClient implements the ClusterClient interface
 type clusterClient struct {
-	v4Client *v4.Client
-	client   Client
+	client *client
 }
+
+// type assertion to ensure clusterClient implements ClusterClient
+var _ ClusterClient = &clusterClient{}
 
 func (n *clusterClient) GetCluster(cluster string) (*Cluster, error) {
 	clusterUUID, err := uuid.Parse(cluster)
@@ -46,7 +49,7 @@ func (n *clusterClient) GetCluster(cluster string) (*Cluster, error) {
 }
 
 func (n *clusterClient) getClusterByName(clusterName string) (*Cluster, error) {
-	response, err := n.v4Client.ClustersApiInstance.ListClusters(
+	response, err := n.client.v4Client.ClustersApiInstance.ListClusters(
 		nil,
 		nil,
 		utils.StringPtr(fmt.Sprintf(`name eq '%s'`, clusterName)),
@@ -90,7 +93,7 @@ func (n *clusterClient) getClusterByName(clusterName string) (*Cluster, error) {
 }
 
 func (n *clusterClient) getClusterByExtID(clusterExtID uuid.UUID) (*Cluster, error) {
-	response, err := n.v4Client.ClustersApiInstance.GetClusterById(
+	response, err := n.client.v4Client.ClustersApiInstance.GetClusterById(
 		utils.StringPtr(clusterExtID.String()),
 	)
 	if err != nil {
