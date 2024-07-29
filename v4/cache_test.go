@@ -1,12 +1,12 @@
 package v4
 
 import (
-	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
 func TestNewClientCacheReturnsNewCache(t *testing.T) {
