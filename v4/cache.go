@@ -110,6 +110,12 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 		SessionAuth: c.useSessionAuth,
 	}
 
+	// TODO(sid): v4 SDK doesn't have trust bundle as an input. Until we have a better solution, we will
+	// set Insecure to true if trust bundle is provided to avoid breaking existing consumers of v3 SDK.
+	if cachedClientParams.ManagementEndpoint().AdditionalTrustBundle != "" {
+		credentials.Insecure = true
+	}
+
 	setDefaultsForCredentials(&credentials)
 	if err := validateCredentials(credentials); err != nil {
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
