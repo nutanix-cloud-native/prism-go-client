@@ -45,7 +45,17 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=my_ntnx_token \
 		--model=cluster_reference \
 		--model=pc_vm_nic_configuration \
-		--model=network_config
+		--model=network_config \
+		--model=subnet \
+		--model=availability_zone_reference \
+		--model=subnet_resources \
+		--model=ip_config \
+		--model=network_function_chain_reference \
+		--model=virtual_network_reference \
+		--model=vpc_reference \
+		--model=dhcp_options \
+		--model=address \
+		--model=ip_pool
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin

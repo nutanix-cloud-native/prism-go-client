@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
 // Reference ...
@@ -701,28 +702,13 @@ type SubnetResources struct {
 	VswitchName *string `json:"vswitch_name,omitempty" mapstructure:"vswitch_name,omitempty"`
 }
 
-// Subnet An intentful representation of a subnet spec
-type Subnet struct {
-	AvailabilityZoneReference *Reference `json:"availability_zone_reference,omitempty" mapstructure:"availability_zone_reference,omitempty"`
-
-	ClusterReference *Reference `json:"cluster_reference,omitempty" mapstructure:"cluster_reference,omitempty"`
-
-	// A description for subnet.
-	Description *string `json:"description,omitempty" mapstructure:"description,omitempty"`
-
-	// subnet Name.
-	Name *string `json:"name" mapstructure:"name"`
-
-	Resources *SubnetResources `json:"resources,omitempty" mapstructure:"resources,omitempty"`
-}
-
 // SubnetIntentInput An intentful representation of a subnet
 type SubnetIntentInput struct {
 	APIVersion *string `json:"api_version,omitempty" mapstructure:"api_version,omitempty"`
 
 	Metadata *Metadata `json:"metadata" mapstructure:"metadata"`
 
-	Spec *Subnet `json:"spec" mapstructure:"spec"`
+	Spec *models.Subnet `json:"spec" mapstructure:"spec"`
 }
 
 // SubnetStatus represents The status of a REST API call. Only used when there is a failure to report.
@@ -782,7 +768,7 @@ type SubnetIntentResponse struct {
 
 	Metadata *Metadata `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 
-	Spec *Subnet `json:"spec,omitempty" mapstructure:"spec,omitempty"`
+	Spec *models.Subnet `json:"spec,omitempty" mapstructure:"spec,omitempty"`
 
 	Status *SubnetDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
 }
@@ -793,7 +779,7 @@ type SubnetIntentResource struct {
 
 	Metadata *Metadata `json:"metadata" mapstructure:"metadata"`
 
-	Spec *Subnet `json:"spec,omitempty" mapstructure:"spec,omitempty"`
+	Spec *models.Subnet `json:"spec,omitempty" mapstructure:"spec,omitempty"`
 
 	Status *SubnetDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
 }

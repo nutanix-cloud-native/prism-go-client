@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Updated the v3 Subnet spec struct to match latest swagger spec
+
 ## [v0.5.0] - 2024-07-29
 ### Added
 - Added v4 Categories beta APIs to v4 client
