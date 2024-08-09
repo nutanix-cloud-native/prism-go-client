@@ -21,6 +21,7 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
+	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
 func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
@@ -465,7 +466,8 @@ func TestOperations_CreateSubnet(t *testing.T) {
 					"kind": "cluster",
 					"uuid": "00056024-6c13-4c74-0000-00000000ecb5",
 				},
-				"name": "subnet.create",
+				"name":      "subnet.create",
+				"resources": nil,
 			},
 		}
 
@@ -514,9 +516,9 @@ func TestOperations_CreateSubnet(t *testing.T) {
 					Metadata: &Metadata{
 						Kind: utils.StringPtr("subnet"),
 					},
-					Spec: &Subnet{
-						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
+					Spec: &models.Subnet{
+						ClusterReference: &models.ClusterReference{
+							Kind: "cluster",
 							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
 						Name: utils.StringPtr("subnet.create"),
@@ -620,128 +622,6 @@ func TestOperations_DeleteSubnet(t *testing.T) {
 	}
 }
 
-func TestOperations_GetSubnet(t *testing.T) {
-	mux, c, server := setup(t)
-
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/subnets/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"subnet","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
-	})
-
-	subnetResponse := &SubnetIntentResponse{}
-	subnetResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("subnet"),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *SubnetIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test GetSubnet OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			subnetResponse,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.GetSubnet(context.Background(), tt.args.UUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.GetSubnet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.GetSubnet() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperations_ListSubnet(t *testing.T) {
-	mux, c, server := setup(t)
-
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/subnets/list", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"subnet","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
-	})
-
-	subnetList := &SubnetListIntentResponse{}
-	subnetList.Entities = make([]*SubnetIntentResponse, 1)
-	subnetList.Entities[0] = &SubnetIntentResponse{}
-	subnetList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("subnet"),
-	}
-
-	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		getEntitiesRequest *DSMetadata
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *SubnetListIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test ListSubnet OK",
-			fields{c},
-			args{input},
-			subnetList,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.ListSubnet(context.Background(), tt.args.getEntitiesRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.ListSubnet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.ListSubnet() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestOperations_UpdateSubnet(t *testing.T) {
 	mux, c, server := setup(t)
 
@@ -760,7 +640,8 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 					"kind": "cluster",
 					"uuid": "00056024-6c13-4c74-0000-00000000ecb5",
 				},
-				"name": "subnet.create",
+				"name":      "subnet.create",
+				"resources": nil,
 			},
 		}
 
@@ -811,9 +692,9 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 					Metadata: &Metadata{
 						Kind: utils.StringPtr("subnet"),
 					},
-					Spec: &Subnet{
-						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
+					Spec: &models.Subnet{
+						ClusterReference: &models.ClusterReference{
+							Kind: "cluster",
 							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
 						Name: utils.StringPtr("subnet.create"),
@@ -6761,4 +6642,42 @@ func TestOperations_GetPrismCentral(t *testing.T) {
 	assert.NotNil(t, pc)
 	assert.Equal(t, "PC", *pc.Resources.Type)
 	assert.Equal(t, "pc.2024.1.0.1", *pc.Resources.Version)
+}
+
+func TestOperations_ListSubnet(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	subnets, err := v3Client.V3.ListSubnet(kctx, &DSMetadata{})
+	require.NoError(t, err)
+	assert.Len(t, subnets.Entities, 3)
+	for _, subnet := range subnets.Entities {
+		assert.Equal(t, "subnet", *subnet.Metadata.Kind)
+	}
+}
+
+func TestOperations_GetSubnet(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	subnet, err := v3Client.V3.GetSubnet(kctx, "c7938dc6-7659-453e-a688-e26020c68e43")
+	require.NoError(t, err)
+	assert.NotNil(t, subnet)
+	assert.Equal(t, "subnet", *subnet.Metadata.Kind)
+	assert.Equal(t, "sherlock_net", *subnet.Spec.Name)
+	assert.Equal(t, false, subnet.Spec.Resources.IsExternal)
 }
