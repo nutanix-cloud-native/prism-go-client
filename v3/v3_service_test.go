@@ -1230,128 +1230,6 @@ func TestOperations_UpdateImage(t *testing.T) {
 	}
 }
 
-func TestOperations_GetCluster(t *testing.T) {
-	mux, c, server := setup(t)
-
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/clusters/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"cluster","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
-	})
-
-	response := &ClusterIntentResponse{}
-	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("cluster"),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *ClusterIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test GetCluster OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			response,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.GetCluster(context.Background(), tt.args.UUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.GetCluster() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.GetCluster() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperations_ListCluster(t *testing.T) {
-	mux, c, server := setup(t)
-
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/clusters/list", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"cluster","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
-	})
-
-	list := &ClusterListIntentResponse{}
-	list.Entities = make([]*ClusterIntentResponse, 1)
-	list.Entities[0] = &ClusterIntentResponse{}
-	list.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("cluster"),
-	}
-
-	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		getEntitiesRequest *DSMetadata
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *ClusterListIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test ListCLusters OK",
-			fields{c},
-			args{input},
-			list,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.ListCluster(context.Background(), tt.args.getEntitiesRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.ListCluster() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.ListCluster() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
 	mux, c, server := setup(t)
 
@@ -6680,4 +6558,47 @@ func TestOperations_GetSubnet(t *testing.T) {
 	assert.Equal(t, "subnet", *subnet.Metadata.Kind)
 	assert.Equal(t, "sherlock_net", *subnet.Spec.Name)
 	assert.Equal(t, false, subnet.Spec.Resources.IsExternal)
+}
+
+func TestOperations_GetCluster(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	cluster, err := v3Client.V3.GetCluster(kctx, "0005b0f1-8f43-a0f2-02b7-3cecef193712")
+	require.NoError(t, err)
+	assert.NotNil(t, cluster)
+	assert.Equal(t, "cluster", *cluster.Metadata.Kind)
+	assert.Equal(t, "ganon", cluster.Status.Name)
+}
+
+func TestOperations_ListCluster(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	clusters, err := v3Client.V3.ListCluster(kctx, &DSMetadata{})
+	require.NoError(t, err)
+	assert.Len(t, clusters.Entities, 2)
+	assert.Equal(t, "cluster", *clusters.Entities[0].Metadata.Kind)
+	assert.Equal(t, "cluster", *clusters.Entities[1].Metadata.Kind)
+	assert.False(t, clusters.Entities[0].IsPrismCentral())
+	assert.True(t, clusters.Entities[1].IsPrismCentral())
+
+	prismElements := clusters.GetPrismElements()
+	assert.Len(t, prismElements, 1)
+	assert.Equal(t, "cluster", *prismElements[0].Metadata.Kind)
+	assert.Equal(t, "ganon", prismElements[0].Status.Name)
 }

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Updated the v3 Cluster spec and status structs to match latest swagger spec
+- Updated the v3 Subnet status struct to match latest swagger spec
 
 ## [v0.5.1] - 2024-08-09
 ### Changed

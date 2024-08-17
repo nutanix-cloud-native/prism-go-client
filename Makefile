@@ -15,7 +15,7 @@ all: help
 ## Build:
 build: ## Build your project and put the output binary in bin/
 	mkdir -p bin
-	$(GOCMD) build -o bin/$(BINARY_NAME) .
+	go build ./...
 
 # CRD_OPTIONS define options to add to the CONTROLLER_GEN
 CRD_OPTIONS ?= "crd:crdVersions=v1"
@@ -55,7 +55,46 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=vpc_reference \
 		--model=dhcp_options \
 		--model=address \
-		--model=ip_pool
+		--model=ip_pool \
+		--model=subnet_def_status \
+		--model=subnet_resources_def_status \
+		--model=ip_usage_stats \
+		--model=pool_stats \
+		--model=cluster \
+		--model=cluster_network \
+		--model=vswitch_config \
+		--model=cluster_domain_server \
+		--model=credentials \
+		--model=cluster_network_entity \
+		--model=http_proxy_whitelist \
+		--model=smtp_server \
+		--model=cluster_config_spec \
+		--model=public_key \
+		--model=certification_signing_info \
+		--model=client_auth \
+		--model=encryption_status \
+		--model=external_configurations_spec \
+		--model=citrix_connector_config_details_spec \
+		--model=vm_reference \
+		--model=citrix_resource_location_spec \
+		--model=cluster_operation_mode \
+		--model=cluster_def_status \
+		--model=message_resource \
+		--model=cluster_analysis \
+		--model=cluster_config \
+		--model=build_info \
+		--model=ca_cert \
+		--model=external_configurations \
+		--model=cluster_management_server \
+		--model=cluster_service_list \
+		--model=ssl_key \
+		--model=ssl_key_type \
+		--model=citrix_connector_config_details \
+		--model=citrix_resource_location \
+		--model=cluster_nodes \
+		--model=hypervisor_server \
+		--model=cluster_software \
+		--model=software_type
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
