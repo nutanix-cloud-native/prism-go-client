@@ -3,7 +3,7 @@ package v3
 import (
 	"time"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
@@ -1957,6 +1957,13 @@ type Parameters struct {
 	NetworkMappingList       []*NetworkMappingList       `json:"network_mapping_list,omitempty"`
 	AvailabilityZoneList     []*AvailabilityZoneList     `json:"availability_zone_list,omitempty"`
 	PrimaryLocationIndex     *int64                      `json:"primary_location_index,omitempty"`
+	WitnessConfigurationList []*WitnessConfigurationList `json:"witness_configuration_list,omitempty"`
+}
+
+// WitnessConfigurationList represents objects containing witness configuration
+type WitnessConfigurationList struct {
+	WitnessAddress             *string `json:"witness_address,omitempty"`
+	WitnessFailoverTimeoutSecs *int64  `json:"witness_failover_timeout_secs,omitempty"`
 }
 
 // AvailabilityZoneList represents objects that encapsulate the list of AOS

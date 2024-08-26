@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
@@ -5165,6 +5165,12 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 								},
 							},
 						},
+						"witness_configuration_list": []interface{}{
+							map[string]interface{}{
+								"witness_address":               "zone url",
+								"witness_failover_timeout_secs": float64(1),
+							},
+						},
 					},
 					"stage_list": []interface{}{
 						map[string]interface{}{
@@ -5272,6 +5278,12 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 								},
 							},
 							Parameters: &Parameters{
+								WitnessConfigurationList: []*WitnessConfigurationList{
+									{
+										WitnessAddress:             utils.StringPtr("zone url"),
+										WitnessFailoverTimeoutSecs: utils.Int64Ptr(1),
+									},
+								},
 								PrimaryLocationIndex: utils.Int64Ptr(0),
 								AvailabilityZoneList: []*AvailabilityZoneList{
 									{
