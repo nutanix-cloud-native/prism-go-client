@@ -1,0 +1,46 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_ListCluster
+spec:
+    metadata:
+        name: Http
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/clusters/list
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: |
+            {}
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Tue, 27 Aug 2024 13:35:16 GMT
+            Server: envoy
+            Set-Cookie: Expires=Tue, 27-Aug-2024 13:50:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "182"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.1.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"api_version": "3.1", "metadata": {"kind": "cluster", "total_matches": 5}, "entities": [{"status": {"resources": {"config": {"software_map": {"NOS": {"software_type": "NOS", "status": "INSTALLED", "version": "6.5.4.5"}, "NCC": {"software_type": "NCC", "version": "ncc-5.0.0", "status": "INSTALLED"}}, "encryption_status": "NOT_SUPPORTED", "ssl_key": {"key_type": "RSA_4096", "expire_datetime": "2024-11-18T14:59:22Z", "signing_info": {"country_code": "", "state": "", "city": "", "organization": "", "common_name": "", "email_address": ""}}, "service_list": ["AOS"], "redundancy_factor": 2, "enabled_feature_list": ["PASSWORD_REMOTE_LOGIN_ENABLED", "SHADOW_CLONES_ENABLED"], "is_available": true, "timezone": "UTC", "cluster_arch": "X86_64", "authorized_public_key_list": [{"name": "foo", "key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCenf4GOVM/NtqAeS7/mYJg+QS1yKrzqzDjA4MkAqrNhuiDA9a44DAmtnwVe0j5rM0aYHJLi/AHm20RhMBzxS2k+nBq+iAIuQsR1KfGGOTTlWyFroSd4eGcuoxjJaoBj7W9h+tYGVkCBKS2VqaS2tZ+JHbjj+23+PbTLgEhFTQPsMIyxpain1/FjBLB8u/M27AfmFATNXr6mM/WfVLBmY4EHWWpLNtrAtctm8D6hQHdqLxgsWNis3wsiSDTeg7cFZT9ckr7SZ4kpW0ST8KZQRrDsl2TT2Fr3tzTfDY/nIPRKZbs46m8JcmakKsjRLBXrN4D65nrm5Z70AGqxlouvD+GoRjVWO3xoeuvulEkDygBqppngGROYnz1HyjUY6SB1Se2osJM72MsW8L48U3gtPIlauMjd7YhLwiyAX9gkyPXsOio+GaFPX5NnOQBnnVhxwR/EJWnCS1tbuev+jWViZGyj3iP7OiTw1bfTGjUPCwW2Q/jQ+Fb0+OIFSy+WmbDxj8= foo@bar.com"}], "supported_information_verbosity": "BASIC_PLUS_CORE_DUMP", "domain_awareness_level": "NODE", "build": {"build_type": "release", "version": "6.5.4.5", "full_version": "el7.3-release-fraser-6.5.4.5-stable-49bd685cde4e9488d6347655f7b655df97e1849e", "commit_id": "49bd685cde4e9488d6347655f7b655df97e1849e", "short_commit_id": "49bd68", "is_long_term_support": true}, "operation_mode": "NORMAL"}, "nodes": {"hypervisor_server_list": [{"ip": "10.40.231.129", "type": "AHV", "version": "el7.nutanix.20220304.462"}, {"ip": "127.0.0.1", "type": "AHV", "version": ""}, {"ip": "10.40.231.141", "type": "AHV", "version": "el7.nutanix.20220304.462"}, {"ip": "10.40.231.135", "type": "AHV", "version": "el7.nutanix.20220304.462"}, {"ip": "10.40.231.147", "type": "AHV", "version": "el7.nutanix.20220304.462"}]}, "network": {"external_ip": "10.40.231.131", "ntp_server_ip_list": ["3.centos.pool.ntp.org", "0.centos.pool.ntp.org", "2.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "external_subnet": "10.40.224.0/255.255.240.0", "external_data_services_ip": "10.40.231.132", "name_server_ip_list": ["10.40.64.15", "10.40.64.16"], "internal_subnet": "192.168.5.0/255.255.255.128"}}, "name": "ganon", "state": "COMPLETE"}, "metadata": {"uuid": "0005b0f1-8f43-a0f2-02b7-3cecef193712", "spec_hash": "00000000000000000000000000000000000000000000000000", "spec_version": 27, "categories": {}, "categories_mapping": {}, "creation_time": "2024-02-05T21:15:17Z", "last_update_time": "2024-02-05T21:15:17Z", "kind": "cluster"}, "spec": {"name": "ganon", "resources": {"config": {"authorized_public_key_list": [{"name": "foo", "key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCenf4GOVM/NtqAeS7/mYJg+QS1yKrzqzDjA4MkAqrNhuiDA9a44DAmtnwVe0j5rM0aYHJLi/AHm20RhMBzxS2k+nBq+iAIuQsR1KfGGOTTlWyFroSd4eGcuoxjJaoBj7W9h+tYGVkCBKS2VqaS2tZ+JHbjj+23+PbTLgEhFTQPsMIyxpain1/FjBLB8u/M27AfmFATNXr6mM/WfVLBmY4EHWWpLNtrAtctm8D6hQHdqLxgsWNis3wsiSDTeg7cFZT9ckr7SZ4kpW0ST8KZQRrDsl2TT2Fr3tzTfDY/nIPRKZbs46m8JcmakKsjRLBXrN4D65nrm5Z70AGqxlouvD+GoRjVWO3xoeuvulEkDygBqppngGROYnz1HyjUY6SB1Se2osJM72MsW8L48U3gtPIlauMjd7YhLwiyAX9gkyPXsOio+GaFPX5NnOQBnnVhxwR/EJWnCS1tbuev+jWViZGyj3iP7OiTw1bfTGjUPCwW2Q/jQ+Fb0+OIFSy+WmbDxj8= foo@bar.com"}], "software_map": {"NOS": {"status": "INSTALLED", "version": "6.5.4.5", "software_type": "NOS"}, "NCC": {"status": "INSTALLED", "version": "ncc-5.0.0", "software_type": "NCC"}}, "encryption_status": "NOT_SUPPORTED", "supported_information_verbosity": "BASIC_PLUS_CORE_DUMP", "redundancy_factor": 2, "domain_awareness_level": "NODE", "enabled_feature_list": ["PASSWORD_REMOTE_LOGIN_ENABLED", "SHADOW_CLONES_ENABLED"], "timezone": "UTC", "operation_mode": "NORMAL"}, "network": {"external_ip": "10.40.231.131", "ntp_server_ip_list": ["3.centos.pool.ntp.org", "0.centos.pool.ntp.org", "2.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "external_subnet": "10.40.224.0/255.255.240.0", "external_data_services_ip": "10.40.231.132", "name_server_ip_list": ["10.40.64.15", "10.40.64.16"], "internal_subnet": "192.168.5.0/255.255.255.128"}}}}, {"status": {"resources": {"config": {"software_map": {"NOS": {"software_type": "NOS", "status": "INSTALLED", "version": "2024.1"}, "NCC": {"software_type": "NCC", "version": "ncc-5.0.1", "status": "INSTALLED"}}, "encryption_status": "NOT_SUPPORTED", "ssl_key": {"key_type": "RSA_4096", "expire_datetime": "2024-11-18T14:59:22Z", "signing_info": {"country_code": "", "state": "", "city": "", "organization": "", "common_name": "", "email_address": ""}}, "service_list": ["PRISM_CENTRAL"], "redundancy_factor": 2, "enabled_feature_list": ["PASSWORD_REMOTE_LOGIN_ENABLED", "SHADOW_CLONES_ENABLED"], "is_available": true, "timezone": "America/Los_Angeles", "cluster_arch": "X86_64", "domain_awareness_level": "NODE", "build": {"build_type": "release", "version": "pc", "full_version": "el8.5-release-fraser-2024.1-stable-pc-0.1-6ccae2637a516d0e88e57d5c63f19c5e1a23864b", "commit_id": "6ccae2637a516d0e88e57d5c63f19c5e1a23864b", "short_commit_id": "6ccae2", "is_long_term_support": false, "commit_date": "2024-05-21T06:38:19Z"}, "operation_mode": "NORMAL"}, "network": {"external_ip": "10.40.142.17", "ntp_server_ip_list": ["0.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "external_subnet": "10.40.142.0/255.255.255.0", "fully_qualified_domain_name": "prism-test.nutanix.com", "name_server_ip_list": ["127.0.0.1", "10.40.64.15"], "internal_subnet": "10.40.142.0/255.255.255.0"}, "runtime_status_list": ["SSP_CONFIG_OWNER"]}, "name": "ncn-dev-pc", "state": "COMPLETE"}, "metadata": {"uuid": "710e3779-0030-4d55-9827-be11e7fd2d0e", "spec_hash": "00000000000000000000000000000000000000000000000000", "spec_version": 82, "categories": {}, "categories_mapping": {}, "creation_time": "2024-01-31T23:16:19Z", "last_update_time": "2024-01-31T23:16:19Z", "kind": "cluster"}, "spec": {"name": "ncn-dev-pc", "resources": {"config": {"software_map": {"NOS": {"status": "INSTALLED", "version": "2024.1", "software_type": "NOS"}, "NCC": {"status": "INSTALLED", "version": "ncc-5.0.1", "software_type": "NCC"}}, "encryption_status": "NOT_SUPPORTED", "redundancy_factor": 2, "domain_awareness_level": "NODE", "enabled_feature_list": ["PASSWORD_REMOTE_LOGIN_ENABLED", "SHADOW_CLONES_ENABLED"], "timezone": "America/Los_Angeles", "operation_mode": "NORMAL"}, "network": {"external_ip": "10.40.142.17", "ntp_server_ip_list": ["0.centos.pool.ntp.org", "1.centos.pool.ntp.org"], "external_subnet": "10.40.142.0/255.255.255.0", "fully_qualified_domain_name": "prism-test.nutanix.com", "name_server_ip_list": ["127.0.0.1", "10.40.64.15"], "internal_subnet": "10.40.142.0/255.255.255.0"}}}}]}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
