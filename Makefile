@@ -22,11 +22,11 @@ CRD_OPTIONS ?= "crd:crdVersions=v1"
 
 .PHONY: run-keploy
 run-keploy:
-	server run &
+	keploy-server run &
 
 .PHONY: stop-keploy
 stop-keploy:
-	@-pkill "server"
+	@-pkill "keploy-server"
 
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
