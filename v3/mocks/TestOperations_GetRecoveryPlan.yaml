@@ -1,0 +1,45 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_GetRecoveryPlan
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/recovery_plans/b2fe0a67-3be2-407c-8e83-9b5d6af14cec
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Wed, 28 Aug 2024 07:37:39 GMT
+            Server: envoy
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1336"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"api_version": "3.1", "metadata": {"last_update_time": "2024-08-28T07:25:46Z", "kind": "recovery_plan", "creation_time": "2024-08-28T07:25:43Z", "uuid": "b2fe0a67-3be2-407c-8e83-9b5d6af14cec", "owner_reference": {"kind": "user", "uuid": "00000000-0000-0000-0000-000000000000", "name": "admin"}, "categories": {}, "categories_mapping": {}, "spec_hash": "00000000000000000000000000000000000000000000000000", "spec_version": 0}, "spec": {"name": "recovery_plan_test_name-4", "resources": {"parameters": {"availability_zone_list": [{"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910", "cluster_reference_list": [{"kind": "cluster", "uuid": "0006200e-fe43-236a-0000-00000000601e"}]}, {"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910", "cluster_reference_list": [{"kind": "cluster", "uuid": "0006200e-f1f5-ef7f-0000-00000000601d"}]}], "data_service_ip_mapping_list": [], "floating_ip_assignment_list": [], "network_mapping_list": [], "primary_location_index": 0, "witness_configuration_list": [{"witness_address": "4b194a2d-5468-4e92-8953-571cb39be910", "witness_failover_timeout_secs": 1}]}, "stage_list": [], "volume_group_recovery_info_list": [{"category_filter": {"kind_list": [], "params": {"test-category": ["test-key"]}, "type": "CATEGORIES_MATCH_ANY"}, "volume_group_config_info_list": []}]}}, "status": {"name": "recovery_plan_test_name-4", "description": "", "resources": {"parameters": {"network_mapping_list": [], "availability_zone_list": [{"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910", "cluster_reference_list": [{"name": "", "uuid": "0006200e-fe43-236a-0000-00000000601e", "kind": "cluster"}]}, {"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910", "cluster_reference_list": [{"name": "", "uuid": "0006200e-f1f5-ef7f-0000-00000000601d", "kind": "cluster"}]}], "primary_location_index": 0, "witness_configuration_list": [{"witness_address": "4b194a2d-5468-4e92-8953-571cb39be910", "witness_failover_timeout_secs": 1}]}, "stage_list": [], "volume_group_recovery_info_list": [{"volume_group_config_info_list": [], "category_filter": {"type": "CATEGORIES_MATCH_ANY", "params": {"test-category": ["test-key"]}}}]}, "recovery_availability_zone_order_list": [{"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910", "availability_zone_order_list": [[{"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910"}, {"availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910"}]]}], "latest_validation_time": "", "latest_test_time": "", "state": "COMPLETE", "execution_context": {"task_uuid": ["0fd3ad6f-7243-4e7d-967d-bfdfaf918f5b"]}}}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

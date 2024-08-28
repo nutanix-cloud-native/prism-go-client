@@ -1,0 +1,46 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_CreateRecoveryPlan
+spec:
+    metadata:
+        name: Http
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/recovery_plans
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: |
+            {"api_version":"3.1","metadata":{"creation_time":"0001-01-01T00:00:00.000Z","kind":"recovery_plan","last_update_time":"0001-01-01T00:00:00.000Z"},"spec":{"name":"recovery_plan_test_name-4","resources":{"parameters":{"availability_zone_list":[{"availability_zone_url":"4b194a2d-5468-4e92-8953-571cb39be910","cluster_reference_list":[{"kind":"cluster","uuid":"0006200e-fe43-236a-0000-00000000601e"}]},{"availability_zone_url":"4b194a2d-5468-4e92-8953-571cb39be910","cluster_reference_list":[{"kind":"cluster","uuid":"0006200e-f1f5-ef7f-0000-00000000601d"}]}],"data_service_ip_mapping_list":[],"floating_ip_assignment_list":[],"network_mapping_list":[],"primary_location_index":0,"witness_configuration_list":[{"witness_address":"4b194a2d-5468-4e92-8953-571cb39be910","witness_failover_timeout_secs":1}]},"stage_list":[],"volume_group_recovery_info_list":[{"category_filter":{"kind_list":[],"params":{"test-category":["test-key"]}},"volume_group_config_info_list":[]}]}}}
+        body_type: utf-8
+    resp:
+        status_code: 202
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Wed, 28 Aug 2024 07:25:43 GMT
+            Server: envoy
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "1214"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"metadata": {"last_update_time": "0001-01-01T00:00:00.000Z", "use_categories_mapping": false, "kind": "recovery_plan", "creation_time": "0001-01-01T00:00:00.000Z", "uuid": "b2fe0a67-3be2-407c-8e83-9b5d6af14cec", "spec_version": 0}, "api_version": "3.1", "spec": {"name": "recovery_plan_test_name-4", "resources": {"volume_group_recovery_info_list": [{"volume_group_config_info_list": [], "category_filter": {"type": "CATEGORIES_MATCH_ANY", "kind_list": [], "params": {"test-category": ["test-key"]}}}], "stage_list": [], "parameters": {"witness_configuration_list": [{"witness_address": "4b194a2d-5468-4e92-8953-571cb39be910", "witness_failover_timeout_secs": 1}], "floating_ip_assignment_list": [], "availability_zone_list": [{"cluster_reference_list": [{"kind": "cluster", "uuid": "0006200e-fe43-236a-0000-00000000601e"}], "availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910"}, {"cluster_reference_list": [{"kind": "cluster", "uuid": "0006200e-f1f5-ef7f-0000-00000000601d"}], "availability_zone_url": "4b194a2d-5468-4e92-8953-571cb39be910"}], "primary_location_index": 0, "network_mapping_list": [], "data_service_ip_mapping_list": []}}}, "status": {"state": "PENDING", "execution_context": {"task_uuid": "0fd3ad6f-7243-4e7d-967d-bfdfaf918f5b"}}}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

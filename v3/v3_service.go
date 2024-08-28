@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
@@ -105,11 +105,11 @@ type Service interface {
 	UpdateProtectionRule(ctx context.Context, uuid string, body *ProtectionRuleInput) (*ProtectionRuleResponse, error)
 	DeleteProtectionRule(ctx context.Context, uuid string) (*DeleteResponse, error)
 	ProcessProtectionRule(ctx context.Context, uuid string) error
-	GetRecoveryPlan(ctx context.Context, uuid string) (*RecoveryPlanResponse, error)
-	ListRecoveryPlans(ctx context.Context, getEntitiesRequest *DSMetadata) (*RecoveryPlanListResponse, error)
-	ListAllRecoveryPlans(ctx context.Context, filter string) (*RecoveryPlanListResponse, error)
-	CreateRecoveryPlan(ctx context.Context, request *RecoveryPlanInput) (*RecoveryPlanResponse, error)
-	UpdateRecoveryPlan(ctx context.Context, uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error)
+	GetRecoveryPlan(ctx context.Context, uuid string) (*models.RecoveryPlanIntentResponse, error)
+	ListRecoveryPlans(ctx context.Context, getEntitiesRequest *DSMetadata) (*models.RecoveryPlanListIntentResponse, error)
+	ListAllRecoveryPlans(ctx context.Context, filter string) (*models.RecoveryPlanListIntentResponse, error)
+	CreateRecoveryPlan(ctx context.Context, request *models.RecoveryPlanIntentInput) (*models.RecoveryPlanIntentResponse, error)
+	UpdateRecoveryPlan(ctx context.Context, uuid string, body *models.RecoveryPlanIntentInput) (*models.RecoveryPlanIntentResponse, error)
 	DeleteRecoveryPlan(ctx context.Context, uuid string) (*DeleteResponse, error)
 	GetServiceGroup(ctx context.Context, uuid string) (*ServiceGroupResponse, error)
 	ListAllServiceGroups(ctx context.Context, filter string) (*ServiceGroupListResponse, error)
@@ -1992,9 +1992,9 @@ func (op Operations) ProcessProtectionRule(ctx context.Context, uuid string) err
 }
 
 // GetRecoveryPlan ...
-func (op Operations) GetRecoveryPlan(ctx context.Context, uuid string) (*RecoveryPlanResponse, error) {
+func (op Operations) GetRecoveryPlan(ctx context.Context, uuid string) (*models.RecoveryPlanIntentResponse, error) {
 	path := fmt.Sprintf("/recovery_plans/%s", uuid)
-	RecoveryPlan := new(RecoveryPlanResponse)
+	RecoveryPlan := new(models.RecoveryPlanIntentResponse)
 
 	req, err := op.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
@@ -2005,10 +2005,10 @@ func (op Operations) GetRecoveryPlan(ctx context.Context, uuid string) (*Recover
 }
 
 // ListRecoveryPlans ...
-func (op Operations) ListRecoveryPlans(ctx context.Context, getEntitiesRequest *DSMetadata) (*RecoveryPlanListResponse, error) {
+func (op Operations) ListRecoveryPlans(ctx context.Context, getEntitiesRequest *DSMetadata) (*models.RecoveryPlanListIntentResponse, error) {
 	path := "/recovery_plans/list"
 
-	list := new(RecoveryPlanListResponse)
+	list := new(models.RecoveryPlanListIntentResponse)
 
 	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
 	if err != nil {
@@ -2019,8 +2019,8 @@ func (op Operations) ListRecoveryPlans(ctx context.Context, getEntitiesRequest *
 }
 
 // ListAllRecoveryPlans ...
-func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*RecoveryPlanListResponse, error) {
-	entities := make([]*RecoveryPlanResponse, 0)
+func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*models.RecoveryPlanListIntentResponse, error) {
+	entities := make([]*models.RecoveryPlanIntentResource, 0)
 
 	resp, err := op.ListRecoveryPlans(ctx, &DSMetadata{
 		Filter: &filter,
@@ -2031,9 +2031,9 @@ func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := utils.Int64Value(&resp.Metadata.TotalMatches)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := utils.Int64Value(&resp.Metadata.Offset)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
@@ -2060,9 +2060,9 @@ func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*
 }
 
 // CreateRecoveryPlan ...
-func (op Operations) CreateRecoveryPlan(ctx context.Context, createRequest *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
+func (op Operations) CreateRecoveryPlan(ctx context.Context, createRequest *models.RecoveryPlanIntentInput) (*models.RecoveryPlanIntentResponse, error) {
 	req, err := op.client.NewRequest(http.MethodPost, "/recovery_plans", createRequest)
-	RecoveryPlanResponse := new(RecoveryPlanResponse)
+	RecoveryPlanResponse := new(models.RecoveryPlanIntentResponse)
 
 	if err != nil {
 		return nil, err
@@ -2072,10 +2072,10 @@ func (op Operations) CreateRecoveryPlan(ctx context.Context, createRequest *Reco
 }
 
 // UpdateRecoveryPlan ...
-func (op Operations) UpdateRecoveryPlan(ctx context.Context, uuid string, body *RecoveryPlanInput) (*RecoveryPlanResponse, error) {
+func (op Operations) UpdateRecoveryPlan(ctx context.Context, uuid string, body *models.RecoveryPlanIntentInput) (*models.RecoveryPlanIntentResponse, error) {
 	path := fmt.Sprintf("/recovery_plans/%s", uuid)
 	req, err := op.client.NewRequest(http.MethodPut, path, body)
-	RecoveryPlanResponse := new(RecoveryPlanResponse)
+	RecoveryPlanResponse := new(models.RecoveryPlanIntentResponse)
 
 	if err != nil {
 		return nil, err
