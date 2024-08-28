@@ -13,7 +13,6 @@ spec:
         url: https://prism-test.nutanix.com:9440/api/nutanix/v3/recovery_plans/b2fe0a67-3be2-407c-8e83-9b5d6af14cec
         header:
             Accept: application/json
-            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
             Content-Type: application/json
             User-Agent: nutanix/v3
         body: |
