@@ -519,9 +519,9 @@ func TestOperations_CreateSubnet(t *testing.T) {
 					Spec: &models.Subnet{
 						ClusterReference: &models.ClusterReference{
 							Kind: "cluster",
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							UUID: "00056024-6c13-4c74-0000-00000000ecb5",
 						},
-						Name: utils.StringPtr("subnet.create"),
+						Name: "subnet.create",
 					},
 				},
 			},
@@ -695,9 +695,9 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 					Spec: &models.Subnet{
 						ClusterReference: &models.ClusterReference{
 							Kind: "cluster",
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							UUID: "00056024-6c13-4c74-0000-00000000ecb5",
 						},
-						Name: utils.StringPtr("subnet.create"),
+						Name: "subnet.create",
 					},
 				},
 			},
@@ -6519,7 +6519,7 @@ func TestOperations_GetPrismCentral(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, pc)
 	assert.Equal(t, "PC", *pc.Resources.Type)
-	assert.Equal(t, "pc.2024.1.0.1", *pc.Resources.Version)
+	assert.Equal(t, "pc.2024.1.0.1", pc.Resources.Version)
 }
 
 func TestOperations_ListSubnet(t *testing.T) {
@@ -6556,7 +6556,7 @@ func TestOperations_GetSubnet(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, subnet)
 	assert.Equal(t, "subnet", *subnet.Metadata.Kind)
-	assert.Equal(t, "sherlock_net", *subnet.Spec.Name)
+	assert.Equal(t, "sherlock_net", subnet.Spec.Name)
 	assert.Equal(t, false, subnet.Spec.Resources.IsExternal)
 }
 
@@ -6575,7 +6575,7 @@ func TestOperations_GetCluster(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, cluster)
 	assert.Equal(t, "cluster", *cluster.Metadata.Kind)
-	assert.Equal(t, "ganon", cluster.Status.Name)
+	assert.Equal(t, "ganon", *cluster.Status.Name)
 }
 
 func TestOperations_ListCluster(t *testing.T) {
@@ -6600,5 +6600,5 @@ func TestOperations_ListCluster(t *testing.T) {
 	prismElements := clusters.GetPrismElements()
 	assert.Len(t, prismElements, 1)
 	assert.Equal(t, "cluster", *prismElements[0].Metadata.Kind)
-	assert.Equal(t, "ganon", prismElements[0].Status.Name)
+	assert.Equal(t, "ganon", *prismElements[0].Status.Name)
 }

@@ -1,0 +1,114 @@
+# OpenLdapConfigurationUserGroupConfiguration
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**GroupSearchBase** | **string** | The base DN for group search.  | 
+**GroupMemberAttribute** | **string** | The attribute in a group that associates users to the group.  | 
+**GroupObjectClass** | **string** | The object class in the OpenLDAP system that corresponds to groups.  | 
+**GroupMemberAttributeValue** | **string** | The user attribute value that will be used in group entity to associate user to the group.  | 
+
+## Methods
+
+### NewOpenLdapConfigurationUserGroupConfiguration
+
+`func NewOpenLdapConfigurationUserGroupConfiguration(groupSearchBase string, groupMemberAttribute string, groupObjectClass string, groupMemberAttributeValue string, ) *OpenLdapConfigurationUserGroupConfiguration`
+
+NewOpenLdapConfigurationUserGroupConfiguration instantiates a new OpenLdapConfigurationUserGroupConfiguration object
+This constructor will assign default values to properties that have it defined,
+and makes sure properties required by API are set, but the set of arguments
+will change when the set of required properties is changed
+
+### NewOpenLdapConfigurationUserGroupConfigurationWithDefaults
+
+`func NewOpenLdapConfigurationUserGroupConfigurationWithDefaults() *OpenLdapConfigurationUserGroupConfiguration`
+
+NewOpenLdapConfigurationUserGroupConfigurationWithDefaults instantiates a new OpenLdapConfigurationUserGroupConfiguration object
+This constructor will only assign default values to properties that have it defined,
+but it doesn't guarantee that properties required by API are set
+
+### GetGroupSearchBase
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupSearchBase() string`
+
+GetGroupSearchBase returns the GroupSearchBase field if non-nil, zero value otherwise.
+
+### GetGroupSearchBaseOk
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupSearchBaseOk() (*string, bool)`
+
+GetGroupSearchBaseOk returns a tuple with the GroupSearchBase field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetGroupSearchBase
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) SetGroupSearchBase(v string)`
+
+SetGroupSearchBase sets GroupSearchBase field to given value.
+
+
+### GetGroupMemberAttribute
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupMemberAttribute() string`
+
+GetGroupMemberAttribute returns the GroupMemberAttribute field if non-nil, zero value otherwise.
+
+### GetGroupMemberAttributeOk
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupMemberAttributeOk() (*string, bool)`
+
+GetGroupMemberAttributeOk returns a tuple with the GroupMemberAttribute field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetGroupMemberAttribute
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) SetGroupMemberAttribute(v string)`
+
+SetGroupMemberAttribute sets GroupMemberAttribute field to given value.
+
+
+### GetGroupObjectClass
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupObjectClass() string`
+
+GetGroupObjectClass returns the GroupObjectClass field if non-nil, zero value otherwise.
+
+### GetGroupObjectClassOk
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupObjectClassOk() (*string, bool)`
+
+GetGroupObjectClassOk returns a tuple with the GroupObjectClass field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetGroupObjectClass
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) SetGroupObjectClass(v string)`
+
+SetGroupObjectClass sets GroupObjectClass field to given value.
+
+
+### GetGroupMemberAttributeValue
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupMemberAttributeValue() string`
+
+GetGroupMemberAttributeValue returns the GroupMemberAttributeValue field if non-nil, zero value otherwise.
+
+### GetGroupMemberAttributeValueOk
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) GetGroupMemberAttributeValueOk() (*string, bool)`
+
+GetGroupMemberAttributeValueOk returns a tuple with the GroupMemberAttributeValue field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetGroupMemberAttributeValue
+
+`func (o *OpenLdapConfigurationUserGroupConfiguration) SetGroupMemberAttributeValue(v string)`
+
+SetGroupMemberAttributeValue sets GroupMemberAttributeValue field to given value.
+
+
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

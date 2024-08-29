@@ -1,0 +1,13 @@
+diff --git a/original_openapi.json b/original_openapi.json
+index 49524cf..679abe2 100644
+--- a/original_openapi.json
++++ b/original_openapi.json
+@@ -84930,7 +84930,7 @@
+             "category_reference": {
+               "type": "object",
+               "description": "Category name and a list of values that will be synced.\n",
+-              "additonalProperties": {
++              "additionalProperties": {
+                 "items": {
+                   "type": "string"
+                 },

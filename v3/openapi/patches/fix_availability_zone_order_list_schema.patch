@@ -1,0 +1,47 @@
+diff --git a/original_openapi.json b/original_openapi.json
+index 49524cf..24f133d 100644
+--- a/original_openapi.json
++++ b/original_openapi.json
+@@ -60629,29 +60629,24 @@
+                   "description": "URL of the Availability Zone.\n"
+                 },
+                 "availability_zone_order_list": {
++                  "type": "array",
+                   "items": {
+-                    "properties": {
+-                      "availability_zone_list": {
+-                        "items": {
+-                          "type": "object",
+-                          "properties": {
+-                            "cluster": {
+-                              "type": "string",
+-                              "description": "UUID of the cluster.\n"
+-                            },
+-                            "availability_zone_url": {
+-                              "type": "string",
+-                              "description": "URL of the Availability Zone.\n"
+-                            }
+-                          }
++                    "type": "array",
++                    "items": {
++                      "type": "object",
++                      "properties": {
++                        "availability_zone_url": {
++                          "type": "string",
++                          "description": "URL of the Availability Zone."
+                         },
+-                        "type": "array",
+-                        "description": "List of Availability Zones."
++                        "cluster": {
++                          "type": "string",
++                          "description": "UUID of the cluster."
++                        }
+                       }
+                     }
+                   },
+-                  "type": "array",
+-                  "description": "List of recovery Availability Zone orders for entities in the Recovery Plan. More than one entry in this list indicates entities in Recovery Plan are protected by the Protection Rules with different recovery Availability Zone order and makes Recovery Plan invalid.\n"
++                  "description": "List of Availability Zone orders."
+                 }
+               }
+             },

@@ -8,12 +8,11 @@ WHITE  := $(shell tput -Txterm setaf 7)
 CYAN   := $(shell tput -Txterm setaf 6)
 RESET  := $(shell tput -Txterm sgr0)
 
-.PHONY: all test build
-
 all: help
 
 ## Build:
-build: ## Build your project and put the output binary in bin/
+.PHONY: build
+build: ## Build your project
 	mkdir -p bin
 	go build ./...
 
@@ -31,70 +30,41 @@ stop-keploy:
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
 
-generate-v3-models: ## Generate V3 models using go-swagger
-	swagger generate model \
-		--spec=v3/swagger.json \
-		--target=v3 \
-		--skip-validation \
-		--model=prism_central \
-		--model=pc_vm \
-		--model=mcm_config \
-		--model=cmsp_config \
-		--model=cmsp_network_config \
-		--model=deployment_settings \
-		--model=my_ntnx_token \
-		--model=cluster_reference \
-		--model=pc_vm_nic_configuration \
-		--model=network_config \
-		--model=subnet \
-		--model=availability_zone_reference \
-		--model=subnet_resources \
-		--model=ip_config \
-		--model=network_function_chain_reference \
-		--model=virtual_network_reference \
-		--model=vpc_reference \
-		--model=dhcp_options \
-		--model=address \
-		--model=ip_pool \
-		--model=subnet_def_status \
-		--model=subnet_resources_def_status \
-		--model=ip_usage_stats \
-		--model=pool_stats \
-		--model=cluster \
-		--model=cluster_network \
-		--model=vswitch_config \
-		--model=cluster_domain_server \
-		--model=credentials \
-		--model=cluster_network_entity \
-		--model=http_proxy_whitelist \
-		--model=smtp_server \
-		--model=cluster_config_spec \
-		--model=public_key \
-		--model=certification_signing_info \
-		--model=client_auth \
-		--model=encryption_status \
-		--model=external_configurations_spec \
-		--model=citrix_connector_config_details_spec \
-		--model=vm_reference \
-		--model=citrix_resource_location_spec \
-		--model=cluster_operation_mode \
-		--model=cluster_def_status \
-		--model=message_resource \
-		--model=cluster_analysis \
-		--model=cluster_config \
-		--model=build_info \
-		--model=ca_cert \
-		--model=external_configurations \
-		--model=cluster_management_server \
-		--model=cluster_service_list \
-		--model=ssl_key \
-		--model=ssl_key_type \
-		--model=citrix_connector_config_details \
-		--model=citrix_resource_location \
-		--model=cluster_nodes \
-		--model=hypervisor_server \
-		--model=cluster_software \
-		--model=software_type
+ORIGINAL_SPEC = v3/openapi/source/original_openapi.json
+FIXED_SPEC = v3/openapi/openapi.json
+V3_OPENAPI_TEMP_REPO = v3/openapi/temp_repo
+PATCHES = $(wildcard v3/openapi/patches/*.patch)
+
+.PHONY: generate-v3-openapi-spec
+generate-v3-openapi-spec: $(ORIGINAL_SPEC) $(PATCHES) ## Generate V3 OpenAPI spec by applying bug patches to the original spec
+	@echo "Creating temporary Git repository..."
+	rm -rf $(V3_OPENAPI_TEMP_REPO)
+	mkdir $(V3_OPENAPI_TEMP_REPO)
+	cp $(ORIGINAL_SPEC) $(V3_OPENAPI_TEMP_REPO)/
+	cd $(V3_OPENAPI_TEMP_REPO) && git init >/dev/null
+	cd $(V3_OPENAPI_TEMP_REPO) && git add original_openapi.json
+	cd $(V3_OPENAPI_TEMP_REPO) && git commit -m "Original OpenAPI spec" >/dev/null
+	@echo "Applying patches..."
+	cd $(V3_OPENAPI_TEMP_REPO) && $(foreach patch,$(PATCHES), git apply ../../../$(patch);)
+	cd $(V3_OPENAPI_TEMP_REPO) && git add original_openapi.json
+	cd $(V3_OPENAPI_TEMP_REPO) && git commit -m "Applied all patches" >/dev/null
+	cp $(V3_OPENAPI_TEMP_REPO)/original_openapi.json $(FIXED_SPEC)
+	@echo "Fixed OpenAPI spec generated as $(FIXED_SPEC)"
+	@echo "Cleaning up..."
+	rm -rf $(V3_OPENAPI_TEMP_REPO)
+	@echo "Cleaned up"
+
+.PHONY: generate-v3-models
+generate-v3-models: ## Generate V3 models using openapi-generator-cli
+	openapi-generator-cli generate \
+		--input-spec v3/openapi/openapi.json \
+		--output v3/models \
+		--generator-name go \
+		--package-name models \
+		--name-mappings uuid=UUID \
+		--global-property models \
+		--global-property supportingFiles=utils.go \
+		--additional-properties disallowAdditionalPropertiesIfNotPresent=false
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin

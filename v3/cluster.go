@@ -8,15 +8,13 @@ const prismCentralService = "PRISM_CENTRAL"
 // by checking if the service running on the cluster is PRISM_CENTRAL
 func (cluster *ClusterIntentResponse) IsPrismCentral() bool {
 	if cluster.Status == nil ||
-		cluster.Status.Resources == nil ||
-		cluster.Status.Resources.Config == nil ||
 		cluster.Status.Resources.Config.ServiceList == nil ||
 		len(cluster.Status.Resources.Config.ServiceList) == 0 {
 		return false
 	}
 
 	for _, service := range cluster.Status.Resources.Config.ServiceList {
-		if service != nil && strings.EqualFold(*service, prismCentralService) {
+		if strings.EqualFold(service, prismCentralService) {
 			return true
 		}
 	}
