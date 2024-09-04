@@ -1,0 +1,22 @@
+diff --git a/original_openapi.json b/original_openapi.json
+index 49524cf..cc03000 100644
+--- a/original_openapi.json
++++ b/original_openapi.json
+@@ -38761,7 +38761,7 @@
+             "format": "int64"
+           },
+           "encryption_enabled": {
+-            "decription": "Indicates whether encryption is enabled or not on the entity.\n",
++            "description": "Indicates whether encryption is enabled or not on the entity.\n",
+             "type": "boolean"
+           },
+           "non_compliant_error_codes": {
+@@ -63058,7 +63058,7 @@
+             "description": "List of storage policies active on the VM."
+           },
+           "encryption_enabled": {
+-            "decription": "Deprecated. Indicates whether encryption is enabled or not on the VM.\n",
++            "description": "Deprecated. Indicates whether encryption is enabled or not on the VM.\n",
+             "type": "boolean"
+           }
+         },

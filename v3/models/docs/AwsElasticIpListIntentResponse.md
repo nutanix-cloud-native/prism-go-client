@@ -1,0 +1,98 @@
+# AwsElasticIpListIntentResponse
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**Entities** | Pointer to [**[]AwsElasticIpIntentResource**](AwsElasticIpIntentResource.md) |  | [optional] 
+**ApiVersion** | **string** | API Version of the Nutanix v3 API framework. | [readonly] [default to "3.1.0"]
+**Metadata** | [**AwsElasticIpListMetadataOutput**](AwsElasticIpListMetadataOutput.md) |  | 
+
+## Methods
+
+### NewAwsElasticIpListIntentResponse
+
+`func NewAwsElasticIpListIntentResponse(apiVersion string, metadata AwsElasticIpListMetadataOutput, ) *AwsElasticIpListIntentResponse`
+
+NewAwsElasticIpListIntentResponse instantiates a new AwsElasticIpListIntentResponse object
+This constructor will assign default values to properties that have it defined,
+and makes sure properties required by API are set, but the set of arguments
+will change when the set of required properties is changed
+
+### NewAwsElasticIpListIntentResponseWithDefaults
+
+`func NewAwsElasticIpListIntentResponseWithDefaults() *AwsElasticIpListIntentResponse`
+
+NewAwsElasticIpListIntentResponseWithDefaults instantiates a new AwsElasticIpListIntentResponse object
+This constructor will only assign default values to properties that have it defined,
+but it doesn't guarantee that properties required by API are set
+
+### GetEntities
+
+`func (o *AwsElasticIpListIntentResponse) GetEntities() []AwsElasticIpIntentResource`
+
+GetEntities returns the Entities field if non-nil, zero value otherwise.
+
+### GetEntitiesOk
+
+`func (o *AwsElasticIpListIntentResponse) GetEntitiesOk() (*[]AwsElasticIpIntentResource, bool)`
+
+GetEntitiesOk returns a tuple with the Entities field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetEntities
+
+`func (o *AwsElasticIpListIntentResponse) SetEntities(v []AwsElasticIpIntentResource)`
+
+SetEntities sets Entities field to given value.
+
+### HasEntities
+
+`func (o *AwsElasticIpListIntentResponse) HasEntities() bool`
+
+HasEntities returns a boolean if a field has been set.
+
+### GetApiVersion
+
+`func (o *AwsElasticIpListIntentResponse) GetApiVersion() string`
+
+GetApiVersion returns the ApiVersion field if non-nil, zero value otherwise.
+
+### GetApiVersionOk
+
+`func (o *AwsElasticIpListIntentResponse) GetApiVersionOk() (*string, bool)`
+
+GetApiVersionOk returns a tuple with the ApiVersion field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetApiVersion
+
+`func (o *AwsElasticIpListIntentResponse) SetApiVersion(v string)`
+
+SetApiVersion sets ApiVersion field to given value.
+
+
+### GetMetadata
+
+`func (o *AwsElasticIpListIntentResponse) GetMetadata() AwsElasticIpListMetadataOutput`
+
+GetMetadata returns the Metadata field if non-nil, zero value otherwise.
+
+### GetMetadataOk
+
+`func (o *AwsElasticIpListIntentResponse) GetMetadataOk() (*AwsElasticIpListMetadataOutput, bool)`
+
+GetMetadataOk returns a tuple with the Metadata field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMetadata
+
+`func (o *AwsElasticIpListIntentResponse) SetMetadata(v AwsElasticIpListMetadataOutput)`
+
+SetMetadata sets Metadata field to given value.
+
+
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

@@ -440,3 +440,18 @@ func TimeValueMap(src map[string]*time.Time) map[string]time.Time {
 
 	return dst
 }
+
+// Int32Ptr returns a pointer to the int32 value passed in.
+func Int32Ptr(v int32) *int32 {
+	return &v
+}
+
+// Int32Value returns the value of the int32 pointer passed in or
+// 0 if the pointer is nil.
+func Int32Value(v *int32) int32 {
+	if v != nil {
+		return *v
+	}
+
+	return 0
+}

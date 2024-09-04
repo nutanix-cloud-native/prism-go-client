@@ -10,6 +10,7 @@
     "golangci-lint@latest",
     "kubernetes-code-generator@latest",
     "kubernetes-controller-tools@latest",
+    "openapi-generator-cli@latest",
     "yamllint@latest",
     "path:./hack/flakes#yamllint-checkstyle",
     "path:./hack/flakes#keploy"
