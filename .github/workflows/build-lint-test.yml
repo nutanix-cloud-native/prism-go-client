@@ -46,7 +46,7 @@ jobs:
       run: devbox run -- make coverage
 
     - name: Codecov
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4.5.0
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
