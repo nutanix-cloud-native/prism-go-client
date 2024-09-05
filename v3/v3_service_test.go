@@ -5203,6 +5203,7 @@ func TestOperations_DeleteRecoveryPlan(t *testing.T) {
 	_, err = v3Client.V3.DeleteRecoveryPlan(kctx, "b2fe0a67-3be2-407c-8e83-9b5d6af14cec")
 	assert.NoError(t, err)
 }
+
 func TestOperations_GetRecoveryPlanJob(t *testing.T) {
 	mux, c, server := setup(t)
 

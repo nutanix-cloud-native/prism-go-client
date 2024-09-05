@@ -94,7 +94,7 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=cluster_nodes \
 		--model=hypervisor_server \
 		--model=cluster_software \
-		--model=software_type
+		--model=software_type \
 		--model=recovery_plan_resources \
 		--model=recovery_plan_volume_group_recovery_info \
 		--model=recovery_plan_stage \
