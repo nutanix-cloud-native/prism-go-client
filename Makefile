@@ -130,20 +130,21 @@ clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
 	rm -f checkstyle-report.xml ./coverage.out ./profile.cov yamllint-checkstyle.xml
 
+GOTESTPKGS = $(shell go list ./... | grep -v /v3/models)
+
 ## Test:
 test: run-keploy ## Run the tests of the project
 	go test -race -v ./...
 	@$(MAKE) stop-keploy
 
 coverage: run-keploy ## Run the tests of the project and export the coverage
-	go test -race -coverprofile=coverage.out -covermode=atomic ./...
+	go test -race -coverprofile=coverage.out -covermode=atomic $(GOTESTPKGS)
 	@$(MAKE) stop-keploy
 
 ## Lint:
 lint: lint-go lint-yaml lint-kubebuilder ## Run all available linters
 
 lint-go: ## Use golintci-lint on your project
-	$(eval OUTPUT_OPTIONS = $(shell [ "${EXPORT_RESULT}" == "true" ] && echo "--out-format checkstyle ./... | tee /dev/tty > checkstyle-report.xml" || echo "" ))
 	golangci-lint run -v
 
 lint-yaml: ## Use yamllint on the yaml file of your projects
