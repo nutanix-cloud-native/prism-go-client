@@ -39,14 +39,11 @@ jobs:
     - name: Check Kubebuilder Annotation linting
       run: devbox run -- make lint-kubebuilder
 
-    - name: Run tests
-      run: devbox run -- make test
-
     - name: Prepare coverage report
       run: devbox run -- make coverage
 
     - name: Codecov
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
