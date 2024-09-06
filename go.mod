@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/go-logr/logr v1.4.1
-	github.com/go-logr/zapr v1.2.3
+	github.com/go-logr/zapr v1.3.0
 	github.com/go-openapi/errors v0.22.0
 	github.com/go-openapi/strfmt v0.23.0
 	github.com/go-openapi/swag v0.23.0
@@ -24,7 +24,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/stretchr/testify v1.9.0
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.26.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.7
 	k8s.io/apimachinery v0.29.7
@@ -75,8 +75,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	go.keploy.io/server v0.8.6 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
