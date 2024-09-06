@@ -6,7 +6,7 @@ toolchain go1.22.2
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/go-logr/logr v1.4.1
+	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-openapi/errors v0.22.0
 	github.com/go-openapi/strfmt v0.23.0
