@@ -30,7 +30,24 @@ const (
 	_taskFailed                = "FAILED"
 	_taskAborted               = "ABORTED"
 	_taskSuspended             = "SUSPENDED"
+	_ascending                 = "asc"
+	_descending                = "desc"
 )
+
+type listResponseExpected struct {
+	total          int64
+	offset         int64
+	pageSize       int64
+	len            int
+	firstClusterId string
+}
+
+type testCase struct {
+	offset    int
+	pageSize  int
+	sortOrder string
+	expected  listResponseExpected
+}
 
 func validateK8sClusterRegistration(t *testing.T, k8sClusterReg *K8sClusterRegistration) {
 	assert.NotEmpty(t, *k8sClusterReg.Name)
@@ -102,8 +119,8 @@ func validateK8sClusterRegistrationCreateResponse(t *testing.T, expected_k8s_clu
 	assert.NotEmpty(t, *createResp.TaskUUID)
 }
 
-func validateK8sClusterRegistrationList(t *testing.T, clusterRegList *K8sClusterRegistrationList) {
-	for _, k8sRegistration := range *clusterRegList {
+func validateK8sClusterRegistrationList(t *testing.T, clusterRegListResponse *K8sClusterRegistrationListResponse) {
+	for _, k8sRegistration := range clusterRegListResponse.Data {
 		validateK8sClusterRegistration(t, k8sRegistration)
 	}
 }
@@ -497,6 +514,85 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }
 
+func TestKarbonGetRegistrationListPagination(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	tests := []testCase{
+		{
+			// empty response
+			offset:    100,
+			pageSize:  20,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         100,
+				pageSize:       20,
+				total:          0,
+				len:            0,
+				firstClusterId: "",
+			},
+		},
+		{
+			// page 1
+			offset:    0,
+			pageSize:  1,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         0,
+				pageSize:       1,
+				total:          5,
+				len:            1,
+				firstClusterId: "ca1a5ef8-bb00-4f85-9c59-a24a252c49b0",
+			},
+		},
+		{
+			// page 2
+			offset:    1,
+			pageSize:  1,
+			sortOrder: _ascending,
+			expected: listResponseExpected{
+				offset:         1,
+				pageSize:       1,
+				total:          5,
+				len:            1,
+				firstClusterId: "4d7f4ec6-4182-4789-af38-800bd0cc5b60",
+			},
+		},
+		{
+			// descending order
+			offset:    0,
+			pageSize:  2,
+			sortOrder: _descending,
+			expected: listResponseExpected{
+				offset:         0,
+				pageSize:       2,
+				total:          5,
+				len:            2,
+				firstClusterId: "7979a5eb-4470-44e6-b946-2b0e0f8d13b2",
+			},
+		},
+	}
+	for _, tc := range tests {
+		response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, tc.offset, tc.pageSize, tc.sortOrder)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected.total, response.Total)
+		assert.Equal(t, tc.expected.offset, response.Offset)
+		assert.Equal(t, tc.expected.pageSize, response.PageSize)
+		assert.Equal(t, tc.expected.len, len(response.Data))
+		if len(response.Data) > 0 {
+			responseFirstClusterId := response.Data[0].UUID
+			assert.Equal(t, tc.expected.firstClusterId, responseFirstClusterId)
+		}
+	}
+}
+
 func TestKarbonGetK8sRegistrationList(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
@@ -508,7 +604,7 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx, 0, 1, _ascending)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationList(t, response)
 }
