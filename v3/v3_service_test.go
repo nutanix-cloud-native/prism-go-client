@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
@@ -5007,994 +5007,201 @@ func TestOperations_TestProcessProtectionRule(t *testing.T) {
 }
 
 func TestOperations_CreateRecoveryPlan(t *testing.T) {
-	mux, c, server := setup(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	creds.Insecure = true
 
-	defer server.Close()
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
 
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-
-		expected := map[string]interface{}{
-			"api_version": "3.1",
-			"metadata": map[string]interface{}{
-				"name": "recovery_plan_test_name",
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-			},
-			"spec": map[string]interface{}{
-				"resources": map[string]interface{}{
-					"volume_group_recovery_info_list": []interface{}{
-						map[string]interface{}{
-							"category_filter": map[string]interface{}{
-								"params": map[string]interface{}{
-									"catKey": []interface{}{"catVal1", "catVal2"},
-								},
-							},
-						},
-					},
-					"parameters": map[string]interface{}{
-						"primary_location_index": float64(0),
-						"availability_zone_list": []interface{}{
-							map[string]interface{}{
-								"availability_zone_url": "zone url",
-								"cluster_reference_list": []interface{}{
-									map[string]interface{}{
-										"kind": "cluster",
-										"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-									},
-								},
-							},
-							map[string]interface{}{
-								"availability_zone_url": "zone url",
-								"cluster_reference_list": []interface{}{
-									map[string]interface{}{
-										"kind": "cluster",
-										"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-									},
-								},
-							},
-						},
-						"network_mapping_list": []interface{}{
-							map[string]interface{}{
-								"are_networks_stretched": false,
-								"availability_zone_network_mapping_list": []interface{}{
-									map[string]interface{}{
-										"availability_zone_url": "zone url",
-										"recovery_network": map[string]interface{}{
-											"use_vpc_reference": true,
-											"virtual_network_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"vpc_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"subnet_list": []interface{}{
-												map[string]interface{}{
-													"gateway_ip":                  "127.0.0.1",
-													"prefix_length":               float64(16),
-													"external_connectivity_state": "external",
-												},
-											},
-										},
-										"test_network": map[string]interface{}{
-											"use_vpc_reference": true,
-											"virtual_network_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"vpc_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"subnet_list": []interface{}{
-												map[string]interface{}{
-													"gateway_ip":                  "127.0.0.1",
-													"prefix_length":               float64(16),
-													"external_connectivity_state": "external",
-												},
-											},
-										},
-										"recovery_ip_assignment_list": []interface{}{
-											map[string]interface{}{
-												"vm_reference": map[string]interface{}{
-													"name": "recovery_plan_test_name",
-													"kind": "recovery_plan",
-													"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-												},
-												"ip_config_list": []interface{}{
-													map[string]interface{}{
-														"ip_address": "127.0.0.1",
-													},
-												},
-											},
-										},
-										"test_ip_assignment_list": []interface{}{
-											map[string]interface{}{
-												"vm_reference": map[string]interface{}{
-													"name": "recovery_plan_test_name",
-													"kind": "recovery_plan",
-													"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-												},
-												"ip_config_list": []interface{}{
-													map[string]interface{}{
-														"ip_address": "127.0.0.1",
-													},
-												},
-											},
-										},
-										"cluster_reference_list": []interface{}{
-											map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-										},
-									},
-								},
-							},
-						},
-						"floating_ip_assignment_list": []interface{}{
-							map[string]interface{}{
-								"availability_zone_url": "zone url",
-								"vm_ip_assignment_list": []interface{}{
-									map[string]interface{}{
-										"vm_reference": map[string]interface{}{
-											"name": "recovery_plan_test_name",
-											"kind": "recovery_plan",
-											"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-										},
-										"vm_nic_information": map[string]interface{}{
-											"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											"ip":   "127.0.0.1",
-										},
-										"test_floating_ip_config": map[string]interface{}{
-											"should_allocate_dynamically": false,
-											"ip":                          "127.0.0.1",
-										},
-										"recovery_floating_ip_config": map[string]interface{}{
-											"should_allocate_dynamically": false,
-											"ip":                          "127.0.0.1",
-										},
-									},
-								},
-							},
-						},
-					},
-					"stage_list": []interface{}{
-						map[string]interface{}{
-							"stage_uuid":      "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-							"delay_time_secs": float64(0),
-							"stage_work": map[string]interface{}{
-								"recover_entities": map[string]interface{}{
-									"entity_info_list": []interface{}{
-										map[string]interface{}{
-											"script_list": []interface{}{
-												map[string]interface{}{
-													"enable_script_exec": false,
-													"timeout":            float64(0),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				"name":        "recovery_plan_name",
-				"description": "description_test",
-			},
-		}
-
-		var v map[string]interface{}
-		err := json.NewDecoder(r.Body).Decode(&v)
-		if err != nil {
-			t.Fatalf("decode json: %v", err)
-		}
-
-		assert := assert.New(t)
-		if !assert.Equal(v, expected, "The response should be the same") {
-			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
-		}
-
-		fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc"
-			}
-		}`)
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
 	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		request *RecoveryPlanInput
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *RecoveryPlanResponse
-		wantErr bool
-	}{
-		{
-			"Test CreateRecoveryPlans",
-			fields{c},
-			args{
-				&RecoveryPlanInput{
-					APIVersion: "3.1",
-					Metadata: &Metadata{
-						Name: utils.StringPtr("recovery_plan_test_name"),
-						Kind: utils.StringPtr("recovery_plan"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+	rp := &models.RecoveryPlanIntentInput{
+		APIVersion: "3.1",
+		Metadata: &models.RecoveryPlanMetadata{
+			Kind: "recovery_plan",
+		},
+		Spec: &models.RecoveryPlan{
+			Name: utils.StringPtr("recovery_plan_test_name-4"),
+			Resources: &models.RecoveryPlanResources{
+				VolumeGroupRecoveryInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfo{
+					{
+						CategoryFilter: &models.CategoryFilter{
+							KindList: []string{},
+							Params: map[string][]string{
+								"test-category": {"test-key"},
+							},
+						},
+						VolumeGroupConfigInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfoVolumeGroupConfigInfoListItems0{},
 					},
-					Spec: &RecoveryPlanSpec{
-						Name:        "recovery_plan_name",
-						Description: "description_test",
-						Resources: &RecoveryPlanResources{
-							VolumeGroupRecoveryInfoList: []*VolumeGroupRecoveryInfoList{
+				},
+				StageList: []*models.RecoveryPlanStage{},
+				Parameters: &models.RecoveryPlanResourcesParameters{
+					DataServiceIPMappingList: []*models.RecoveryPlanResourcesParametersDataServiceIPMappingListItems0{},
+					FloatingIPAssignmentList: []*models.RecoveryPlanResourcesParametersFloatingIPAssignmentListItems0{},
+					NetworkMappingList:       []*models.RecoveryPlanResourcesParametersNetworkMappingListItems0{},
+					WitnessConfigurationList: []*models.WitnessConfiguration{
+						{
+							WitnessAddress:             "4b194a2d-5468-4e92-8953-571cb39be910",
+							WitnessFailoverTimeoutSecs: 1,
+						},
+					},
+
+					PrimaryLocationIndex: 0,
+					AvailabilityZoneList: []*models.AvailabilityZoneInformation{
+						{
+							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							ClusterReferenceList: []*models.ClusterReference{
 								{
-									CategoryFilter: &CategoryFilter{
-										Params: map[string][]string{
-											"catKey": {"catVal1", "catVal2"},
-										},
-									},
+									Kind: "cluster",
+									UUID: utils.StringPtr("0006200e-fe43-236a-0000-00000000601e"),
 								},
 							},
-							StageList: []*StageList{
+						},
+						{
+							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							ClusterReferenceList: []*models.ClusterReference{
 								{
-									StageUUID:     "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-									DelayTimeSecs: utils.Int64Ptr(0),
-									StageWork: &StageWork{
-										RecoverEntities: &RecoverEntities{
-											EntityInfoList: []*EntityInfoList{
-												{
-													ScriptList: []*ScriptList{
-														{
-															EnableScriptExec: utils.BoolPtr(false),
-															Timeout:          utils.Int64Ptr(0),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-							Parameters: &Parameters{
-								PrimaryLocationIndex: utils.Int64Ptr(0),
-								AvailabilityZoneList: []*AvailabilityZoneList{
-									{
-										AvailabilityZoneURL: utils.StringPtr("zone url"),
-										ClusterReferenceList: []*Reference{
-											{
-												Kind: utils.StringPtr("cluster"),
-												UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-											},
-										},
-									},
-									{
-										AvailabilityZoneURL: utils.StringPtr("zone url"),
-										ClusterReferenceList: []*Reference{
-											{
-												Kind: utils.StringPtr("cluster"),
-												UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-											},
-										},
-									},
-								},
-								FloatingIPAssignmentList: []*FloatingIPAssignmentList{
-									{
-										AvailabilityZoneURL: "zone url",
-										VMIPAssignmentList: []*VMIPAssignmentList{
-											{
-												VMReference: &Reference{
-													Name: utils.StringPtr("recovery_plan_test_name"),
-													Kind: utils.StringPtr("recovery_plan"),
-													UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-												},
-												VMNICInformation: &VMNICInformation{
-													UUID: "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-													IP:   "127.0.0.1",
-												},
-												TestFloatingIPConfig: &FloatingIPConfig{
-													IP:                        "127.0.0.1",
-													ShouldAllocateDynamically: utils.BoolPtr(false),
-												},
-												RecoveryFloatingIPConfig: &FloatingIPConfig{
-													IP:                        "127.0.0.1",
-													ShouldAllocateDynamically: utils.BoolPtr(false),
-												},
-											},
-										},
-									},
-								},
-								NetworkMappingList: []*NetworkMappingList{
-									{
-										AreNetworksStretched: utils.BoolPtr(false),
-										AvailabilityZoneNetworkMappingList: []*AvailabilityZoneNetworkMappingList{
-											{
-												AvailabilityZoneURL: "zone url",
-												RecoveryNetwork: &Network{
-													UseVPCReference: utils.BoolPtr(true),
-													VirtualNetworkReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													VPCReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													SubnetList: []*SubnetList{
-														{
-															GatewayIP:                 "127.0.0.1",
-															PrefixLength:              utils.Int64Ptr(16),
-															ExternalConnectivityState: "external",
-														},
-													},
-												},
-												TestNetwork: &Network{
-													UseVPCReference: utils.BoolPtr(true),
-													VirtualNetworkReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													VPCReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													SubnetList: []*SubnetList{
-														{
-															GatewayIP:                 "127.0.0.1",
-															PrefixLength:              utils.Int64Ptr(16),
-															ExternalConnectivityState: "external",
-														},
-													},
-												},
-												RecoveryIPAssignmentList: []*IPAssignmentList{
-													{
-														VMReference: &Reference{
-															Name: utils.StringPtr("recovery_plan_test_name"),
-															Kind: utils.StringPtr("recovery_plan"),
-															UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-														},
-														IPConfigList: []*IPConfigList{
-															{
-																IPAddress: "127.0.0.1",
-															},
-														},
-													},
-												},
-												TestIPAssignmentList: []*IPAssignmentList{
-													{
-														VMReference: &Reference{
-															Name: utils.StringPtr("recovery_plan_test_name"),
-															Kind: utils.StringPtr("recovery_plan"),
-															UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-														},
-														IPConfigList: []*IPConfigList{
-															{
-																IPAddress: "127.0.0.1",
-															},
-														},
-													},
-												},
-												ClusterReferenceList: []*Reference{
-													{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-												},
-											},
-										},
-									},
+									Kind: "cluster",
+									UUID: utils.StringPtr("0006200e-f1f5-ef7f-0000-00000000601d"),
 								},
 							},
 						},
 					},
 				},
 			},
-			&RecoveryPlanResponse{
-				APIVersion: "3.1",
-				Metadata: &Metadata{
-					Kind: utils.StringPtr("recovery_plan"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-				},
-			},
-			false,
 		},
 	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.CreateRecoveryPlan(context.Background(), tt.args.request)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.CreateRecoveryPlans() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.CreateRecoveryPlans() = %v, want %v", got, tt.want)
-			}
-		})
+	_, err = v3Client.V3.CreateRecoveryPlan(kctx, rp)
+	if err != nil {
+		t.Fatalf("error: %v", err)
 	}
 }
 
 func TestOperations_GetRecoveryPlan(t *testing.T) {
-	mux, c, server := setup(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	creds.Insecure = true
 
-	defer server.Close()
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
 
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"recovery_plan","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
 	})
-
-	response := &RecoveryPlanResponse{}
-	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("recovery_plan"),
+	resp, err := v3Client.V3.GetRecoveryPlan(kctx, "b2fe0a67-3be2-407c-8e83-9b5d6af14cec")
+	if err != nil {
+		t.Fatalf("error: %v", err)
 	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *RecoveryPlanResponse
-		wantErr bool
-	}{
-		{
-			"Test GetRecoveryPlan OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			response,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.GetRecoveryPlan(context.Background(), tt.args.UUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.GetRecoveryPlan() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.GetRecoveryPlan() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	assert.Equal(t, "recovery_plan_test_name-4", *resp.Spec.Name)
 }
 
 func TestOperations_ListRecoveryPlans(t *testing.T) {
-	mux, c, server := setup(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	creds.Insecure = true
 
-	defer server.Close()
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
 
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans/list", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"recovery_plan","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
 	})
-
-	responseList := &RecoveryPlanListResponse{}
-	responseList.Entities = make([]*RecoveryPlanResponse, 1)
-	responseList.Entities[0] = &RecoveryPlanResponse{}
-	responseList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("recovery_plan"),
-	}
-
-	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		getEntitiesRequest *DSMetadata
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *RecoveryPlanListResponse
-		wantErr bool
-	}{
-		{
-			"Test ListRecoveryPlans OK",
-			fields{c},
-			args{input},
-			responseList,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.ListRecoveryPlans(context.Background(), tt.args.getEntitiesRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.ListRecoveryPlans() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.ListRecoveryPlans() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	_, err = v3Client.V3.ListRecoveryPlans(kctx, &DSMetadata{Length: utils.Int64Ptr(10)})
+	assert.NoError(t, err)
 }
 
 func TestOperations_UpdateRecoveryPlans(t *testing.T) {
-	mux, c, server := setup(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	creds.Insecure = true
 
-	defer server.Close()
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
 
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPut)
-
-		expected := map[string]interface{}{
-			"api_version": "3.1",
-			"metadata": map[string]interface{}{
-				"name": "recovery_plan_test_name",
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-			},
-			"spec": map[string]interface{}{
-				"resources": map[string]interface{}{
-					"parameters": map[string]interface{}{
-						"network_mapping_list": []interface{}{
-							map[string]interface{}{
-								"are_networks_stretched": false,
-								"availability_zone_network_mapping_list": []interface{}{
-									map[string]interface{}{
-										"availability_zone_url": "zone url",
-										"recovery_network": map[string]interface{}{
-											"use_vpc_reference": true,
-											"virtual_network_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"vpc_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"subnet_list": []interface{}{
-												map[string]interface{}{
-													"gateway_ip":                  "127.0.0.1",
-													"prefix_length":               float64(16),
-													"external_connectivity_state": "external",
-												},
-											},
-										},
-										"test_network": map[string]interface{}{
-											"use_vpc_reference": true,
-											"virtual_network_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"vpc_reference": map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-											"subnet_list": []interface{}{
-												map[string]interface{}{
-													"gateway_ip":                  "127.0.0.1",
-													"prefix_length":               float64(16),
-													"external_connectivity_state": "external",
-												},
-											},
-										},
-										"recovery_ip_assignment_list": []interface{}{
-											map[string]interface{}{
-												"vm_reference": map[string]interface{}{
-													"name": "recovery_plan_test_name",
-													"kind": "recovery_plan",
-													"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-												},
-												"ip_config_list": []interface{}{
-													map[string]interface{}{
-														"ip_address": "127.0.0.1",
-													},
-												},
-											},
-										},
-										"test_ip_assignment_list": []interface{}{
-											map[string]interface{}{
-												"vm_reference": map[string]interface{}{
-													"name": "recovery_plan_test_name",
-													"kind": "recovery_plan",
-													"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-												},
-												"ip_config_list": []interface{}{
-													map[string]interface{}{
-														"ip_address": "127.0.0.1",
-													},
-												},
-											},
-										},
-										"cluster_reference_list": []interface{}{
-											map[string]interface{}{
-												"name": "recovery_plan_test_name",
-												"kind": "recovery_plan",
-												"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											},
-										},
-									},
-								},
-							},
-						},
-						"floating_ip_assignment_list": []interface{}{
-							map[string]interface{}{
-								"availability_zone_url": "zone url",
-								"vm_ip_assignment_list": []interface{}{
-									map[string]interface{}{
-										"vm_reference": map[string]interface{}{
-											"name": "recovery_plan_test_name",
-											"kind": "recovery_plan",
-											"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-										},
-										"vm_nic_information": map[string]interface{}{
-											"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-											"ip":   "127.0.0.1",
-										},
-										"test_floating_ip_config": map[string]interface{}{
-											"should_allocate_dynamically": false,
-											"ip":                          "127.0.0.1",
-										},
-										"recovery_floating_ip_config": map[string]interface{}{
-											"should_allocate_dynamically": false,
-											"ip":                          "127.0.0.1",
-										},
-									},
-								},
-							},
-						},
-					},
-					"stage_list": []interface{}{
-						map[string]interface{}{
-							"stage_uuid":      "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-							"delay_time_secs": float64(0),
-							"stage_work": map[string]interface{}{
-								"recover_entities": map[string]interface{}{
-									"entity_info_list": []interface{}{
-										map[string]interface{}{
-											"script_list": []interface{}{
-												map[string]interface{}{
-													"enable_script_exec": false,
-													"timeout":            float64(0),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				"name":        "recovery_plan_name",
-				"description": "description_test",
-			},
-		}
-
-		var v map[string]interface{}
-		err := json.NewDecoder(r.Body).Decode(&v)
-		if err != nil {
-			t.Fatalf("decode json: %v", err)
-		}
-
-		assert := assert.New(t)
-		if !assert.Equal(v, expected, "The response should be the same") {
-			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
-		}
-
-		fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc"
-			}
-		}`)
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
 	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-		body *RecoveryPlanInput
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *RecoveryPlanResponse
-		wantErr bool
-	}{
-		{
-			"Test UpdateRecoveryPlans",
-			fields{c},
-			args{
-				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
-				&RecoveryPlanInput{
-					APIVersion: "3.1",
-					Metadata: &Metadata{
-						Name: utils.StringPtr("recovery_plan_test_name"),
-						Kind: utils.StringPtr("recovery_plan"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+	rp := &models.RecoveryPlanIntentInput{
+		APIVersion: "3.1",
+		Metadata: &models.RecoveryPlanMetadata{
+			Kind: "recovery_plan",
+		},
+		Spec: &models.RecoveryPlan{
+			Name: utils.StringPtr("recovery_plan_test_name-5"),
+			Resources: &models.RecoveryPlanResources{
+				VolumeGroupRecoveryInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfo{
+					{
+						CategoryFilter: &models.CategoryFilter{
+							KindList: []string{},
+							Params: map[string][]string{
+								"test-category": {"test-key"},
+							},
+						},
+						VolumeGroupConfigInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfoVolumeGroupConfigInfoListItems0{},
 					},
-					Spec: &RecoveryPlanSpec{
-						Name:        "recovery_plan_name",
-						Description: "description_test",
-						Resources: &RecoveryPlanResources{
-							StageList: []*StageList{
+				},
+				StageList: []*models.RecoveryPlanStage{},
+				Parameters: &models.RecoveryPlanResourcesParameters{
+					DataServiceIPMappingList: []*models.RecoveryPlanResourcesParametersDataServiceIPMappingListItems0{},
+					FloatingIPAssignmentList: []*models.RecoveryPlanResourcesParametersFloatingIPAssignmentListItems0{},
+					NetworkMappingList:       []*models.RecoveryPlanResourcesParametersNetworkMappingListItems0{},
+					WitnessConfigurationList: []*models.WitnessConfiguration{
+						{
+							WitnessAddress:             "4b194a2d-5468-4e92-8953-571cb39be910",
+							WitnessFailoverTimeoutSecs: 1,
+						},
+					},
+
+					PrimaryLocationIndex: 0,
+					AvailabilityZoneList: []*models.AvailabilityZoneInformation{
+						{
+							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							ClusterReferenceList: []*models.ClusterReference{
 								{
-									StageUUID:     "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-									DelayTimeSecs: utils.Int64Ptr(0),
-									StageWork: &StageWork{
-										RecoverEntities: &RecoverEntities{
-											EntityInfoList: []*EntityInfoList{
-												{
-													ScriptList: []*ScriptList{
-														{
-															EnableScriptExec: utils.BoolPtr(false),
-															Timeout:          utils.Int64Ptr(0),
-														},
-													},
-												},
-											},
-										},
-									},
+									Kind: "cluster",
+									UUID: utils.StringPtr("0006200e-fe43-236a-0000-00000000601e"),
 								},
 							},
-							Parameters: &Parameters{
-								FloatingIPAssignmentList: []*FloatingIPAssignmentList{
-									{
-										AvailabilityZoneURL: "zone url",
-										VMIPAssignmentList: []*VMIPAssignmentList{
-											{
-												VMReference: &Reference{
-													Name: utils.StringPtr("recovery_plan_test_name"),
-													Kind: utils.StringPtr("recovery_plan"),
-													UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-												},
-												VMNICInformation: &VMNICInformation{
-													UUID: "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-													IP:   "127.0.0.1",
-												},
-												TestFloatingIPConfig: &FloatingIPConfig{
-													IP:                        "127.0.0.1",
-													ShouldAllocateDynamically: utils.BoolPtr(false),
-												},
-												RecoveryFloatingIPConfig: &FloatingIPConfig{
-													IP:                        "127.0.0.1",
-													ShouldAllocateDynamically: utils.BoolPtr(false),
-												},
-											},
-										},
-									},
-								},
-								NetworkMappingList: []*NetworkMappingList{
-									{
-										AreNetworksStretched: utils.BoolPtr(false),
-										AvailabilityZoneNetworkMappingList: []*AvailabilityZoneNetworkMappingList{
-											{
-												AvailabilityZoneURL: "zone url",
-												RecoveryNetwork: &Network{
-													UseVPCReference: utils.BoolPtr(true),
-													VirtualNetworkReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													VPCReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													SubnetList: []*SubnetList{
-														{
-															GatewayIP:                 "127.0.0.1",
-															PrefixLength:              utils.Int64Ptr(16),
-															ExternalConnectivityState: "external",
-														},
-													},
-												},
-												TestNetwork: &Network{
-													UseVPCReference: utils.BoolPtr(true),
-													VirtualNetworkReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													VPCReference: &Reference{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-													SubnetList: []*SubnetList{
-														{
-															GatewayIP:                 "127.0.0.1",
-															PrefixLength:              utils.Int64Ptr(16),
-															ExternalConnectivityState: "external",
-														},
-													},
-												},
-												RecoveryIPAssignmentList: []*IPAssignmentList{
-													{
-														VMReference: &Reference{
-															Name: utils.StringPtr("recovery_plan_test_name"),
-															Kind: utils.StringPtr("recovery_plan"),
-															UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-														},
-														IPConfigList: []*IPConfigList{
-															{
-																IPAddress: "127.0.0.1",
-															},
-														},
-													},
-												},
-												TestIPAssignmentList: []*IPAssignmentList{
-													{
-														VMReference: &Reference{
-															Name: utils.StringPtr("recovery_plan_test_name"),
-															Kind: utils.StringPtr("recovery_plan"),
-															UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-														},
-														IPConfigList: []*IPConfigList{
-															{
-																IPAddress: "127.0.0.1",
-															},
-														},
-													},
-												},
-												ClusterReferenceList: []*Reference{
-													{
-														Name: utils.StringPtr("recovery_plan_test_name"),
-														Kind: utils.StringPtr("recovery_plan"),
-														UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-													},
-												},
-											},
-										},
-									},
+						},
+						{
+							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							ClusterReferenceList: []*models.ClusterReference{
+								{
+									Kind: "cluster",
+									UUID: utils.StringPtr("0006200e-f1f5-ef7f-0000-00000000601d"),
 								},
 							},
 						},
 					},
 				},
 			},
-			&RecoveryPlanResponse{
-				APIVersion: "3.1",
-				Metadata: &Metadata{
-					Kind: utils.StringPtr("recovery_plan"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-				},
-			},
-			false,
 		},
 	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.UpdateRecoveryPlan(context.Background(), tt.args.UUID, tt.args.body)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.UpdateRecoveryPlans() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.UpdateRecoveryPlans() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	_, err = v3Client.V3.UpdateRecoveryPlan(kctx, "b2fe0a67-3be2-407c-8e83-9b5d6af14cec", rp)
+	assert.NoError(t, err)
+	assert.Equal(t, "recovery_plan_test_name-5", *rp.Spec.Name)
 }
 
 func TestOperations_DeleteRecoveryPlan(t *testing.T) {
-	mux, c, server := setup(t)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	creds.Insecure = true
 
-	defer server.Close()
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
 
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodDelete)
-		fmt.Fprint(w, `{"status": {"State":"some_state"}}`)
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
 	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *DeleteResponse
-		wantErr bool
-	}{
-		{
-			"Test DeleteRecoveryPlans OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			&DeleteResponse{
-				Status: &DeleteStatus{
-					State: "some_state",
-				},
-			},
-			false,
-		},
-		{
-			"Test DeleteRecoveryPlans Errored",
-			fields{c},
-			args{},
-			&DeleteResponse{},
-			true,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.DeleteRecoveryPlan(context.Background(), tt.args.UUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.DeleteRecoveryPlan() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.DeleteRecoveryPlan() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	_, err = v3Client.V3.DeleteRecoveryPlan(kctx, "b2fe0a67-3be2-407c-8e83-9b5d6af14cec")
+	assert.NoError(t, err)
 }
 
 func TestOperations_GetRecoveryPlanJob(t *testing.T) {

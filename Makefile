@@ -94,7 +94,37 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=cluster_nodes \
 		--model=hypervisor_server \
 		--model=cluster_software \
-		--model=software_type
+		--model=software_type \
+		--model=recovery_plan_resources \
+		--model=recovery_plan_volume_group_recovery_info \
+		--model=recovery_plan_stage \
+		--model=availability_zone_information \
+		--model=witness_configuration \
+		--model=recovery_plan_data_service_ip_config \
+		--model=recovery_plan_floating_ip_config \
+		--model=recovery_plan_vm_ip_assignment \
+		--model=recovery_plan_network \
+		--model=recover_entities \
+		--model=category_filter \
+		--model=reference \
+		--model=recovery_plan_script_config \
+		--model=volume_group_reference \
+		--model=recovery_plan_subnet_config \
+		--model=recovery_plan_l2_stretch_config \
+		--model=recovery_plan_subnet_range_config \
+		--model=vtep_gateway_reference \
+		--model=recovery_plan \
+		--model=recovery_plan_intent_input \
+		--model=api_version \
+		--model=recovery_plan_metadata \
+		--model=user_reference \
+		--model=project_reference \
+		--model=recovery_plan_intent_response \
+		--model=recovery_plan_def_status \
+		--model=recovery_plan_list_intent_response \
+		--model=recovery_plan_intent_resource \
+		--model=recovery_plan_list_metadata_output \
+		--model=sort_order
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin

@@ -3,7 +3,7 @@ package v3
 import (
 	"time"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
