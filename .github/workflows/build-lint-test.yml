@@ -43,7 +43,7 @@ jobs:
       run: devbox run -- make coverage
 
     - name: Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./coverage.out  # Replace with the path to your coverage report
         fail_ci_if_error: true
