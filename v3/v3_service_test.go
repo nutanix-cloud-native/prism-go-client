@@ -5809,3 +5809,67 @@ func TestOperations_ListCluster(t *testing.T) {
 	assert.Equal(t, "cluster", *prismElements[0].Metadata.Kind)
 	assert.Equal(t, "ganon", prismElements[0].Status.Name)
 }
+
+func TestOperations_CreateIdempotenceIdentifers(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_RECORD,
+		Name: t.Name(),
+	})
+
+	resp, err := v3Client.V3.CreateIdempotenceIdentifiers(
+		kctx,
+		&models.IdempotenceIdentifiersInput{
+			ClientIdentifier:       "testclient",
+			Count:                  utils.Int64Ptr(2),
+			ValidDurationInMinutes: 10,
+		},
+	)
+	require.NoError(t, err)
+	assert.Equal(t, resp.ClientIdentifier, "testclient")
+	assert.NotZero(t, resp.ExpirationTime)
+	assert.Len(t, resp.UUIDList, 2)
+}
+
+func TestOperations_GetIdempotenceIdentifers(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_RECORD,
+		Name: t.Name(),
+	})
+
+	resp, err := v3Client.V3.GetIdempotenceIdentifiers(
+		kctx,
+		"testclient",
+	)
+	require.NoError(t, err)
+	assert.Equal(t, resp.ClientIdentifier, "testclient")
+	assert.Equal(t, *resp.Count, int64(2))
+	assert.Len(t, resp.UUIDList, 2)
+}
+
+func TestOperations_DeleteIdempotenceIdentifers(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_RECORD,
+		Name: t.Name(),
+	})
+
+	err = v3Client.V3.DeleteIdempotenceIdentifiers(
+		kctx,
+		"testclient",
+	)
+	require.NoError(t, err)
+}

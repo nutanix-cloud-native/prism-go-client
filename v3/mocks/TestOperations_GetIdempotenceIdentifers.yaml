@@ -1,0 +1,45 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_GetIdempotenceIdentifers
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://pc.dev.nkp.sh:9440/api/nutanix/v3/idempotence_identifiers/testclient
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
+            Content-Type: application/json
+            Date: Tue, 10 Dec 2024 16:52:31 GMT
+            Server: envoy
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "181"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.1.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"client_identifier": "testclient", "count": 2, "expiration_time": "2024-12-10T17:01:02Z", "uuid_list": ["ab411b1a-f173-4009-9a8f-3d6e996c752a", "2515c166-dc95-4c12-8eb2-5d0aed9ad931"]}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
