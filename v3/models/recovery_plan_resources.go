@@ -289,7 +289,7 @@ type RecoveryPlanResourcesParameters struct {
 
 	// This field should be set to the index of the Availability Zone in the availability_zone_list which should be considered as a protected Availability Zone.
 	//
-	PrimaryLocationIndex int64 `json:"primary_location_index"`
+	PrimaryLocationIndex int64 `json:"primary_location_index,omitempty"`
 
 	// A list containing witness configuration.
 	//

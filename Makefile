@@ -124,7 +124,11 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=recovery_plan_list_intent_response \
 		--model=recovery_plan_intent_resource \
 		--model=recovery_plan_list_metadata_output \
-		--model=sort_order
+		--model=sort_order \
+		--model=idempotence_identifiers_input \
+		--model=idempotence_identifiers_metadata \
+		--model=idempotence_identifiers_response \
+		--model=idempotence_identifiers_status
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin

@@ -307,7 +307,7 @@ type RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0 struct {
 
 	// List of recovery Availability Zone orders for entities in the Recovery Plan. More than one entry in this list indicates entities in Recovery Plan are protected by the Protection Rules with different recovery Availability Zone order and makes Recovery Plan invalid.
 	//
-	AvailabilityZoneOrderList [][]*RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0AvailabilityZoneOrderListItems0AvailabilityZoneListItems0 `json:"availability_zone_order_list"`
+	AvailabilityZoneOrderList []*RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0AvailabilityZoneOrderListItems0 `json:"availability_zone_order_list"`
 
 	// URL of the Availability Zone.
 	//
@@ -334,6 +334,28 @@ func (m *RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0) Validate(
 }
 
 func (m *RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0) validateAvailabilityZoneOrderList(formats strfmt.Registry) error {
+	if swag.IsZero(m.AvailabilityZoneOrderList) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.AvailabilityZoneOrderList); i++ {
+		if swag.IsZero(m.AvailabilityZoneOrderList[i]) { // not required
+			continue
+		}
+
+		if m.AvailabilityZoneOrderList[i] != nil {
+			if err := m.AvailabilityZoneOrderList[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("availability_zone_order_list" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("availability_zone_order_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -361,6 +383,26 @@ func (m *RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0) ContextVa
 }
 
 func (m *RecoveryPlanDefStatusRecoveryAvailabilityZoneOrderListItems0) contextValidateAvailabilityZoneOrderList(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.AvailabilityZoneOrderList); i++ {
+
+		if m.AvailabilityZoneOrderList[i] != nil {
+
+			if swag.IsZero(m.AvailabilityZoneOrderList[i]) { // not required
+				return nil
+			}
+
+			if err := m.AvailabilityZoneOrderList[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("availability_zone_order_list" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("availability_zone_order_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
 
 	return nil
 }
