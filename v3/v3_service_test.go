@@ -5817,7 +5817,7 @@ func TestOperations_CreateIdempotenceIdentifers(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -5842,7 +5842,7 @@ func TestOperations_GetIdempotenceIdentifers(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 
@@ -5863,7 +5863,7 @@ func TestOperations_DeleteIdempotenceIdentifers(t *testing.T) {
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
-		Mode: keploy.MODE_RECORD,
+		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
 

@@ -10,7 +10,7 @@ spec:
         method: POST
         proto_major: 1
         proto_minor: 1
-        url: https://pc.dev.nkp.sh:9440/api/nutanix/v3/idempotence_identifiers
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/idempotence_identifiers
         header:
             Accept: application/json
             Content-Type: application/json
