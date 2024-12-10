@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added witness configuration to recovery plan spec.
+- Added support for creating, deleting, and listing idempotence identifiers.
 
 ### Changed
 - Updated the v3 Cluster spec and status structs to match latest swagger spec
