@@ -131,6 +131,9 @@ type Service interface {
 	GroupsGetEntities(ctx context.Context, request *GroupsGetEntitiesRequest) (*GroupsGetEntitiesResponse, error)
 	GetAvailabilityZone(ctx context.Context, uuid string) (*AvailabilityZoneIntentResponse, error)
 	GetPrismCentral(ctx context.Context) (*models.PrismCentral, error)
+	CreateIdempotenceIdentifiers(ctx context.Context, request *models.IdempotenceIdentifiersInput) (*models.IdempotenceIdentifiersResponse, error)
+	GetIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) (*models.IdempotenceIdentifiersResponse, error)
+	DeleteIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) error
 }
 
 /*CreateVM Creates a VM
@@ -2445,4 +2448,42 @@ func (op Operations) GetPrismCentral(ctx context.Context) (*models.PrismCentral,
 	}
 
 	return response, op.client.Do(ctx, req, response)
+}
+
+// CreateIdempotenceIdentifiers creates an idempotence identifier, scoped to the client identifier.
+func (op Operations) CreateIdempotenceIdentifiers(ctx context.Context, request *models.IdempotenceIdentifiersInput) (*models.IdempotenceIdentifiersResponse, error) {
+	req, err := op.client.NewRequest(http.MethodPost, "/idempotence_identifiers", request)
+	idResponse := new(models.IdempotenceIdentifiersResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return idResponse, op.client.Do(ctx, req, idResponse)
+}
+
+// GetIdempotenceIdentifiers gets all idempotence identifiers scoped to the client identifier.
+func (op Operations) GetIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) (*models.IdempotenceIdentifiersResponse, error) {
+	path := fmt.Sprintf("/idempotence_identifiers/%s", clientIdentifier)
+
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
+	idResponse := new(models.IdempotenceIdentifiersResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return idResponse, op.client.Do(ctx, req, idResponse)
+}
+
+// DeleteIdempotenceIdentifiers deletes all idempotence identifier scoped to the client identifier.
+func (op Operations) DeleteIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) error {
+	path := fmt.Sprintf("/idempotence_identifiers/%s", clientIdentifier)
+
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+
+	return op.client.Do(ctx, req, nil)
 }
