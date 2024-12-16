@@ -55,7 +55,11 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=vpc_reference \
 		--model=dhcp_options \
 		--model=address \
-		--model=ip_pool
+		--model=ip_pool \
+		--model=idempotence_identifiers_input \
+		--model=idempotence_identifiers_metadata \
+		--model=idempotence_identifiers_response \
+		--model=idempotence_identifiers_status
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
