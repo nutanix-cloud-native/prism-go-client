@@ -6,14 +6,12 @@ import (
 	"net/url"
 	"strconv"
 
-	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
-	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
+	clustermgmtapi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
+	clustermgmtclient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
 	networkingClient "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/client"
 	prismApi "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/api"
 	prismClient "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/client"
-	storageApi "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/api"
-	storageClient "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
@@ -30,11 +28,11 @@ const (
 // Client manages the V4 API
 type Client struct {
 	CategoriesApiInstance   *prismApi.CategoriesApi
-	ClustersApiInstance     *clusterApi.ClustersApi
+	ClustersApiInstance     *clustermgmtapi.ClustersApi
 	ImagesApiInstance       *vmApi.ImagesApi
-	StorageContainerAPI     *storageApi.StorageContainerApi
 	SubnetsApiInstance      *networkingApi.SubnetsApi
 	SubnetIPReservationApi  *networkingApi.SubnetIPReservationApi
+	StorageContainerAPI     *clustermgmtapi.StorageContainersApi
 	TasksApiInstance        *prismApi.TasksApi
 	VolumeGroupsApiInstance *volumesApi.VolumeGroupsApi
 	VmApiInstance           *vmApi.VmApi
@@ -104,13 +102,13 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	if err != nil {
 		return err
 	}
-	apiClientInstance := clusterClient.NewApiClient()
+	apiClientInstance := clustermgmtclient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.ClustersApiInstance = clusterApi.NewClustersApi(apiClientInstance)
+	v4Client.ClustersApiInstance = clustermgmtapi.NewClustersApi(apiClientInstance)
 	return nil
 }
 
@@ -151,13 +149,13 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	if err != nil {
 		return err
 	}
-	apiClientInstance := storageClient.NewApiClient()
+	apiClientInstance := clustermgmtclient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.StorageContainerAPI = storageApi.NewStorageContainerApi(apiClientInstance)
+	v4Client.StorageContainerAPI = clustermgmtapi.NewStorageContainersApi(apiClientInstance)
 	return nil
 }
 
