@@ -29,6 +29,7 @@ const (
 
 // Client manages the V4 API
 type Client struct {
+	ActuatorApiInstance     *ActuatorAPI
 	CategoriesApiInstance   *prismApi.CategoriesApi
 	ClustersApiInstance     *clusterApi.ClustersApi
 	ImagesApiInstance       *vmApi.ImagesApi
@@ -55,6 +56,10 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*
 	}
 
 	v4Client := &Client{}
+
+	if err := initActuatorApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Actuator API instance: %v", err)
+	}
 
 	if err := initVmApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create VM API instance: %v", err)
@@ -173,6 +178,15 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
+	return nil
+}
+
+func initActuatorApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	actuatorAPI, err := NewActuatorAPI(credentials)
+	if err != nil {
+		return err
+	}
+	v4Client.ActuatorApiInstance = actuatorAPI
 	return nil
 }
 

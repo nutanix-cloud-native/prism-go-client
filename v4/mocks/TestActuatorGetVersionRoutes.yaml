@@ -1,0 +1,49 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestActuatorGetVersionRoutes
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://pc.dev.nkp.sh:9440/api/actuator/versionroutes
+        header:
+            Accept: application/json
+            Authorization: Basic dU5wR1pNdlFXSWZnOldnMjg3NFVhNktudTFQUU15akxrNTB3RmJHeDl0dnEz
+            Content-Type: application/json
+            User-Agent: prism-go-client
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Tue, 15 Apr 2025 19:57:04 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Server: envoy
+            Set-Cookie: NTNX_MERCURY_IAM_SESSION=Cgx1bnBnem12cXdpZmcQkPv6vwYaB01lcmN1cnkgACooNDllZTVjNmQ5Y2FmNWNlNTcwZGFjODhhYmI4ODVhZWRhMDNkNzQyNA==|mLneT2jLlPt84sxsvgzIlZXRSnQisxr1lzhpmfVl8dI=;Expires=Tue, 15-Apr-2025 20:12:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax,NTNX_IAM_SESSION=Cgx1bnBnem12cXdpZmcQkPv6vwYaB01lcmN1cnkgACooNDllZTVjNmQ5Y2FmNWNlNTcwZGFjODhhYmI4ODVhZWRhMDNkNzQyNA==|mLneT2jLlPt84sxsvgzIlZXRSnQisxr1lzhpmfVl8dI=;Expires=Tue, 15-Apr-2025 20:12:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax,NTNX_MERCURY_IAM_REFRESH_TOKEN=Chl1amJxbWlwNXB0b2lscGI1bDVlM3FndnhjEhloYjN0aG9tZzNpbmdyYnZhM29ibzNxend0;Expires=Tue, 15-Apr-2025 20:12:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Origin
+            X-Content-Type-Options: nosniff,nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "340"
+            X-Frame-Options: DENY,SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.3.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block,1; mode=block
+        body: '[{"namespace":"datapolicies","versionRoutes":[{"version":"v4.0.a1","routes":["/datapolicies/v4.0.a1/config"]},{"version":"v4.0","routes":["/datapolicies/v4.0/config"]}]},{"namespace":"dataprotection","versionRoutes":[{"version":"v4.0","routes":["/dataprotection/v4.0/content","/dataprotection/v4.0/config"]},{"version":"v4.0.b1","routes":["/dataprotection/v4.0.b1/config","/dataprotection/v4.0.b1/content"]},{"version":"v4.0.a3","routes":["/dataprotection/v4.0.a3/config"]},{"version":"v4.0.a4","routes":["/dataprotection/v4.0.a4/config"]}]},{"namespace":"aiops","versionRoutes":[{"version":"v4.0.a2","routes":["/aiops/v4.0.a2/capacityplanning","/aiops/v4.0.a2/cluster-metrics","/aiops/v4.0.a2/stats","/aiops/v4.0.a2/config"]},{"version":"v4.0","routes":["/aiops/v4.0/cluster-metrics","/aiops/v4.0/stats","/aiops/v4.0/capacityplanning","/aiops/v4.0/config"]}]},{"namespace":"objects","versionRoutes":[{"version":"v4.0.b1","routes":["/objects/v4.0.b1/config"]}]},{"namespace":"volumes","versionRoutes":[{"version":"v4.0.b2","routes":["/volumes/v4.0.b2/config","/volumes/v4.0.b2/stats"]},{"version":"v4.0","routes":["/volumes/v4.0/stats","/volumes/v4.0/config"]},{"version":"v4.0.b1","routes":["/volumes/v4.0.b1/config","/volumes/v4.0.b1/stats"]}]},{"namespace":"opsmgmt","versionRoutes":[{"version":"v4.0.a2","routes":["/opsmgmt/v4.0.a2/reporting","/opsmgmt/v4.0.a2/content","/opsmgmt/v4.0.a2/config"]},{"version":"v4.0","routes":["/opsmgmt/v4.0/reporting","/opsmgmt/v4.0/content","/opsmgmt/v4.0/config"]}]},{"namespace":"microseg","versionRoutes":[{"version":"v4.0.a1","routes":["/microseg/v4.0.a1/config","/microseg/v4.0.a1/operation"]},{"version":"v4.0","routes":["/microseg/v4.0/operation","/microseg/v4.0/config"]},{"version":"v4.0.b1","routes":["/microseg/v4.0.b1/operation","/microseg/v4.0.b1/config"]}]},{"namespace":"releasemgmt","versionRoutes":[{"version":"v4.0.b1","routes":["/releasemgmt/v4.0.b1/content"]}]},{"namespace":"networking","versionRoutes":[{"version":"v4.0.b2","routes":["/networking/v4.0.b2/stats","/networking/v4.0.b2/config","/networking/v4.0.b2/aws"]},{"version":"v4.0.a2","routes":["/networking/v4.0.a2/config","/networking/v4.0.a2/stats"]},{"version":"v4.0","routes":["/networking/v4.0/config","/networking/v4.0/aws","/networking/v4.0/stats"]},{"version":"v4.0.b1","routes":["/networking/v4.0.b1/aws","/networking/v4.0.b1/config","/networking/v4.0.b1/stats"]}]},{"namespace":"storage","versionRoutes":[{"version":"v4.0.a1","routes":["/storage/v4.0.a1/config"]},{"version":"v4.0.a2","routes":["/storage/v4.0.a2/config"]},{"version":"v4.0.a3","routes":["/storage/v4.0.a3/config"]},{"version":"v4.0.a4","routes":["/storage/v4.0.a4/config","/storage/v4.0.a4/stats"]}]},{"namespace":"monitoring","versionRoutes":[{"version":"v4.0","routes":["/monitoring/v4.0/serviceability"]},{"version":"v4.0.b1","routes":["/monitoring/v4.0.b1/serviceability"]}]},{"namespace":"lifecycle","versionRoutes":[{"version":"v4.0","routes":["/lifecycle/v4.0/operations","/lifecycle/v4.0/resources"]},{"version":"v4.0.b1","routes":["/lifecycle/v4.0.b1/operations","/lifecycle/v4.0.b1/resources"]}]},{"namespace":"security","versionRoutes":[{"version":"v4.0.a1","routes":["/security/v4.0.a1/management","/security/v4.0.a1/config","/security/v4.0.a1/report"]},{"version":"v4.0.b1","routes":["/security/v4.0.b1/report","/security/v4.0.b1/config","/security/v4.0.b1/management"]}]},{"namespace":"iam","versionRoutes":[{"version":"v4.0.b3","routes":["/iam/v4.0.b3/authz","/iam/v4.0.b3/authn","/iam/v4.0.b3/tenant"]},{"version":"v4.0","routes":["/iam/v4.0/authz","/iam/v4.0/authn","/iam/v4.0/tenant"]}]},{"namespace":"vmm","versionRoutes":[{"version":"v4.0","routes":["/vmm/v4.0/ahv","/vmm/v4.0/images","/vmm/v4.0/content","/vmm/v4.0/esxi"]},{"version":"v4.0.b1","routes":["/vmm/v4.0.b1/esxi","/vmm/v4.0.b1/content","/vmm/v4.0.b1/images","/vmm/v4.0.b1/ahv"]}]},{"namespace":"clustermgmt","versionRoutes":[{"version":"v4.0.b2","routes":["/clustermgmt/v4.0.b2/operations","/clustermgmt/v4.0.b2/config","/clustermgmt/v4.0.b2/ahv","/clustermgmt/v4.0.b2/stats"]},{"version":"v4.0.a2","routes":["/clustermgmt/v4.0.a2/protection","/clustermgmt/v4.0.a2/config","/clustermgmt/v4.0.a2/stats"]},{"version":"v4.0","routes":["/clustermgmt/v4.0/config","/clustermgmt/v4.0/operations","/clustermgmt/v4.0/stats","/clustermgmt/v4.0/ahv"]},{"version":"v4.0.b1","routes":["/clustermgmt/v4.0.b1/stats","/clustermgmt/v4.0.b1/config"]}]},{"namespace":"licensing","versionRoutes":[{"version":"v4.0","routes":["/licensing/v4.0/agreements","/licensing/v4.0/config"]},{"version":"v4.0.b1","routes":["/licensing/v4.0.b1/config","/licensing/v4.0.b1/agreements"]}]},{"namespace":"prism","versionRoutes":[{"version":"v4.0.a1","routes":["/prism/v4.0.a1/trust","/prism/v4.0.a1/config","/prism/v4.0.a1/protectpc","/prism/v4.0.a1/mgmt"]},{"version":"v4.0.a2","routes":["/prism/v4.0.a2/trust","/prism/v4.0.a2/config","/prism/v4.0.a2/management","/prism/v4.0.a2/protectpc","/prism/v4.0.a2/mgmt"]},{"version":"v4.0","routes":["/prism/v4.0/mgmt","/prism/v4.0/config","/prism/v4.0/trust","/prism/v4.0/protectpc","/prism/v4.0/management","/prism/v4.0/operations"]},{"version":"v4.0.b1","routes":["/prism/v4.0.b1/config","/prism/v4.0.b1/operations","/prism/v4.0.b1/management","/prism/v4.0.b1/protectpc"]}]}]'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
