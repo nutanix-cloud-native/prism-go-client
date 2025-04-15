@@ -67,6 +67,7 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
+	ActuatorApiInstance               *ActuatorAPI
 }
 
 type endpointInfo struct {
@@ -87,6 +88,10 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 	}
 
 	v4Client := &Client{}
+
+	if err := initActuatorApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Actuator API instance: %v", err)
+	}
 
 	if err := initVmApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create VM API instance: %v", err)
@@ -219,6 +224,16 @@ func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
+	return nil
+}
+
+
+func initActuatorApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	actuatorAPI, err := NewActuatorAPI(credentials)
+	if err != nil {
+		return err
+	}
+	v4Client.ActuatorApiInstance = actuatorAPI
 	return nil
 }
 
