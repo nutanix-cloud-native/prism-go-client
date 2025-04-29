@@ -18,7 +18,7 @@ build: ## Build your project and put the output binary in bin/
 	go build ./...
 
 # CRD_OPTIONS define options to add to the CONTROLLER_GEN
-CRD_OPTIONS ?= "crd:crdVersions=v1"
+CRD_OPTIONS ?= crd:crdVersions=v1
 
 .PHONY: run-keploy
 run-keploy:
@@ -28,8 +28,14 @@ run-keploy:
 stop-keploy:
 	@-pkill "keploy-server"
 
-generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
+generate: generate-deepcopy generate-crds ## Generate all code
+
+generate-deepcopy: ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
+
+generate-crds: ## Generate CustomResourceDefinitions
+	mkdir -p ./environment/credentials/crds
+	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role paths="./environment/credentials" output:crd:artifacts:config=./environment/credentials/crds
 
 generate-v3-models: ## Generate V3 models using go-swagger
 	swagger generate model \

@@ -1,3 +1,4 @@
+// +groupName=credentials.nutanix.com
 package credentials
 
 // This file defines single-key secret format by encoding entire secret
@@ -5,6 +6,8 @@ package credentials
 
 import (
 	"encoding/json"
+	
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // CredentialType describes authentication mechanism like basic auth.
@@ -128,4 +131,81 @@ type NutanixPrismEndpoint struct {
 	// Pass credential information for the target Prism instance
 	// +optional
 	CredentialRef *NutanixCredentialReference `json:"credentialRef,omitempty"`
+}
+
+// NamespaceSelector defines which namespaces can use an identity
+// +kubebuilder:object:generate=true
+type NamespaceSelector struct {
+	// MatchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions,
+	// whose key field is "key", the operator is "In", and the values array contains only "value".
+	// The requirements are ANDed.
+	// +optional
+	MatchLabels map[string]string `json:"matchLabels,omitempty"`
+}
+
+// AllowedNamespaces defines namespaces that are allowed to use the identity
+// +kubebuilder:object:generate=true
+type AllowedNamespaces struct {
+	// Selector is a selector of namespaces that are allowed to use the identity
+	// If not specified, no namespaces will be allowed
+	// +optional
+	Selector NamespaceSelector `json:"selector,omitempty"`
+}
+
+// NutanixPrismIdentity defines a Nutanix API endpoint with reference to credentials and namespace selectors.
+// This type extends NutanixPrismEndpoint to add namespace selection for access control.
+// +kubebuilder:object:generate=true
+// +kubebuilder:object:root=true
+// +kubebuilder:storageversion
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=nutanixprismidentities,scope=Cluster,shortName=npi,singular=nutanixprismidentity,categories=nutanix
+// +kubebuilder:printcolumn:name="Address",type="string",JSONPath=".spec.address",description="API endpoint address"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+type NutanixPrismIdentity struct {
+	// Standard Kubernetes type metadata
+	// +kubebuilder:validation:Required
+	metav1.TypeMeta `json:",inline"`
+	
+	// Standard Kubernetes object metadata
+	// +kubebuilder:validation:Required
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	// Spec defines the desired state of NutanixPrismIdentity
+	// +kubebuilder:validation:Required
+	Spec NutanixPrismIdentitySpec `json:"spec"`
+
+	// Status defines the observed state of NutanixPrismIdentity
+	// +optional
+	Status NutanixPrismIdentityStatus `json:"status,omitempty"`
+}
+
+// NutanixPrismIdentitySpec defines the desired state of NutanixPrismIdentity
+// +kubebuilder:object:generate=true
+type NutanixPrismIdentitySpec struct {
+	// NutanixPrismEndpoint embedded for endpoint configuration
+	NutanixPrismEndpoint `json:",inline"`
+	// AllowedNamespaces defines which namespaces are allowed to use this identity
+	// If empty, defaults to all namespaces
+	// +optional
+	AllowedNamespaces AllowedNamespaces `json:"allowedNamespaces,omitempty"`
+}
+
+// NutanixPrismIdentityStatus defines the observed state of NutanixPrismIdentity
+// +kubebuilder:object:generate=true
+type NutanixPrismIdentityStatus struct {
+	// Conditions represents the latest available observations of the identity's state
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// LastVerified is the last time the credentials were verified to work
+	// +optional
+	LastVerified *metav1.Time `json:"lastVerified,omitempty"`
+}
+
+// NutanixPrismIdentityList contains a list of NutanixPrismIdentity
+// +kubebuilder:object:root=true
+type NutanixPrismIdentityList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []NutanixPrismIdentity `json:"items"`
 }
