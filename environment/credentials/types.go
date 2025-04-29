@@ -6,7 +6,6 @@ package credentials
 
 import (
 	"encoding/json"
-	
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -122,7 +121,7 @@ type NutanixPrismEndpoint struct {
 	// use insecure connection to Prism endpoint
 	// +kubebuilder:default=false
 	// +optional
-	Insecure bool `json:"insecure"`
+	Insecure bool `json:"insecure,omitempty"`
 	// AdditionalTrustBundle is a PEM encoded x509 cert for the RootCA that was used to create the certificate
 	// for a Prism Central that uses certificates that were issued by a non-publicly trusted RootCA. The trust
 	// bundle is added to the cert pool used to authenticate the TLS connection to the Prism Central.
@@ -165,7 +164,7 @@ type NutanixPrismIdentity struct {
 	// Standard Kubernetes type metadata
 	// +kubebuilder:validation:Required
 	metav1.TypeMeta `json:",inline"`
-	
+
 	// Standard Kubernetes object metadata
 	// +kubebuilder:validation:Required
 	metav1.ObjectMeta `json:"metadata,omitempty"`

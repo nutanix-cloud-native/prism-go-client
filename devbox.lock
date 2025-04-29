@@ -485,8 +485,8 @@
       }
     },
     "kubernetes-code-generator@latest": {
-      "last_modified": "2024-07-31T08:48:38Z",
-      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#kubernetes-code-generator",
+      "last_modified": "2025-04-13T09:22:33Z",
+      "resolved": "github:NixOS/nixpkgs/18dd725c29603f582cf1900e0d25f9f1063dbf11#kubernetes-code-generator",
       "source": "devbox-search",
       "version": "0.25.4",
       "systems": {
@@ -494,41 +494,41 @@
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/lqyzqmaj7ayqh9hkmzr5mq4icbyn1i38-code-generator-0.25.4",
+              "path": "/nix/store/hzhvr539bkiw8a5vvqb0wj4iywcjcsq8-code-generator-0.25.4",
               "default": true
             }
           ],
-          "store_path": "/nix/store/lqyzqmaj7ayqh9hkmzr5mq4icbyn1i38-code-generator-0.25.4"
+          "store_path": "/nix/store/hzhvr539bkiw8a5vvqb0wj4iywcjcsq8-code-generator-0.25.4"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/5ga0fmvb0is2mv85w9h02g5ld0xzd7gl-code-generator-0.25.4",
+              "path": "/nix/store/c8xq1ivdbax7xwjp7piyq69dky02dbgs-code-generator-0.25.4",
               "default": true
             }
           ],
-          "store_path": "/nix/store/5ga0fmvb0is2mv85w9h02g5ld0xzd7gl-code-generator-0.25.4"
+          "store_path": "/nix/store/c8xq1ivdbax7xwjp7piyq69dky02dbgs-code-generator-0.25.4"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/6qfck5kmw1p6q6xqc2nrh9flqvrch4q9-code-generator-0.25.4",
+              "path": "/nix/store/gmjl38qgnc0csjaqlnfp47lxsc188vwr-code-generator-0.25.4",
               "default": true
             }
           ],
-          "store_path": "/nix/store/6qfck5kmw1p6q6xqc2nrh9flqvrch4q9-code-generator-0.25.4"
+          "store_path": "/nix/store/gmjl38qgnc0csjaqlnfp47lxsc188vwr-code-generator-0.25.4"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/m0v6f7rdny7l5d6dr4r0vmhx125bkfbh-code-generator-0.25.4",
+              "path": "/nix/store/5y8wv166iqwm53mc60x39wmngj2z1frq-code-generator-0.25.4",
               "default": true
             }
           ],
-          "store_path": "/nix/store/m0v6f7rdny7l5d6dr4r0vmhx125bkfbh-code-generator-0.25.4"
+          "store_path": "/nix/store/5y8wv166iqwm53mc60x39wmngj2z1frq-code-generator-0.25.4"
         }
       }
     },
