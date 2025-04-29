@@ -534,50 +534,50 @@
       }
     },
     "kubernetes-controller-tools@latest": {
-      "last_modified": "2024-07-31T08:48:38Z",
-      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#kubernetes-controller-tools",
+      "last_modified": "2025-04-02T04:26:43Z",
+      "resolved": "github:NixOS/nixpkgs/b7ba7f9f45c5cd0d8625e9e217c28f8eb6a19a76#kubernetes-controller-tools",
       "source": "devbox-search",
-      "version": "0.14.0",
+      "version": "0.17.3",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/810hjkjz56kg811ac12xq2x2zj6fbiza-controller-tools-0.14.0",
+              "path": "/nix/store/4maw883papi63baw5cy1fqjxp2bz7r1b-controller-tools-0.17.3",
               "default": true
             }
           ],
-          "store_path": "/nix/store/810hjkjz56kg811ac12xq2x2zj6fbiza-controller-tools-0.14.0"
+          "store_path": "/nix/store/4maw883papi63baw5cy1fqjxp2bz7r1b-controller-tools-0.17.3"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/3w2jszxz149k22nq1plb7zmhilq6gjds-controller-tools-0.14.0",
+              "path": "/nix/store/y59chblyxy8a375hi8vc1ds2fg6d30v4-controller-tools-0.17.3",
               "default": true
             }
           ],
-          "store_path": "/nix/store/3w2jszxz149k22nq1plb7zmhilq6gjds-controller-tools-0.14.0"
+          "store_path": "/nix/store/y59chblyxy8a375hi8vc1ds2fg6d30v4-controller-tools-0.17.3"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/zsdnfajzmih5c0qzg437qk6zx4balqnc-controller-tools-0.14.0",
+              "path": "/nix/store/hcjiv1bi9dx6rvcvjvwi7b1vpsbmhksm-controller-tools-0.17.3",
               "default": true
             }
           ],
-          "store_path": "/nix/store/zsdnfajzmih5c0qzg437qk6zx4balqnc-controller-tools-0.14.0"
+          "store_path": "/nix/store/hcjiv1bi9dx6rvcvjvwi7b1vpsbmhksm-controller-tools-0.17.3"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/7k6jw57cmla2gcbjkgli75b1bd0ximji-controller-tools-0.14.0",
+              "path": "/nix/store/27y94p6r6f1rcl0kf2jzryl7bxidq4v0-controller-tools-0.17.3",
               "default": true
             }
           ],
-          "store_path": "/nix/store/7k6jw57cmla2gcbjkgli75b1bd0ximji-controller-tools-0.14.0"
+          "store_path": "/nix/store/27y94p6r6f1rcl0kf2jzryl7bxidq4v0-controller-tools-0.17.3"
         }
       }
     },
