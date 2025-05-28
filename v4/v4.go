@@ -8,6 +8,8 @@ import (
 
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
+	iamApi "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/api"
+	iamClient "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
 	networkingClient "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/client"
 	prismApi "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/api"
@@ -36,6 +38,7 @@ type Client struct {
 	TasksApiInstance        *prismApi.TasksApi
 	VolumeGroupsApiInstance *volumesApi.VolumeGroupsApi
 	VmApiInstance           *vmApi.VmApi
+	UsersApiInstance        *iamApi.UsersApi
 }
 
 type endpointInfo struct {
@@ -76,6 +79,10 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*
 
 	if err := initVolumesApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Volumes API instance: %v", err)
+	}
+
+	if err := initUsersApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -171,6 +178,21 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
+	return nil
+}
+
+func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	apiClientInstance.AddDefaultHeader(
+		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
 	return nil
 }
 
