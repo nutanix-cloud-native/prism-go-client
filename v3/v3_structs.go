@@ -1451,6 +1451,7 @@ type GPU struct {
 	Fraction               *int64           `json:"fraction,omitempty"`
 	GuestDriverVersion     string           `json:"guest_driver_version,omitempty"`
 	DeviceID               *int64           `json:"device_id,omitempty"`
+	MaxInstancesPerVM      *int64           `json:"max_instances_per_vm,omitempty"`
 }
 
 // Hypervisor Full name of hypervisor running on Host
