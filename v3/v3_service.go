@@ -25,9 +25,6 @@ type Service interface {
 	GetVM(ctx context.Context, uuid string) (*VMIntentResponse, error)
 	ListVM(ctx context.Context, getEntitiesRequest *DSMetadata) (*VMListIntentResponse, error)
 	UpdateVM(ctx context.Context, uuid string, body *VMIntentInput) (*VMIntentResponse, error)
-	ResetVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error)
-	PowerCycleVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error)
-	ACPIRebootVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error)
 	CreateSubnet(ctx context.Context, createRequest *SubnetIntentInput) (*SubnetIntentResponse, error)
 	DeleteSubnet(ctx context.Context, uuid string) (*DeleteResponse, error)
 	GetSubnet(ctx context.Context, uuid string) (*SubnetIntentResponse, error)
@@ -196,45 +193,6 @@ func (op Operations) GetVM(ctx context.Context, uuid string) (*VMIntentResponse,
 	}
 
 	return vmIntentResponse, op.client.Do(ctx, req, vmIntentResponse)
-}
-
-func (op Operations) ResetVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error) {
-	path := fmt.Sprintf("/vms/%s/reset", uuid)
-
-	req, err := op.client.NewRequest(http.MethodPost, path, body)
-	taskResponse := new(TaskVMResponse)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return taskResponse, op.client.Do(ctx, req, taskResponse)
-}
-
-func (op Operations) ACPIRebootVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error) {
-	path := fmt.Sprintf("/vms/%s/acpi_reboot", uuid)
-
-	req, err := op.client.NewRequest(http.MethodPost, path, body)
-	taskResponse := new(TaskVMResponse)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return taskResponse, op.client.Do(ctx, req, taskResponse)
-}
-
-func (op Operations) PowerCycleVM(ctx context.Context, uuid string, body *TaskVMRequest) (*TaskVMResponse, error) {
-	path := fmt.Sprintf("/vms/%s/power_cycle", uuid)
-
-	req, err := op.client.NewRequest(http.MethodPost, path, body)
-	taskResponse := new(TaskVMResponse)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return taskResponse, op.client.Do(ctx, req, taskResponse)
 }
 
 /*ListVM Get a list of VMs This operation gets a list of VMs, allowing for sorting and pagination. Note: Entities that have not been created
