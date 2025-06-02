@@ -12,8 +12,6 @@ import (
 	networkingClient "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/client"
 	prismApi "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/api"
 	prismClient "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/client"
-	storageApi "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/api"
-	storageClient "github.com/nutanix/ntnx-api-golang-clients/storage-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
@@ -32,7 +30,7 @@ type Client struct {
 	CategoriesApiInstance   *prismApi.CategoriesApi
 	ClustersApiInstance     *clusterApi.ClustersApi
 	ImagesApiInstance       *vmApi.ImagesApi
-	StorageContainerAPI     *storageApi.StorageContainerApi
+	StorageContainerAPI     *clusterApi.StorageContainersApi
 	SubnetsApiInstance      *networkingApi.SubnetsApi
 	SubnetIPReservationApi  *networkingApi.SubnetIPReservationApi
 	TasksApiInstance        *prismApi.TasksApi
@@ -151,13 +149,13 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	if err != nil {
 		return err
 	}
-	apiClientInstance := storageClient.NewApiClient()
+	apiClientInstance := clusterClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	apiClientInstance.AddDefaultHeader(
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
-	v4Client.StorageContainerAPI = storageApi.NewStorageContainerApi(apiClientInstance)
+	v4Client.StorageContainerAPI = clusterApi.NewStorageContainersApi(apiClientInstance)
 	return nil
 }
 
