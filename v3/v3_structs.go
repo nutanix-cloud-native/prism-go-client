@@ -313,7 +313,7 @@ type VMIntentInput struct {
 
 	Metadata *Metadata `json:"metadata" mapstructure:"metadata"`
 
-	Spec *VM `json:"spec" mapstructure:"spec"`
+	Spec *models.VM `json:"spec" mapstructure:"spec"`
 }
 
 // MessageResource ...
@@ -338,7 +338,7 @@ type VMStatus struct {
 	// The kind name
 	Kind *string `json:"kind,omitempty" mapstructure:"kind,omitempty"`
 
-	MessageList []*MessageResource `json:"message_list,omitempty" mapstructure:"message_list,omitempty"`
+	MessageList []*models.MessageResource `json:"message_list,omitempty" mapstructure:"message_list,omitempty"`
 
 	State *string `json:"state,omitempty" mapstructure:"state,omitempty"`
 }
@@ -557,9 +557,9 @@ type VMIntentResponse struct {
 
 	Metadata *Metadata `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 
-	Spec *VM `json:"spec,omitempty" mapstructure:"spec,omitempty"`
+	Spec *models.VM `json:"spec,omitempty" mapstructure:"spec,omitempty"`
 
-	Status *VMDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
+	Status *models.VMDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
 }
 
 // DSMetadata All api calls that return a list will have this metadata block as input
@@ -592,16 +592,16 @@ type VMIntentResource struct {
 
 	Metadata *Metadata `json:"metadata" mapstructure:"metadata"`
 
-	Spec *VM `json:"spec,omitempty" mapstructure:"spec,omitempty"`
+	Spec *models.VM `json:"spec,omitempty" mapstructure:"spec,omitempty"`
 
-	Status *VMDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
+	Status *models.VMDefStatus `json:"status,omitempty" mapstructure:"status,omitempty"`
 }
 
 // VMListIntentResponse Response object for intentful operation of vms
 type VMListIntentResponse struct {
 	APIVersion *string `json:"api_version" mapstructure:"api_version"`
 
-	Entities []*VMIntentResource `json:"entities,omitempty" mapstructure:"entities,omitempty"`
+	Entities []*models.VMIntentResource `json:"entities,omitempty" mapstructure:"entities,omitempty"`
 
 	Metadata *ListMetadataOutput `json:"metadata" mapstructure:"metadata"`
 }

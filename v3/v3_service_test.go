@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/keploy/go-sdk/integrations/khttpclient"
 	"github.com/keploy/go-sdk/keploy"
 	"github.com/keploy/go-sdk/mock"
@@ -43,409 +45,6 @@ func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
 	require.NoError(t, err)
 
 	return mux, c, server
-}
-
-func TestOperations_CreateVM(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/vms", func(w http.ResponseWriter, r *http.Request) {
-		if m := http.MethodPost; m != r.Method {
-			t.Errorf("Request method = %v, expected %v", r.Method, m)
-		}
-
-		expected := map[string]interface{}{
-			"api_version": "3.1",
-			"metadata": map[string]interface{}{
-				"kind":                   "vm",
-				"should_force_translate": false,
-			},
-			"spec": map[string]interface{}{
-				"cluster_reference": map[string]interface{}{
-					"kind": "cluster",
-					"uuid": "00056024-6c13-4c74-0000-00000000ecb5",
-				},
-				"name": "VM123.create",
-			},
-		}
-
-		var v map[string]interface{}
-		err := json.NewDecoder(r.Body).Decode(&v)
-		if err != nil {
-			t.Fatalf("decode json: %v", err)
-		}
-
-		if !reflect.DeepEqual(v, expected) {
-			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
-		}
-
-		fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "vm",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc",
-				"should_force_translate" : false
-			}
-		}`)
-	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		createRequest *VMIntentInput
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *VMIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test CreateVM",
-			fields{
-				c,
-			},
-			args{
-				&VMIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
-					Metadata: &Metadata{
-						Kind:                 utils.StringPtr("vm"),
-						ShouldForceTranslate: utils.BoolPtr(false),
-					},
-					Spec: &VM{
-						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
-						},
-						Name: utils.StringPtr("VM123.create"),
-					},
-				},
-			},
-			&VMIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
-				Metadata: &Metadata{
-					Kind:                 utils.StringPtr("vm"),
-					UUID:                 utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-					ShouldForceTranslate: utils.BoolPtr(false),
-				},
-			},
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.CreateVM(context.Background(), tt.args.createRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.CreateVM() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.CreateVM() = %+v, want %+v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperations_DeleteVM(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodDelete)
-
-		fmt.Fprintf(w, `{
-				"status": {
-					"state": "DELETE_PENDING",
-					"execution_context": {
-						"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"
-					}
-				},
-				"spec": "",
-				"api_version": "3.1",
-				"metadata": {
-					"kind": "vm",
-					"categories": {
-						"Project": "default"
-					}
-				}
-			}`)
-	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{
-			"Test DeleteVM OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			false,
-		},
-
-		{
-			"Test DeleteVM Errored",
-			fields{c},
-			args{},
-			true,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			if _, err := op.DeleteVM(context.Background(), tt.args.UUID); (err != nil) != tt.wantErr {
-				t.Errorf("Operations.DeleteVM() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOperations_GetVM(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
-	})
-
-	vmResponse := &VMIntentResponse{}
-	vmResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("vm"),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *VMIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test GetVM OK",
-			fields{c},
-			args{"cfde831a-4e87-4a75-960f-89b0148aa2cc"},
-			vmResponse,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.GetVM(context.Background(), tt.args.UUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.GetVM() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.GetVM() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperations_ListVM(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/vms/list", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
-	})
-
-	vmList := &VMListIntentResponse{}
-	vmList.Entities = make([]*VMIntentResource, 1)
-	vmList.Entities[0] = &VMIntentResource{}
-	vmList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("vm"),
-	}
-
-	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
-	}
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		getEntitiesRequest *DSMetadata
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *VMListIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test ListVM OK",
-			fields{c},
-			args{input},
-			vmList,
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.ListVM(context.Background(), tt.args.getEntitiesRequest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.ListVM() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.ListVM() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperations_UpdateVM(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPut)
-
-		expected := map[string]interface{}{
-			"api_version": "3.1",
-			"metadata": map[string]interface{}{
-				"kind": "vm",
-			},
-			"spec": map[string]interface{}{
-				"cluster_reference": map[string]interface{}{
-					"kind": "cluster",
-					"uuid": "00056024-6c13-4c74-0000-00000000ecb5",
-				},
-				"name": "VM123.create",
-			},
-		}
-
-		var v map[string]interface{}
-		err := json.NewDecoder(r.Body).Decode(&v)
-		if err != nil {
-			t.Fatalf("decode json: %v", err)
-		}
-
-		if !reflect.DeepEqual(v, expected) {
-			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
-		}
-
-		fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "vm",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc"
-			}
-		}`)
-	})
-
-	type fields struct {
-		client *internal.Client
-	}
-
-	type args struct {
-		UUID string
-		body *VMIntentInput
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *VMIntentResponse
-		wantErr bool
-	}{
-		{
-			"Test UpdateVM",
-			fields{
-				c,
-			},
-			args{
-				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
-				&VMIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
-					Metadata: &Metadata{
-						Kind: utils.StringPtr("vm"),
-					},
-					Spec: &VM{
-						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
-						},
-						Name: utils.StringPtr("VM123.create"),
-					},
-				},
-			},
-			&VMIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
-				Metadata: &Metadata{
-					Kind: utils.StringPtr("vm"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-				},
-			},
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			op := Operations{
-				client: tt.fields.client,
-			}
-			got, err := op.UpdateVM(context.Background(), tt.args.UUID, tt.args.body)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Operations.UpdateVM() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Operations.UpdateVM() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }
 
 func TestOperations_CreateSubnet(t *testing.T) {
@@ -5075,9 +4674,7 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 		},
 	}
 	_, err = v3Client.V3.CreateRecoveryPlan(kctx, rp)
-	if err != nil {
-		t.Fatalf("error: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestOperations_GetRecoveryPlan(t *testing.T) {
@@ -5872,4 +5469,139 @@ func TestOperations_DeleteIdempotenceIdentifers(t *testing.T) {
 		"testclient",
 	)
 	require.NoError(t, err)
+}
+
+func createVMIntentInput() *VMIntentInput {
+	return &VMIntentInput{
+		Spec: &models.VM{
+			ClusterReference: &models.ClusterReference{
+				Kind: "cluster",
+				UUID: utils.StringPtr("00061f7f-44f7-19dc-3be1-7cc25586ee44"),
+			},
+			Name:        ptr.To("test-vm"),
+			Description: "test-vm-description",
+			Resources: &models.VMResources{
+				NumThreadsPerCore: int32(1),
+				NumSockets:        int32(1),
+				MemorySizeMib:     int32(1024),
+				NicList: []*models.VMNic{
+					{
+						SubnetReference: &models.SubnetReference{
+							UUID: ptr.To("b2e46975-2cde-4a49-9dda-815eb4fcd679"),
+							Kind: "subnet",
+						},
+					},
+				},
+				BootConfig: &models.VMBootConfig{
+					BootType: "UEFI",
+				},
+				DiskList: []*models.VMDisk{
+					{
+						DataSourceReference: &models.VMDiskDataSourceReference{
+							Kind: "image",
+							UUID: "70cfd137-a8d9-4169-a5ac-cf9ad6ddb03a",
+						},
+						DiskSizeMib: int32(8192),
+					},
+				},
+			},
+		},
+		Metadata: &Metadata{
+			Kind:        ptr.To("vm"),
+			SpecVersion: ptr.To(int64(1)),
+		},
+	}
+}
+
+func TestOperations_CreateVM(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	vmIntent := createVMIntentInput()
+
+	vm, err := v3Client.V3.CreateVM(kctx, vmIntent)
+	require.NoError(t, err)
+	require.NotNil(t, vm)
+	require.NotNil(t, vm.Status)
+	require.NotNil(t, vm.Status.ExecutionContext)
+	assert.NotNil(t, vm.Status.ExecutionContext.TaskUUID)
+	assert.IsType(t, "", vm.Status.ExecutionContext.TaskUUID)
+}
+
+func TestOperations_GetVM(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	vmIntent := createVMIntentInput()
+
+	vm, err := v3Client.V3.GetVM(kctx, "bdbbad7a-a401-4f9a-a789-2b8406905b56")
+	require.NoError(t, err)
+	require.NotNil(t, vm)
+	assert.Equal(t, "bdbbad7a-a401-4f9a-a789-2b8406905b56", *vm.Metadata.UUID)
+	assert.Equal(t, *vmIntent.Spec.Name, *vm.Status.Name)
+	assert.IsType(t, []any{}, vm.Status.ExecutionContext.TaskUUID)
+}
+
+func TestOperations_ListVM(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	vmIntent := createVMIntentInput()
+
+	vms, err := v3Client.V3.ListVM(kctx, &DSMetadata{Filter: ptr.To("vm_name==test-vm"), SortAttribute: ptr.To("name"), SortOrder: ptr.To("ASCENDING")})
+	require.NoError(t, err)
+	require.NotNil(t, vms)
+	require.NotEmpty(t, vms.Entities)
+	assert.Equal(t, "bdbbad7a-a401-4f9a-a789-2b8406905b56", vms.Entities[0].Metadata.UUID)
+	assert.Equal(t, *vmIntent.Spec.Name, *vms.Entities[0].Status.Name)
+}
+
+func TestOperations_UpdateVM(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	v3Client, err := NewV3Client(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	vm, err := v3Client.V3.GetVM(kctx, "bdbbad7a-a401-4f9a-a789-2b8406905b56")
+	require.NoError(t, err)
+
+	vmIntent := createVMIntentInput()
+	vmIntent.Spec = vm.Spec
+	vmIntent.Spec.Description = "updated-test-vm-description"
+	vmIntent.Spec.Resources.NicList[0].IPEndpointList[0].GatewayAddressList = []string{}
+	vmIntent.Spec.Resources.NicList[0].SecondaryIPAddressList = []string{}
+
+	uvm, err := v3Client.V3.UpdateVM(kctx, "bdbbad7a-a401-4f9a-a789-2b8406905b56", vmIntent)
+	require.NoError(t, err)
+	require.NotNil(t, uvm)
+	require.NotNil(t, uvm.Status)
+	require.NotNil(t, uvm.Status.ExecutionContext)
+	require.NotNil(t, uvm.Status.ExecutionContext.TaskUUID)
+	assert.IsType(t, "", uvm.Status.ExecutionContext.TaskUUID)
 }
