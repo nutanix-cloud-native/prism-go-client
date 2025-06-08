@@ -849,7 +849,7 @@ func hasNext(ri *int64) bool {
 
 // ListAllVM ...
 func (op Operations) ListAllVM(ctx context.Context, filter string) (*VMListIntentResponse, error) {
-	entities := make([]*VMIntentResource, 0)
+	entities := make([]*models.VMIntentResource, 0)
 
 	resp, err := op.ListVM(ctx, &DSMetadata{
 		Filter: &filter,

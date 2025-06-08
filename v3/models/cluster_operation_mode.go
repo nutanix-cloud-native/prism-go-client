@@ -15,13 +15,13 @@ import (
 //
 // Cluster operation mode. - 'NORMAL': Cluster is operating normally. - 'READ_ONLY': Cluster is operating in read only mode. - 'STAND_ALONE': Only one node is operational in the cluster. This is
 //
-//	valid only for single node or two node clusters.
-//   - 'SWITCH_TO_TWO_NODE': Cluster is moving from single node to two node
-//     cluster.
-//   - 'OVERRIDE': Valid only for single node cluster. If the user wants to
-//     run vms on a single node cluster in read only mode, he
-//     can set the cluster peration mode to override. Writes
-//     will be allowed in override mode.
+//		valid only for single node or two node clusters.
+//	  - 'SWITCH_TO_TWO_NODE': Cluster is moving from single node to two node
+//	    cluster.
+//	  - 'OVERRIDE': Valid only for single node cluster. If the user wants to
+//	    run vms on a single node cluster in read only mode, he
+//	    can set the cluster peration mode to override. Writes
+//	    will be allowed in override mode.
 //
 // swagger:model cluster_operation_mode
 type ClusterOperationMode string

@@ -1,0 +1,46 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestOperations_ListVM
+spec:
+    metadata:
+        name: Http
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism-test.nutanix.com:9440/api/nutanix/v3/vms/list
+        header:
+            Accept: application/json
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: |
+            {"filter":"vm_name==test-vm","sort_attribute":"name","sort_order":"ASCENDING"}
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Sat, 07 Jun 2025 21:17:18 GMT
+            Server: envoy
+            Set-Cookie: Expires=Sat, 07-Jun-2025 21:32:00 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Strict-Transport-Security: max-age=8640000:includeSubdomains
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Envoy-Upstream-Service-Time: "521"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.2024.3.0.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"api_version": "3.1", "metadata": {"filter": "vm_name==test-vm", "kind": "vm", "sort_attribute": "name", "sort_order": "ASCENDING", "offset": 0, "length": 1, "total_matches": 1}, "entities": [{"status": {"name": "test-vm", "cluster_reference": {"kind": "cluster", "uuid": "00061f7f-44f7-19dc-3be1-7cc25586ee44", "name": "ncn-dev-sandbox"}, "resources": {"power_state": "OFF", "power_state_mechanism": {"guest_transition_config": {"should_fail_on_script_failure": false, "enable_script_exec": false}, "mechanism": "HARD"}, "memory_size_mib": 1024, "num_vcpus_per_socket": 1, "num_sockets": 1, "vga_console_enabled": true, "vnuma_config": {"num_vnuma_nodes": 0}, "protection_type": "UNPROTECTED", "serial_port_list": [], "num_threads_per_core": 1, "is_vcpu_hard_pinned": false, "hypervisor_type": "AHV", "hardware_clock_timezone": "UTC", "is_agent_vm": false, "enable_cpu_passthrough": false, "disable_branding": false, "machine_type": "PC", "hardware_virtualization_enabled": false, "memory_overcommit_enabled": false, "gpu_console_enabled": false, "cpu_hotplug_enabled": true, "scsi_controller_enabled": true, "generation_uuid": "ebab5166-a248-4e29-b5bf-fdacf8996a80", "bios_uuid": "bdbbad7a-a401-4f9a-a789-2b8406905b56", "boot_config": {"boot_device_order_list": ["CDROM", "DISK", "NETWORK"], "boot_type": "UEFI"}, "storage_config": {}, "disk_list": [{"uuid": "537e0352-0af0-4aa5-af01-28e5964c5e80", "is_encryption_in_progress": false, "is_migration_in_progress": false, "disk_size_bytes": 8589934592, "storage_config": {"flash_mode": "DISABLED", "storage_container_reference": {"kind": "storage_container", "uuid": "8a77ce4a-5730-44ea-a281-4c81b1277333", "name": "SelfServiceContainer"}}, "device_properties": {"disk_address": {"device_index": 0, "adapter_type": "SCSI"}, "device_type": "DISK"}, "data_source_reference": {"kind": "image", "uuid": "70cfd137-a8d9-4169-a5ac-cf9ad6ddb03a"}, "disk_size_mib": 8192}], "nic_list": [{"nic_type": "NORMAL_NIC", "vlan_mode": "ACCESS", "uuid": "22a6684a-c8be-49f8-b679-5fca3ac1d4ae", "ip_endpoint_list": [{"ip": "10.23.129.96", "type": "ASSIGNED"}], "mac_address": "50:6b:8d:24:19:54", "subnet_reference": {"kind": "subnet", "name": "vlan173", "uuid": "b2e46975-2cde-4a49-9dda-815eb4fcd679"}, "is_connected": true, "trunked_vlan_list": []}], "gpu_list": []}, "description": "test-vm-description", "state": "COMPLETE", "execution_context": {"task_uuid": ["e074cb94-1123-4dca-82b0-b842f019a825"]}}, "metadata": {"uuid": "bdbbad7a-a401-4f9a-a789-2b8406905b56", "spec_hash": "00000000000000000000000000000000000000000000000000", "spec_version": 0, "entity_version": "1", "owner_reference": {"kind": "user", "uuid": "1b223294-26c6-5241-919a-bafd1dc0b48f", "name": "cswdjlnxgfji"}, "categories": {}, "categories_mapping": {}, "project_reference": {"kind": "project", "name": "_internal", "uuid": "f33d30fb-12f1-4afa-b393-b195a259fcd6"}, "creation_time": "2025-06-07T18:23:52Z", "last_update_time": "2025-06-07T18:23:52Z", "kind": "vm"}, "spec": {"description": "test-vm-description", "resources": {"num_threads_per_core": 1, "is_agent_vm": false, "cpu_hotplug_enabled": true, "memory_size_mib": 1024, "boot_config": {"boot_device_order_list": ["CDROM", "DISK", "NETWORK"], "boot_type": "UEFI"}, "disk_list": [{"storage_config": {"flash_mode": "DISABLED", "storage_container_reference": {"kind": "storage_container", "uuid": "8a77ce4a-5730-44ea-a281-4c81b1277333", "name": "SelfServiceContainer"}}, "device_properties": {"disk_address": {"device_index": 0, "adapter_type": "SCSI"}, "device_type": "DISK"}, "uuid": "537e0352-0af0-4aa5-af01-28e5964c5e80", "data_source_reference": {"kind": "image", "uuid": "70cfd137-a8d9-4169-a5ac-cf9ad6ddb03a"}, "disk_size_mib": 8192, "disk_size_bytes": 8589934592}], "serial_port_list": [], "is_vcpu_hard_pinned": false, "power_state": "OFF", "vnuma_config": {"num_vnuma_nodes": 0}, "num_vcpus_per_socket": 1, "num_sockets": 1, "hardware_virtualization_enabled": false, "gpu_list": [], "machine_type": "PC", "hardware_clock_timezone": "UTC", "power_state_mechanism": {"guest_transition_config": {"should_fail_on_script_failure": false, "enable_script_exec": false}, "mechanism": "HARD"}, "vga_console_enabled": true, "memory_overcommit_enabled": false, "scsi_controller_enabled": true, "nic_list": [{"nic_type": "NORMAL_NIC", "uuid": "22a6684a-c8be-49f8-b679-5fca3ac1d4ae", "ip_endpoint_list": [{"ip": "10.23.129.96", "type": "ASSIGNED"}], "mac_address": "50:6b:8d:24:19:54", "vlan_mode": "ACCESS", "subnet_reference": {"kind": "subnet", "name": "vlan173", "uuid": "b2e46975-2cde-4a49-9dda-815eb4fcd679"}, "is_connected": true, "trunked_vlan_list": []}], "gpu_console_enabled": false, "enable_cpu_passthrough": false, "disable_branding": false}, "cluster_reference": {"kind": "cluster", "name": "ncn-dev-sandbox", "uuid": "00061f7f-44f7-19dc-3be1-7cc25586ee44"}, "name": "test-vm"}}]}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

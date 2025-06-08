@@ -86548,6 +86548,15 @@
                 "description": {
                     "type": "string", 
                     "description": "A description for vm."
+                },
+                "execution_context": {
+                  "type": "object",
+                  "properties": {
+                    "task_uuid": {
+                      "type": "object",
+                      "description": "uuid or a list of uuids"
+                    }
+                  }
                 }
             }, 
             "title": "vm Intent Status with placement specified"
