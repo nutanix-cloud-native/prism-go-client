@@ -4,12 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.5.1]
+## [v0.5.2]
 ### Added
 - Added support for creating, deleting, and listing idempotence identifiers.
 - added the new v4 storage container client from clustermgmt namespace as it is based on the v4 beta APIs.
 
 ### Changed
+- Update the v3 VM structs to include VM vTPM configuration.
 
 ### Removed
 - Removed the v4 storage container client from storage namespace as it was based on the v4 alpha APIs which are no longer supported.

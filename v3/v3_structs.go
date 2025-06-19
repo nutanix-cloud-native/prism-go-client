@@ -290,6 +290,13 @@ type VMResources struct {
 	SerialPortList []*VMSerialPort `json:"serial_port_list,omitempty" mapstructure:"serial_port_list,omitempty"`
 
 	MachineType *string `json:"machine_type,omitempty" mapstructure:"machine_type,omitempty"`
+
+	// VM vTPM configuration.
+	VtpmConfig *VMVtpmConfig `json:"vtpm_config,omitempty" mapstructure:"vtpm_config,omitempty"`
+
+	// Indicates whether hardware assisted virtualization should be enabled for the Guest OS. Once enabled, the Guest OS has the ability to deploy a nested hypervisor.
+	//
+	HardwareVirtualizationEnabled *bool `json:"hardware_virtualization_enabled,omitempty" mapstructure:"hardware_virtualization_enabled,omitempty"`
 }
 
 // VM An intentful representation of a vm spec
@@ -521,6 +528,13 @@ type VMResourcesDefStatus struct {
 	SerialPortList []*VMSerialPort `json:"serial_port_list,omitempty" mapstructure:"serial_port_list,omitempty"`
 
 	MachineType *string `json:"machine_type,omitempty" mapstructure:"machine_type,omitempty"`
+
+	// VM vTPM configuration.
+	VtpmConfig *VMVtpmStatus `json:"vtpm_config,omitempty" mapstructure:"vtpm_config,omitempty"`
+
+	// Indicates whether hardware assisted virtualization should be enabled for the Guest OS. Once enabled, the Guest OS has the ability to deploy a nested hypervisor.
+	//
+	HardwareVirtualizationEnabled *bool `json:"hardware_virtualization_enabled,omitempty" mapstructure:"hardware_virtualization_enabled,omitempty"`
 }
 
 // VMDefStatus An intentful representation of a vm status
@@ -2747,4 +2761,40 @@ type AvailabilityZoneStatus struct {
 	Resources   *AvailabilityZoneResources `json:"resources,omitempty"` // AvailabilityZone Resource Definition
 	MessageList []MessageResource          `json:"message_list,omitempty"`
 	State       *string                    `json:"state,omitempty"` // The state of the entity
+}
+
+// VMVtpmConfig VM vTPM configuration.
+//
+// Indicates how VM vTPM should be configured.
+//
+// swagger:model vm_vtpm_config
+type VMVtpmConfig struct {
+
+	// data source reference
+	DataSourceReference *Reference `json:"data_source_reference,omitempty" mapstructure:"data_source_reference,omitempty"`
+
+	// Indicates whether virtual trusted platform module should be enabled for the Guest OS.
+	//
+	VtpmEnabled *bool `json:"vtpm_enabled,omitempty" mapstructure:"vtpm_enabled,omitempty"`
+
+	// Virtual trusted platform module secret.
+	VtpmSecret *string `json:"vtpm_secret,omitempty" mapstructure:"vtpm_secret,omitempty"`
+}
+
+// VMVtpmStatus VM vTPM configuration status.
+//
+// Current status of the vTPM configuration.
+//
+// swagger:model vm_vtpm_status
+type VMVtpmStatus struct {
+
+	// data source reference
+	DataSourceReference *Reference `json:"data_source_reference,omitempty" mapstructure:"data_source_reference,omitempty"`
+
+	// Virtual trusted platform module version.
+	Version *string `json:"version,omitempty" mapstructure:"version,omitempty"`
+
+	// Indicates whether virtual trusted platform module is enabled for the the Guest OS.
+	//
+	VtpmEnabled *bool `json:"vtpm_enabled,omitempty" mapstructure:"vtpm_enabled,omitempty"`
 }
