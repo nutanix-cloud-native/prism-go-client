@@ -15,7 +15,7 @@ all: help
 ## Build:
 build: ## Build your project and put the output binary in bin/
 	mkdir -p bin
-	$(GOCMD) build -o bin/$(BINARY_NAME) .
+	go build ./...
 
 # CRD_OPTIONS define options to add to the CONTROLLER_GEN
 CRD_OPTIONS ?= "crd:crdVersions=v1"
