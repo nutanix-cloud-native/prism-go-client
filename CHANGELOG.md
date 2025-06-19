@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added the new v4 storage container client from clustermgmt namespace as it is based on the v4 beta APIs.
 
 ### Changed
+- Update the v3 VM structs to include VM vTPM configuration.
 
 ### Removed
 - Removed the v4 storage container client from storage namespace as it was based on the v4 alpha APIs which are no longer supported.
