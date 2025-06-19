@@ -59,7 +59,11 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=idempotence_identifiers_input \
 		--model=idempotence_identifiers_metadata \
 		--model=idempotence_identifiers_response \
-		--model=idempotence_identifiers_status
+		--model=idempotence_identifiers_status \
+		--model=user_reference \
+		--model=project_reference \
+		--model=api_version \
+		--model=message_resource
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
