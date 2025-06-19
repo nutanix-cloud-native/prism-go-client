@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v0.5.1]
 ### Added
 - Added support for creating, deleting, and listing idempotence identifiers.
+- added the new v4 storage container client from clustermgmt namespace as it is based on the v4 beta APIs.
 
 ### Changed
+
+### Removed
+- Removed the v4 storage container client from storage namespace as it was based on the v4 alpha APIs which are no longer supported.
 
 ## [v0.5.1] - 2024-08-09
 ### Changed
@@ -21,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a cache for v4 clients in v4 package
 
 ### Changed
-- Updated v4 API clients from v4 alpha to v4 beta  APIs
+- Updated v4 API clients from v4 alpha to v4 beta APIs
 - Handle trust bundle in v4 client cache GetOrCreate by setting VerifySSL
 
 ## [0.4.0] - 2024-05-03
