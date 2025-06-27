@@ -27,15 +27,16 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	CategoriesApiInstance   *prismApi.CategoriesApi
-	ClustersApiInstance     *clusterApi.ClustersApi
-	ImagesApiInstance       *vmApi.ImagesApi
-	StorageContainerAPI     *clusterApi.StorageContainersApi
-	SubnetsApiInstance      *networkingApi.SubnetsApi
-	SubnetIPReservationApi  *networkingApi.SubnetIPReservationApi
-	TasksApiInstance        *prismApi.TasksApi
-	VolumeGroupsApiInstance *volumesApi.VolumeGroupsApi
-	VmApiInstance           *vmApi.VmApi
+	CategoriesApiInstance        *prismApi.CategoriesApi
+	ClustersApiInstance          *clusterApi.ClustersApi
+	ImagePlacementPoliciesApi    *vmApi.ImagePlacementPoliciesApi
+	ImagesApiInstance            *vmApi.ImagesApi
+	StorageContainerAPI          *clusterApi.StorageContainersApi
+	SubnetsApiInstance           *networkingApi.SubnetsApi
+	SubnetIPReservationApi       *networkingApi.SubnetIPReservationApi
+	TasksApiInstance             *prismApi.TasksApi
+	VolumeGroupsApiInstance      *volumesApi.VolumeGroupsApi
+	VmApiInstance                *vmApi.VmApi
 }
 
 type endpointInfo struct {
@@ -94,6 +95,7 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
+	v4Client.ImagePlacementPoliciesApi = vmApi.NewImagePlacementPoliciesApi(apiClientInstance)
 	return nil
 }
 
