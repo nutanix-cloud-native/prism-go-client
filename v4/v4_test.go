@@ -25,6 +25,7 @@ func TestNewV4Client(t *testing.T) {
 	assert.NotNil(t, v4Client)
 	assert.NotNil(t, v4Client.VmApiInstance)
 	assert.NotNil(t, v4Client.ImagesApiInstance)
+	assert.NotNil(t, v4Client.ImagePlacementPoliciesApi)
 	assert.NotNil(t, v4Client.SubnetsApiInstance)
 	assert.NotNil(t, v4Client.SubnetIPReservationApi)
 	assert.NotNil(t, v4Client.ClustersApiInstance)
