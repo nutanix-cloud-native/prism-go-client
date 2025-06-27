@@ -17,8 +17,8 @@ require (
 	github.com/keploy/go-sdk v0.9.0
 	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.0.1-beta.2
 	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.0.2-beta.1
-	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.0.1-beta.1
-	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.1-beta.1
+	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.0.1
+	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.0.1
 	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.0.1-beta.1
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
