@@ -27,16 +27,16 @@ const (
 
 // Client manages the V4 API
 type Client struct {
-	CategoriesApiInstance     *prismApi.CategoriesApi
-	ClustersApiInstance       *clusterApi.ClustersApi
-	ImagesApiInstance         *vmApi.ImagesApi
-	StorageContainerAPI       *clusterApi.StorageContainersApi
-	SubnetsApiInstance        *networkingApi.SubnetsApi
-	SubnetIPReservationApi    *networkingApi.SubnetIPReservationApi
-	TasksApiInstance          *prismApi.TasksApi
-	VolumeGroupsApiInstance   *volumesApi.VolumeGroupsApi
-	VmApiInstance             *vmApi.VmApi
-	VmAntiAffinityPoliciesApi *vmApi.VmAntiAffinityPoliciesApi
+	CategoriesApiInstance             *prismApi.CategoriesApi
+	ClustersApiInstance               *clusterApi.ClustersApi
+	ImagesApiInstance                 *vmApi.ImagesApi
+	StorageContainerAPI               *clusterApi.StorageContainersApi
+	SubnetsApiInstance                *networkingApi.SubnetsApi
+	SubnetIPReservationApi            *networkingApi.SubnetIPReservationApi
+	TasksApiInstance                  *prismApi.TasksApi
+	VolumeGroupsApiInstance           *volumesApi.VolumeGroupsApi
+	VmApiInstance                     *vmApi.VmApi
+	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 }
 
 type endpointInfo struct {
