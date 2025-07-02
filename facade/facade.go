@@ -8,12 +8,48 @@ type FacadeClientV4 interface {
 type ODataOption func(params ODataOptions) error
 
 type ODataOptions interface {
-	SetPageOption(page int) ODataOption
-	SetLimitOption(limit int) ODataOption
-	SetFilterOption(filter string) ODataOption
-	SetOrderByOption(orderBy string) ODataOption
-	SetExpandOption(expand string) ODataOption
-	SetSelectOption(selectFields string) ODataOption
+	SetPageOption(page int) error
+	SetLimitOption(limit int) error
+	SetFilterOption(filter string) error
+	SetOrderByOption(orderBy string) error
+	SetExpandOption(expand string) error
+	SetSelectOption(selectFields string) error
+}
+
+func WithPage(page int) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetPageOption(page)
+	}
+}
+
+func WithLimit(limit int) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetLimitOption(limit)
+	}
+}
+
+func WithFilter(filter string) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetFilterOption(filter)
+	}
+}
+
+func WithOrderBy(orderBy string) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetOrderByOption(orderBy)
+	}
+}
+
+func WithExpand(expand string) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetExpandOption(expand)
+	}
+}
+
+func WithSelect(selectFields string) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetSelectOption(selectFields)
+	}
 }
 
 type TaskStatus string

@@ -18,6 +18,7 @@ import (
 	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
 const (
@@ -44,11 +45,8 @@ type endpointInfo struct {
 	port int
 }
 
-// ClientOption is a functional option for the Client
-type ClientOption func(*Client) error
-
 // NewV4Client return an internal to operate V4 resources
-func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
+func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOption[Client]) (*Client, error) {
 	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
 		return nil, fmt.Errorf("username, password and endpoint are required")
 	}
@@ -95,6 +93,7 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
+	v4Client.VmAntiAffinityPoliciesApiInstance = vmApi.NewVmAntiAffinityPoliciesApi(apiClientInstance)
 	return nil
 }
 

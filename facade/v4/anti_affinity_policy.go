@@ -10,7 +10,9 @@ import (
 
 // Implements the FacadeClientV4 interface
 func (f *FacadeV4Client) GetAntiAffinityPolicy(uuid string) (*v4policies.VmAntiAffinityPolicy, error) {
-	policy, err := CallAPI[*v4policies.GetVmAntiAffinityPolicyApiResponse, v4policies.VmAntiAffinityPolicy](f.client.VmAntiAffinityPoliciesApi.GetVmAntiAffinityPolicyById(&uuid))
+	policy, err := CallAPI[*v4policies.GetVmAntiAffinityPolicyApiResponse, v4policies.VmAntiAffinityPolicy](
+		f.client.VmAntiAffinityPoliciesApiInstance.GetVmAntiAffinityPolicyById(&uuid),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get anti-affinity policy with UUID %s: %w", uuid, err)
 	}
@@ -24,7 +26,7 @@ func (f *FacadeV4Client) ListAntiAffinityPolicies(opts ...facade.ODataOption) ([
 	}
 
 	policies, err := CallAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, []v4policies.VmAntiAffinityPolicy](
-		f.client.VmAntiAffinityPoliciesApi.ListVmAntiAffinityPolicies(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy),
+		f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
@@ -36,7 +38,7 @@ func (f *FacadeV4Client) ListAntiAffinityPolicies(opts ...facade.ODataOption) ([
 // CreateAntiAffinityPolicy creates a new anti-affinity policy.
 func (f *FacadeV4Client) CreateAntiAffinityPolicy(policy v4policies.VmAntiAffinityPolicy) (facade.TaskWaiter[v4policies.VmAntiAffinityPolicy], error) {
 	taskRef, err := CallAPI[*v4policies.CreateVmAntiAffinityPolicyApiResponse, v4VmmConfig.TaskReference](
-		f.client.VmAntiAffinityPoliciesApi.CreateVmAntiAffinityPolicy(&policy),
+		f.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(&policy),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create anti-affinity policy: %w", err)
@@ -53,7 +55,7 @@ func (f *FacadeV4Client) CreateAntiAffinityPolicy(policy v4policies.VmAntiAffini
 // UpdateAntiAffinityPolicy updates an existing anti-affinity policy.
 func (f *FacadeV4Client) UpdateAntiAffinityPolicy(uuid string, policy v4policies.VmAntiAffinityPolicy) (facade.TaskWaiter[v4policies.VmAntiAffinityPolicy], error) {
 	taskRef, err := CallAPI[*v4policies.UpdateVmAntiAffinityPolicyApiResponse, v4VmmConfig.TaskReference](
-		f.client.VmAntiAffinityPoliciesApi.UpdateVmAntiAffinityPolicyById(&uuid, &policy),
+		f.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, &policy),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update anti-affinity policy with UUID %s: %w", uuid, err)
@@ -77,7 +79,7 @@ func (f *FacadeV4Client) DeleteAntiAffinityPolicy(uuid string) (facade.TaskWaite
 	}
 
 	taskRef, err := CallAPI[*v4policies.DeleteVmAntiAffinityPolicyApiResponse, v4VmmConfig.TaskReference](
-		f.client.VmAntiAffinityPoliciesApi.DeleteVmAntiAffinityPolicyById(&uuid, args),
+		f.client.VmAntiAffinityPoliciesApiInstance.DeleteVmAntiAffinityPolicyById(&uuid, args),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete anti-affinity policy with UUID %s: %w", uuid, err)

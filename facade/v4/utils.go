@@ -30,85 +30,44 @@ func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
 	return nil, fmt.Errorf("expected *V4ODataParams, got %T", params)
 }
 
-func (o *V4ODataParams) SetPageOption(page int) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-		options.Page = &page
-		return nil
-	}
+func (o *V4ODataParams) SetPageOption(page int) error {
+	o.Page = &page
+	return nil
 }
 
-func (o *V4ODataParams) SetLimitOption(limit int) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-
-		options.Limit = &limit
-		return nil
-	}
+func (o *V4ODataParams) SetLimitOption(limit int) error {
+	o.Limit = &limit
+	return nil
 }
 
-func (o *V4ODataParams) SetFilterOption(filter string) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-
-		options.Filter = &filter
-		return nil
-	}
+func (o *V4ODataParams) SetFilterOption(filter string) error {
+	o.Filter = &filter
+	return nil
 }
 
-func (o *V4ODataParams) SetOrderByOption(orderBy string) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-
-		options.OrderBy = &orderBy
-		return nil
-	}
+func (o *V4ODataParams) SetOrderByOption(orderBy string) error {
+	o.OrderBy = &orderBy
+	return nil
 }
 
-func (o *V4ODataParams) SetExpandOption(expand string) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-
-		options.Expand = &expand
-		return nil
-	}
+func (o *V4ODataParams) SetExpandOption(expand string) error {
+	o.Expand = &expand
+	return nil
 }
 
-func (o *V4ODataParams) SetSelectOption(selectFields string) facade.ODataOption {
-	return func(params facade.ODataOptions) error {
-		options, err := ToV4ODataParams(params)
-		if err != nil {
-			return err
-		}
-
-		options.Select = &selectFields
-		return nil
-	}
+func (o *V4ODataParams) SetSelectOption(selectFields string) error {
+	o.Select = &selectFields
+	return nil
 }
 
-func GetEtag(object interface{}) *string {
+func GetEtag(object interface{}) string {
 	var reserved reflect.Value
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
 		reserved = reflect.ValueOf(object).FieldByName("Reserved_")
 	} else if reflect.TypeOf(object).Kind() == reflect.Interface || reflect.TypeOf(object).Kind() == reflect.Ptr {
 		reserved = reflect.ValueOf(object).Elem().FieldByName("Reserved_")
 	} else {
-		return nil
+		return ""
 	}
 
 	if reserved.IsValid() {
@@ -116,12 +75,12 @@ func GetEtag(object interface{}) *string {
 		reservedMap := reserved.Interface().(map[string]interface{})
 		for k, v := range reservedMap {
 			if strings.ToLower(k) == etagKey {
-				return v.(*string)
+				return v.(string)
 			}
 		}
 	}
 
-	return nil
+	return ""
 }
 
 var (
@@ -157,7 +116,7 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 	data := response.GetData()
 	if data == nil {
-		return zero, fmt.Errorf("no data found in API response")
+		return zero, nil
 	}
 
 	result, ok := data.(T)
@@ -176,7 +135,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 	}
 
 	etag := GetEtag(entity)
-	if etag == nil {
+	if etag == "" {
 		return zero, nil, fmt.Errorf("no ETag found for entity of type %T", entity)
 	}
 

@@ -7,50 +7,31 @@ import (
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+	"github.com/nutanix-cloud-native/prism-go-client/facade"
+	v4 "github.com/nutanix-cloud-native/prism-go-client/v4"
 )
 
-type clientCacheMap map[string]*Client
+type clientCacheMap map[string]*FacadeV4Client
 
-// ClientCache is a cache for prism clients
-type ClientCache struct {
-	cache            clientCacheMap
+type FacadeV4ClientCache struct {
+	cache            map[string]*FacadeV4Client
 	validationHashes map[string]string
 	mtx              sync.RWMutex
 
 	useSessionAuth bool
 }
 
-// WithSessionAuth sets the session auth for the ClientCache
-// If sessionAuth is true, the client will use session auth instead of basic auth for authentication of requests
-// If sessionAuth is false, the client will use basic auth for authentication of requests
-func WithSessionAuth(sessionAuth bool) types.CacheOpts[ClientCache] {
-	return func(c *ClientCache) {
-		c.useSessionAuth = sessionAuth
-	}
-}
-
-// NewClientCache returns a new ClientCache
-func NewClientCache(opts ...types.CacheOpts[ClientCache]) *ClientCache {
-	cache := &ClientCache{
+func NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) *FacadeV4ClientCache {
+	cache := &FacadeV4ClientCache{
 		cache:            make(clientCacheMap),
 		validationHashes: make(map[string]string),
 		mtx:              sync.RWMutex{},
 	}
 
-	for _, opt := range opts {
-		opt(cache)
-	}
-
 	return cache
 }
 
-// GetOrCreate returns the client for the given client name and endpoint.
-// - If the client is not found in the cache, it creates a new client, adds it to the cache, and returns it
-// - If the client is found in the cache, it validates whether the client is still valid by comparing validation hashes
-// - If the client is found in the cache and the validation hash is the same, it returns the client
-// - If the client is found in the cache and the validation hash is different, it regenerates the client, updates the cache, and returns the client
-// func (c *ClientCache) GetOrCreate(clientName string, endpoint types.ManagementEndpoint, opts ...ClientOption) (*Client, error) {
-func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[Client]) (*Client, error) {
+func (c *FacadeV4ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[v4.Client]) (facade.FacadeClientV4, error) {
 	client, validationHash, err := c.get(cachedClientParams.Key())
 	if err != nil {
 		if !errors.Is(err, types.ErrorClientNotFound) {
@@ -68,7 +49,6 @@ func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, o
 		return client, nil
 	}
 
-	// validation hash is different, regenerate the client
 	c.Delete(cachedClientParams)
 
 	credentials := prismgoclient.Credentials{
@@ -91,7 +71,7 @@ func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, o
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	client, err = NewV4Client(credentials, opts...)
+	client, err = NewFacadeV4Client(credentials, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
@@ -122,8 +102,7 @@ func validateCredentials(credentials prismgoclient.Credentials) error {
 	return nil
 }
 
-// Get returns the client and the validation hash for the given client name
-func (c *ClientCache) get(clientName string) (*Client, string, error) {
+func (c *FacadeV4ClientCache) get(clientName string) (*FacadeV4Client, string, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
@@ -134,14 +113,13 @@ func (c *ClientCache) get(clientName string) (*Client, string, error) {
 
 	validationHash, ok := c.validationHashes[clientName]
 	if !ok {
-		return clnt, "", nil
+		return nil, "", types.ErrorClientNotFound
 	}
 
 	return clnt, validationHash, nil
 }
 
-// Set adds the client to the cache
-func (c *ClientCache) set(clientName string, validationHash string, client *Client) {
+func (c *FacadeV4ClientCache) set(clientName string, validationHash string, client *FacadeV4Client) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -149,11 +127,10 @@ func (c *ClientCache) set(clientName string, validationHash string, client *Clie
 	c.validationHashes[clientName] = validationHash
 }
 
-// Delete removes the client from the cache
-func (c *ClientCache) Delete(params types.CachedClientParams) {
+func (c *FacadeV4ClientCache) Delete(cachedClientParams types.CachedClientParams) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	delete(c.cache, params.Key())
-	delete(c.validationHashes, params.Key())
+	delete(c.cache, cachedClientParams.Key())
+	delete(c.validationHashes, cachedClientParams.Key())
 }

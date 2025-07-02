@@ -3,8 +3,10 @@ package v4
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
@@ -15,7 +17,7 @@ type FacadeV4Client struct {
 }
 
 // NewFacadeV4Client creates a new FacadeV4Client with the provided credentials and options.
-func NewFacadeV4Client(credentials prismgoclient.Credentials, opts ...v4prismGoClient.ClientOption) (facade.FacadeClientV4, error) {
+func NewFacadeV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*FacadeV4Client, error) {
 	client, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
 		return nil, err
@@ -71,6 +73,8 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 	f.setTaskStatus(ConvertTaskStatus(*taskStatus))
 
 	for *taskStatus != v4prismModels.TASKSTATUS_SUCCEEDED {
+		time.Sleep(1 * time.Second)
+
 		// Wait for the task to complete
 		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
 			f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),

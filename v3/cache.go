@@ -1,14 +1,11 @@
 package v3
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
@@ -36,20 +33,17 @@ type ClientCache struct {
 	useSessionAuth bool
 }
 
-// CacheOpts is a functional option for the ClientCache
-type CacheOpts func(*ClientCache)
-
 // WithSessionAuth sets the session auth for the ClientCache
 // If sessionAuth is true, the client will use session auth instead of basic auth for authentication of requests
 // If sessionAuth is false, the client will use basic auth for authentication of requests
-func WithSessionAuth(sessionAuth bool) CacheOpts {
+func WithSessionAuth(sessionAuth bool) types.CacheOpts[ClientCache] {
 	return func(c *ClientCache) {
 		c.useSessionAuth = sessionAuth
 	}
 }
 
 // NewClientCache returns a new ClientCache
-func NewClientCache(opts ...CacheOpts) *ClientCache {
+func NewClientCache(opts ...types.CacheOpts[ClientCache]) *ClientCache {
 	cache := &ClientCache{
 		cache:            make(clientCacheMap),
 		validationHashes: make(map[string]string),
@@ -63,29 +57,13 @@ func NewClientCache(opts ...CacheOpts) *ClientCache {
 	return cache
 }
 
-// CachedClientParams define the interface that needs to be implemented by an object that will be used to create
-// a cached client.
-type CachedClientParams interface {
-	// ManagementEndpoint returns the struct containing all information needed to construct a new client
-	// and is used to calculate the validation hash for the client for the purpose of cache invalidation.
-	// The validation hash is calculated based on the serialized version of the ManagementEndpoint.
-	ManagementEndpoint() types.ManagementEndpoint
-	// Key returns a unique key for the client that is used to store the client in the cache
-	Key() string
-}
-
 // GetOrCreate returns the client for the given client name and endpoint.
 // - If the client is not found in the cache, it creates a new client, adds it to the cache, and returns it
 // - If the client is found in the cache, it validates whether the client is still valid by comparing validation hashes
 // - If the client is found in the cache and the validation hash is the same, it returns the client
 // - If the client is found in the cache and the validation hash is different, it regenerates the client, updates the cache, and returns the client
 // func (c *ClientCache) GetOrCreate(clientName string, endpoint types.ManagementEndpoint, opts ...ClientOption) (*Client, error) {
-func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ...ClientOption) (*Client, error) {
-	currentValidationHash, err := validationHashFromEndpoint(cachedClientParams.ManagementEndpoint())
-	if err != nil {
-		return nil, fmt.Errorf("failed to calculate validation hash for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
-	}
-
+func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[Client]) (*Client, error) {
 	client, validationHash, err := c.get(cachedClientParams.Key())
 	if err != nil {
 		if !errors.Is(err, ErrorClientNotFound) {
@@ -93,7 +71,12 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 		}
 	}
 
-	if validationHash == currentValidationHash {
+	isValidationHashEqual, currentValidationHash, err := types.IsManagementEndpointHashEqual(cachedClientParams.ManagementEndpoint(), validationHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compare validation hash for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
+	}
+
+	if isValidationHashEqual {
 		// validation hash is the same, return the client
 		return client, nil
 	}
@@ -126,23 +109,6 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 
 	c.set(cachedClientParams.Key(), currentValidationHash, client)
 	return client, nil
-}
-
-func validationHashFromEndpoint(endpoint types.ManagementEndpoint) (string, error) {
-	// Note: this will only work reliably as long as types.ManagementEndpoint is predictably serializable i.e. does
-	// not contain a map. Due to randomized ordering of map keys in Go, we would constantly invalidate caches
-	// if the ManagementEndpoint has a map.
-	serializedEndpoint, err := json.Marshal(endpoint)
-	if err != nil {
-		return "", err
-	}
-
-	hasher := sha256.New()
-	hasher.Write(serializedEndpoint)
-	hashedBytes := hasher.Sum(nil)
-	currentValidationHash := hex.EncodeToString(hashedBytes)
-
-	return currentValidationHash, nil
 }
 
 func setDefaultsForCredentials(credentials *prismgoclient.Credentials) {
@@ -195,7 +161,7 @@ func (c *ClientCache) set(clientName string, validationHash string, client *Clie
 }
 
 // Delete removes the client from the cache
-func (c *ClientCache) Delete(params CachedClientParams) {
+func (c *ClientCache) Delete(params types.CachedClientParams) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
