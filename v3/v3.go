@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
@@ -84,8 +84,22 @@ func WithUserAgent(userAgent string) ClientOption {
 
 // NewV3Client return a internal to operate V3 resources
 func NewV3Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
-		return nil, fmt.Errorf("username, password and endpoint are required")
+	// Default to basic auth if no auth type is specified.
+	if credentials.AuthType == "" {
+		credentials.AuthType = prismgoclient.AuthTypeBasic
+	}
+	
+	switch credentials.AuthType {
+	case prismgoclient.AuthTypeBasic:
+		if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
+			return nil, fmt.Errorf("username, password and endpoint are required for basic auth")
+		}
+	case prismgoclient.AuthTypeAPIKey:
+		if credentials.APIKey == "" || credentials.Endpoint == "" {
+			return nil, fmt.Errorf("api key and endpoint are required for api key auth")
+		}
+	default:
+		return nil, fmt.Errorf("unsupported auth type: %v", credentials.AuthType)
 	}
 
 	v3Client := &Client{

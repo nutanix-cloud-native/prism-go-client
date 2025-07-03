@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 	"go.uber.org/zap"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 type Scheme string
@@ -239,10 +239,19 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.cookies != nil {
 		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+		if c.credentials.AuthType == prismgoclient.AuthTypeAPIKey {
+			decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
+		} else {
+			decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+		}
 	}
 
 	return req, nil
+}
+
+// decorateRequestWithAPIKeyHeaders adds the API key to the request header
+func decorateRequestWithAPIKeyHeaders(req *http.Request, apiKey string) {
+	req.Header.Add("X-ntnx-api-key", apiKey)
 }
 
 func (c *Client) refreshCookies(ctx context.Context) error {
@@ -252,7 +261,11 @@ func (c *Client) refreshCookies(ctx context.Context) error {
 	}
 
 	req = req.WithContext(ctx)
-	decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+	if c.credentials.AuthType == prismgoclient.AuthTypeAPIKey {
+		decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
+	} else {
+		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+	}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err

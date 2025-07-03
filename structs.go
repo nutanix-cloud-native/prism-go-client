@@ -1,8 +1,17 @@
 package prismgoclient
 
+type AuthType string
+
+const (
+	AuthTypeBasic  AuthType = "basic_auth"
+	AuthTypeAPIKey AuthType = "api_key"
+)
+
 // Credentials needed username and password
 type Credentials struct {
 	URL                string
+	AuthType           AuthType
+	APIKey             string
 	Username           string
 	Password           string
 	Endpoint           string
