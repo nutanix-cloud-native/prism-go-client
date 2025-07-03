@@ -1,4 +1,4 @@
-module github.com/amanalinutanix/prism-go-client
+module github.com/nutanix-cloud-native/prism-go-client
 
 go 1.21
 
