@@ -1,12 +1,5 @@
 package prismgoclient
 
-type AuthType string
-
-const (
-	AuthTypeBasic  AuthType = "basic_auth"
-	AuthTypeAPIKey AuthType = "api_key"
-)
-
 // Credentials can include either username and password for basic authentication
 // or an API key for API key-based authentication
 type Credentials struct {
