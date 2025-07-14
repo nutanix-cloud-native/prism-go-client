@@ -27,10 +27,11 @@ import (
 type Scheme string
 
 const (
-	defaultBaseURL  = "%s://%s/"
-	mediaType       = "application/json"
-	formEncodedType = "application/x-www-form-urlencoded"
-	octetStreamType = "application/octet-stream"
+	defaultBaseURL      = "%s://%s/"
+	mediaType           = "application/json"
+	formEncodedType     = "application/x-www-form-urlencoded"
+	octetStreamType     = "application/octet-stream"
+	ntnxAPIKeyHeaderKey = "X-ntnx-api-key"
 
 	SchemeHTTP  Scheme = "http"
 	SchemeHTTPS Scheme = "https"
@@ -251,7 +252,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 // decorateRequestWithAPIKeyHeaders adds the API key to the request header
 func decorateRequestWithAPIKeyHeaders(req *http.Request, apiKey string) {
-	req.Header.Add(prismgoclient.NtnxAPIKeyHeaderKey, apiKey)
+	req.Header.Add(ntnxAPIKeyHeaderKey, apiKey)
 }
 
 func (c *Client) refreshCookies(ctx context.Context) error {
