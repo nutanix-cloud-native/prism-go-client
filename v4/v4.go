@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
@@ -16,8 +17,6 @@ import (
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
 	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
-
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
@@ -96,8 +95,12 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
 	return nil
@@ -112,8 +115,12 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.ClustersApiInstance = clusterApi.NewClustersApi(apiClientInstance)
 	return nil
 }
@@ -127,8 +134,12 @@ func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	v4Client.CategoriesApiInstance = prismApi.NewCategoriesApi(apiClientInstance)
 	return nil
@@ -143,8 +154,12 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.SubnetsApiInstance = networkingApi.NewSubnetsApi(apiClientInstance)
 	v4Client.SubnetIPReservationApi = networkingApi.NewSubnetIPReservationApi(apiClientInstance)
 	return nil
@@ -159,8 +174,12 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.StorageContainerAPI = clusterApi.NewStorageContainersApi(apiClientInstance)
 	return nil
 }
@@ -174,8 +193,12 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	if credentials.APIKey != "" {
+		apiClientInstance.AddDefaultHeader(prismgoclient.NtnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClientInstance.AddDefaultHeader(
+			authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
 	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
 	return nil
 }

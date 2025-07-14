@@ -251,7 +251,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 // decorateRequestWithAPIKeyHeaders adds the API key to the request header
 func decorateRequestWithAPIKeyHeaders(req *http.Request, apiKey string) {
-	req.Header.Add("X-ntnx-api-key", apiKey)
+	req.Header.Add(prismgoclient.NtnxAPIKeyHeaderKey, apiKey)
 }
 
 func (c *Client) refreshCookies(ctx context.Context) error {
