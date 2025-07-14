@@ -57,6 +57,7 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*
 			return nil, fmt.Errorf("username, password and endpoint are required for basic auth")
 		}
 	}
+
 	v4Client := &Client{}
 
 	if err := initVmApiInstance(v4Client, credentials); err != nil {
