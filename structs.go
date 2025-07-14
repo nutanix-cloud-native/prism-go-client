@@ -7,10 +7,10 @@ const (
 	AuthTypeAPIKey AuthType = "api_key"
 )
 
-// Credentials needed username and password
+// Credentials can include either username and password for basic authentication
+// or an API key for API key-based authentication
 type Credentials struct {
 	URL                string
-	AuthType           AuthType
 	APIKey             string
 	Username           string
 	Password           string

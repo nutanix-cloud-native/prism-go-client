@@ -239,7 +239,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.cookies != nil {
 		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		if c.credentials.AuthType == prismgoclient.AuthTypeAPIKey {
+		if c.credentials.APIKey != "" {
 			decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
 		} else {
 			decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
@@ -261,7 +261,7 @@ func (c *Client) refreshCookies(ctx context.Context) error {
 	}
 
 	req = req.WithContext(ctx)
-	if c.credentials.AuthType == prismgoclient.AuthTypeAPIKey {
+	if c.credentials.APIKey != "" {
 		decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
 	} else {
 		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)

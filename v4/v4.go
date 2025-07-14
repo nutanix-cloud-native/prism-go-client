@@ -48,10 +48,15 @@ type ClientOption func(*Client) error
 
 // NewV4Client return an internal to operate V4 resources
 func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
-		return nil, fmt.Errorf("username, password and endpoint are required")
+	if credentials.APIKey != "" {
+		if credentials.Endpoint == "" {
+			return nil, fmt.Errorf("endpoint is required for api key auth")
+		}
+	} else {
+		if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
+			return nil, fmt.Errorf("username, password and endpoint are required for basic auth")
+		}
 	}
-
 	v4Client := &Client{}
 
 	if err := initVmApiInstance(v4Client, credentials); err != nil {
