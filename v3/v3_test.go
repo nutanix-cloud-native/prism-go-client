@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
@@ -40,7 +40,7 @@ func TestNewV3Client(t *testing.T) {
 
 	v3Client, err = NewV3Client(cred)
 	assert.Nil(t, v3Client)
-	assert.EqualError(t, err, "username, password and endpoint are required")
+	assert.EqualError(t, err, "username, password and endpoint are required for basic auth")
 }
 
 func TestNewV3ClientWithPEMEncodedCertBundle(t *testing.T) {

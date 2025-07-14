@@ -44,5 +44,5 @@ func TestNewV4Client(t *testing.T) {
 
 	v4Client, err = NewV4Client(cred)
 	assert.Nil(t, v4Client)
-	assert.EqualError(t, err, "username, password and endpoint are required")
+	assert.EqualError(t, err, "username, password and endpoint are required for basic auth")
 }
