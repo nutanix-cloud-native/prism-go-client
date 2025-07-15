@@ -8,8 +8,12 @@ type AntiAffinityPolicyFacadeV4 interface {
 	// GetAntiAffinityPolicy returns the anti-affinity policy for the given UUID.
 	GetAntiAffinityPolicy(uuid string) (*v4policies.VmAntiAffinityPolicy, error)
 
-	// ListAntiAffinityPolicies returns a list of anti-affinity policies.
+	// ListAntiAffinityPolicies returns a list of anti-affinity policies. If page and limit are not provided,
+	// it returns all the policies available (filtered if filter is provided).
 	ListAntiAffinityPolicies(opts ...ODataOption) ([]v4policies.VmAntiAffinityPolicy, error)
+
+	// GetListIteratorAntiAffinityPolicies returns an iterator for listing anti-affinity policies.
+	GetListIteratorAntiAffinityPolicies(opts ...ODataOption) ODataListIterator[*v4policies.VmAntiAffinityPolicy]
 
 	// CreateAntiAffinityPolicy creates a new anti-affinity policy.
 	CreateAntiAffinityPolicy(policy v4policies.VmAntiAffinityPolicy) (TaskWaiter[v4policies.VmAntiAffinityPolicy], error)

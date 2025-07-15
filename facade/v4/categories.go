@@ -37,6 +37,44 @@ func (f *FacadeV4Client) ListCategories(opts ...facade.ODataOption) ([]v4prismMo
 	return categories, nil
 }
 
+// GetListIteratorCategories returns an iterator for listing categories.
+func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) facade.ODataListIterator[*v4prismModels.Category] {
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return &FacadeV4ODataIterator[*v4prismModels.ListCategoriesApiResponse, *v4prismModels.Category]{
+			iteratorError: fmt.Errorf("failed to convert options to V4 OData params: %w", err),
+		}
+	}
+	page := 0
+	reqParams.Limit = nil  // Let API use the default limit
+	reqParams.Page = &page // Start from the page 0
+	itemsBuffer, totalCount, err := CallListAPI[*v4prismModels.ListCategoriesApiResponse, *v4prismModels.Category](
+		f.client.CategoriesApiInstance.ListCategories(&page, nil, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select),
+	)
+	if err != nil {
+		return &FacadeV4ODataIterator[*v4prismModels.ListCategoriesApiResponse, *v4prismModels.Category]{
+			iteratorError: fmt.Errorf("failed to list categories: %w", err),
+		}
+	}
+
+	return NewFacadeV4ODataIterator(
+		f.client,
+		totalCount,
+		itemsBuffer,
+		func(params *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
+			return f.client.CategoriesApiInstance.ListCategories(
+				params.Page,
+				params.Limit,
+				params.Filter,
+				params.OrderBy,
+				params.Expand,
+				params.Select,
+			)
+		},
+		opts...,
+	)
+}
+
 // CreateCategory creates a new category.
 func (f *FacadeV4Client) CreateCategory(category *v4prismModels.Category) (*v4prismModels.Category, error) {
 	newCategory, err := CallAPI[*v4prismModels.CreateCategoryApiResponse, v4prismModels.Category](

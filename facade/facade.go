@@ -79,3 +79,9 @@ type NoEntity interface{}
 func NoEntityGetter(uuid string) (*NoEntity, error) {
 	return nil, nil
 }
+
+type ODataListIterator[T any] interface {
+	Next() bool
+	GetCurrent() (T, error)
+	Count() int
+}

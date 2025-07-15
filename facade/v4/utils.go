@@ -7,6 +7,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	responseModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/common/v1/response"
 )
 
 type V4ODataParams struct {
@@ -125,6 +126,43 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	}
 
 	return result, nil
+}
+
+func GetMetadata[R APIResponse](response R) (*responseModels.ApiResponseMetadata, error) {
+	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
+	if !hasMetadataField.IsValid() {
+		return nil, fmt.Errorf("response does not have Metadata field")
+	}
+	metadata := hasMetadataField.Interface().(responseModels.ApiResponseMetadata)
+	return &metadata, nil
+}
+
+func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
+	var zero []T
+	if err != nil {
+		return zero, 0, fmt.Errorf("API call failed: %w", err)
+	}
+
+	totalCount := 0
+	metadata, err := GetMetadata(response)
+	if err != nil {
+		return zero, 0, fmt.Errorf("failed to get metadata: %w", err)
+	}
+	if metadata != nil && metadata.TotalAvailableResults != nil {
+		totalCount = *metadata.TotalAvailableResults
+	}
+
+	data := response.GetData()
+	if data == nil {
+		return zero, totalCount, nil
+	}
+
+	result, ok := data.([]T)
+	if !ok {
+		return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
+	}
+
+	return result, totalCount, nil
 }
 
 func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, error) {

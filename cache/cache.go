@@ -19,15 +19,15 @@ type ClientCacheStruct[T any] interface {
 	Delete(cachedClientParams types.CachedClientParams)
 }
 
-type ClientCacheIfc[T any] interface {
-	GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[T]) (T, error)
+type ClientCacheIfc[T any, U any] interface {
+	GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[T]) (U, error)
 	Delete(cachedClientParams types.CachedClientParams)
 }
 
 type ClientCacheFactory interface {
 	NewClientCacheV3(opts ...types.CacheOpts[v3.ClientCache]) ClientCacheStruct[v3.Client]
 	NewClientCacheV4(opts ...types.CacheOpts[v4.ClientCache]) ClientCacheStruct[v4.Client]
-	NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) ClientCacheIfc[facade.FacadeClientV4]
+	NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) ClientCacheIfc[v4.Client, facade.FacadeClientV4]
 }
 
 func (r *ClientCacheRegistry) NewClientCacheV3(opts ...types.CacheOpts[v3.ClientCache]) ClientCacheStruct[v3.Client] {
@@ -38,6 +38,6 @@ func (r *ClientCacheRegistry) NewClientCacheV4(opts ...types.CacheOpts[v4.Client
 	return v4.NewClientCache(opts...)
 }
 
-func (r *ClientCacheRegistry) NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) ClientCacheIfc[facade.FacadeClientV4] {
+func (r *ClientCacheRegistry) NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) ClientCacheIfc[v4.Client, facade.FacadeClientV4] {
 	return facadeV4.NewFacadeV4ClientCache(opts...)
 }

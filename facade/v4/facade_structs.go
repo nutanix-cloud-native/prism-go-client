@@ -178,3 +178,95 @@ func (f *FacadeV4TaskWaiter[T]) appendEntityUUID(uuid string) {
 	defer f.lock.Unlock()
 	f.entityUUIDs = append(f.entityUUIDs, uuid)
 }
+
+type FacadeV4ODataIterator[R APIResponse, T any] struct {
+	client             *v4prismGoClient.Client
+	opts               []facade.ODataOption
+	totalCount         int
+	currentPage        int
+	currentIndex       int
+	currentBufferIndex int
+	itemsBuffer        []T
+	iteratorError      error
+	listFunc           func(*V4ODataParams) (R, error)
+	mutex              sync.Mutex
+}
+
+func NewFacadeV4ODataIterator[R APIResponse, T any](
+	client *v4prismGoClient.Client,
+	totalCount int,
+	items []T,
+	listFunc func(*V4ODataParams) (R, error),
+	opts ...facade.ODataOption,
+) *FacadeV4ODataIterator[R, T] {
+	return &FacadeV4ODataIterator[R, T]{
+		client:       client,
+		opts:         opts,
+		currentPage:  0,
+		itemsBuffer:  items,
+		currentIndex: 0,
+		listFunc:     listFunc,
+		totalCount:   totalCount,
+		mutex:        sync.Mutex{},
+	}
+}
+
+func (it *FacadeV4ODataIterator[R, T]) Next() bool {
+	it.mutex.Lock()
+	defer it.mutex.Unlock()
+
+	if it.currentIndex >= it.totalCount {
+		return false
+	}
+
+	it.currentIndex++
+	it.currentBufferIndex++
+
+	if it.currentBufferIndex < len(it.itemsBuffer) {
+		return true
+	}
+
+	reqParams, err := OptsToV4ODataParams(it.opts...)
+	if err != nil {
+		it.iteratorError = fmt.Errorf("failed to convert options to V4 OData params: %w", err)
+		return false
+	}
+	reqParams.Limit = nil // Let API use the default limit
+	reqParams.Page = &it.currentPage
+
+	items, totalCount, err := CallListAPI[R, T](
+		it.listFunc(reqParams),
+	)
+	if err != nil {
+		it.currentBufferIndex-- // Reset buffer index since we failed to fetch new items
+		it.currentIndex--       // Reset current index since we failed to fetch new items
+		it.iteratorError = fmt.Errorf("failed to list items: %w", err)
+		return false
+	}
+
+	it.currentBufferIndex = 0
+	it.currentPage++
+
+	it.totalCount = totalCount
+	it.itemsBuffer = items
+
+	return len(it.itemsBuffer) > 0 && it.currentIndex < it.totalCount
+}
+
+func (it *FacadeV4ODataIterator[R, T]) GetCurrent() (T, error) {
+	if it.iteratorError != nil {
+		var zero T
+		return zero, it.iteratorError
+	}
+
+	if it.currentBufferIndex < 0 || it.currentBufferIndex >= len(it.itemsBuffer) {
+		var zero T
+		return zero, fmt.Errorf("current buffer index %d is out of bounds for items buffer of length %d", it.currentBufferIndex, len(it.itemsBuffer))
+	}
+
+	return it.itemsBuffer[it.currentBufferIndex], nil
+}
+
+func (it *FacadeV4ODataIterator[R, T]) Count() int {
+	return it.totalCount
+}
