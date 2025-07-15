@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
@@ -17,6 +16,8 @@ import (
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
 	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
+
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
