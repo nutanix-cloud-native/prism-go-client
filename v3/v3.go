@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
 
@@ -84,8 +84,14 @@ func WithUserAgent(userAgent string) ClientOption {
 
 // NewV3Client return a internal to operate V3 resources
 func NewV3Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
-		return nil, fmt.Errorf("username, password and endpoint are required")
+	if credentials.APIKey != "" {
+		if credentials.Endpoint == "" {
+			return nil, fmt.Errorf("endpoint is required for api key auth")
+		}
+	} else {
+		if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
+			return nil, fmt.Errorf("username, password and endpoint are required for basic auth")
+		}
 	}
 
 	v3Client := &Client{

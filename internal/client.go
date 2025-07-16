@@ -21,16 +21,17 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 	"go.uber.org/zap"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 type Scheme string
 
 const (
-	defaultBaseURL  = "%s://%s/"
-	mediaType       = "application/json"
-	formEncodedType = "application/x-www-form-urlencoded"
-	octetStreamType = "application/octet-stream"
+	defaultBaseURL      = "%s://%s/"
+	mediaType           = "application/json"
+	formEncodedType     = "application/x-www-form-urlencoded"
+	octetStreamType     = "application/octet-stream"
+	ntnxAPIKeyHeaderKey = "X-ntnx-api-key"
 
 	SchemeHTTP  Scheme = "http"
 	SchemeHTTPS Scheme = "https"
@@ -229,6 +230,14 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 	return c, nil
 }
 
+func decorateRequestWithAuthHeaders(req *http.Request, c *prismgoclient.Credentials) {
+	if c.APIKey != "" {
+		decorateRequestWithAPIKeyHeaders(req, c.APIKey)
+	} else {
+		decorateRequestWithBasicAuthHeaders(req, c.Username, c.Password)
+	}
+}
+
 // NewRequest creates a request
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	req, err := c.NewUnAuthRequest(method, urlStr, body)
@@ -239,10 +248,15 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.cookies != nil {
 		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+		decorateRequestWithAuthHeaders(req, c.credentials)
 	}
 
 	return req, nil
+}
+
+// decorateRequestWithAPIKeyHeaders adds the API key to the request header
+func decorateRequestWithAPIKeyHeaders(req *http.Request, apiKey string) {
+	req.Header.Add(ntnxAPIKeyHeaderKey, apiKey)
 }
 
 func (c *Client) refreshCookies(ctx context.Context) error {
@@ -252,7 +266,7 @@ func (c *Client) refreshCookies(ctx context.Context) error {
 	}
 
 	req = req.WithContext(ctx)
-	decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
+	decorateRequestWithAuthHeaders(req, c.credentials)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err

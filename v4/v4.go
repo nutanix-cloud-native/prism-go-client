@@ -23,7 +23,24 @@ import (
 const (
 	defaultEndpointPort = "9440"
 	authorizationHeader = "Authorization"
+	ntnxAPIKeyHeaderKey = "X-ntnx-api-key"
 )
+
+// apiClient is an interface that defines methods for adding default headers to the API client.
+type apiClient interface {
+	AddDefaultHeader(key, value string)
+}
+
+// setAuthHeader sets the authentication header for the API client based on the provided credentials.
+func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
+	if credentials.APIKey != "" {
+		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.APIKey)
+	} else {
+		apiClient.AddDefaultHeader(
+			authorizationHeader,
+			fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	}
+}
 
 // Client manages the V4 API
 type Client struct {
@@ -48,8 +65,14 @@ type ClientOption func(*Client) error
 
 // NewV4Client return an internal to operate V4 resources
 func NewV4Client(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
-		return nil, fmt.Errorf("username, password and endpoint are required")
+	if credentials.APIKey != "" {
+		if credentials.Endpoint == "" {
+			return nil, fmt.Errorf("endpoint is required for api key auth")
+		}
+	} else {
+		if credentials.Username == "" || credentials.Password == "" || credentials.Endpoint == "" {
+			return nil, fmt.Errorf("username, password and endpoint are required for basic auth")
+		}
 	}
 
 	v4Client := &Client{}
@@ -90,8 +113,7 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
 	return nil
@@ -106,8 +128,7 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.ClustersApiInstance = clusterApi.NewClustersApi(apiClientInstance)
 	return nil
 }
@@ -121,8 +142,7 @@ func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	v4Client.CategoriesApiInstance = prismApi.NewCategoriesApi(apiClientInstance)
 	return nil
@@ -137,8 +157,7 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.SubnetsApiInstance = networkingApi.NewSubnetsApi(apiClientInstance)
 	v4Client.SubnetIPReservationApi = networkingApi.NewSubnetIPReservationApi(apiClientInstance)
 	return nil
@@ -153,8 +172,7 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.StorageContainerAPI = clusterApi.NewStorageContainersApi(apiClientInstance)
 	return nil
 }
@@ -168,8 +186,7 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
-	apiClientInstance.AddDefaultHeader(
-		authorizationHeader, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+	setAuthHeader(apiClientInstance, credentials)
 	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
 	return nil
 }
