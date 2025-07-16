@@ -230,6 +230,14 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 	return c, nil
 }
 
+func decorateRequestWithAuthHeaders(req *http.Request, c *prismgoclient.Credentials) {
+	if c.APIKey != "" {
+		decorateRequestWithAPIKeyHeaders(req, c.APIKey)
+	} else {
+		decorateRequestWithBasicAuthHeaders(req, c.Username, c.Password)
+	}
+}
+
 // NewRequest creates a request
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	req, err := c.NewUnAuthRequest(method, urlStr, body)
@@ -240,11 +248,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if c.cookies != nil {
 		decorateRequestWithCookies(req, c.cookies)
 	} else {
-		if c.credentials.APIKey != "" {
-			decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
-		} else {
-			decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
-		}
+		decorateRequestWithAuthHeaders(req, c.credentials)
 	}
 
 	return req, nil
@@ -262,11 +266,7 @@ func (c *Client) refreshCookies(ctx context.Context) error {
 	}
 
 	req = req.WithContext(ctx)
-	if c.credentials.APIKey != "" {
-		decorateRequestWithAPIKeyHeaders(req, c.credentials.APIKey)
-	} else {
-		decorateRequestWithBasicAuthHeaders(req, c.credentials.Username, c.credentials.Password)
-	}
+	decorateRequestWithAuthHeaders(req, c.credentials)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
