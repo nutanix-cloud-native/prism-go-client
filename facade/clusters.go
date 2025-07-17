@@ -21,5 +21,5 @@ type ClustersFacadeV4 interface {
 	ListClusterVirtualGPUs(clusterUuid string, opts ...ODataOption) ([]*clusterModels.VirtualGpuProfile, error)
 
 	// ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
-	ListClusterPhysicalGPUs(clusterUuid string, opts ...ODataOption) ([]clusterModels.PhysicalGpuProfile, error)
+	ListClusterPhysicalGPUs(clusterUuid string, opts ...ODataOption) ([]*clusterModels.PhysicalGpuProfile, error)
 }
