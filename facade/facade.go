@@ -3,6 +3,11 @@ package facade
 type FacadeClientV4 interface {
 	AntiAffinityPolicyFacadeV4
 	CategoriesFacadeV4
+	VMsFacadeV4
+	ClustersFacadeV4
+	ImagesFacadeV4
+	StorageContainersFacadeV4
+	// Additional facade interfaces can be added here as needed.
 }
 
 type ODataOption func(params ODataOptions) error

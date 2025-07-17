@@ -21,52 +21,69 @@ func (f *FacadeV4Client) GetAntiAffinityPolicy(uuid string) (*v4policies.VmAntiA
 
 func (f *FacadeV4Client) ListAntiAffinityPolicies(opts ...facade.ODataOption) ([]v4policies.VmAntiAffinityPolicy, error) {
 	var policies []v4policies.VmAntiAffinityPolicy
+
 	reqParams, err := OptsToV4ODataParams(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert options to V4 OData params: %w", err)
 	}
 
-	if reqParams.Page == nil && reqParams.Limit == nil {
-		// Get all policies
-		page := 0
-		policiesChunk, totalCount, err := CallListAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, v4policies.VmAntiAffinityPolicy](
-			f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(&page, nil, reqParams.Filter, reqParams.OrderBy),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
-		}
-		policies = append(policies, policiesChunk...)
-
-		for len(policies) < totalCount {
-			page++
-			policiesChunk, totalCount, err = CallListAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, v4policies.VmAntiAffinityPolicy](
-				f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(&page, nil, reqParams.Filter, reqParams.OrderBy),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
-			}
-			policies = append(policies, policiesChunk...)
-		}
-	} else {
-		// Get exactly requested page and limit with filter and order by
-		policies, err = CallAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, []v4policies.VmAntiAffinityPolicy](
-			f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
-		}
+	// Get exactly requested page and limit with filter and order by
+	policies, err = CallAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, []v4policies.VmAntiAffinityPolicy](
+		f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
 	}
 
 	return policies, nil
 }
 
-func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODataOption) facade.ODataListIterator[*v4policies.VmAntiAffinityPolicy] {
+func (f *FacadeV4Client) ListAllAntiAffinityPolicies(filterParam *string, orderbyParam *string) ([]v4policies.VmAntiAffinityPolicy, error) {
+	result := []v4policies.VmAntiAffinityPolicy{}
+
+	page := 0
+	reqParams := &V4ODataParams{
+		Filter:  filterParam,
+		OrderBy: orderbyParam,
+		Page:    &page,
+		Limit:   nil, // Let API use the default limit
+	}
+	policies, totalCount, err := CallListAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, v4policies.VmAntiAffinityPolicy](
+		f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(
+			reqParams.Page,
+			reqParams.Limit,
+			reqParams.Filter,
+			reqParams.OrderBy,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all anti-affinity policies: %w", err)
+	}
+	result = append(result, policies...)
+	for len(result) < totalCount {
+		page++
+		policies, totalCount, err = CallListAPI[*v4policies.ListVmAntiAffinityPoliciesApiResponse, v4policies.VmAntiAffinityPolicy](
+			f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(
+				&page,
+				nil,
+				reqParams.Filter,
+				reqParams.OrderBy,
+			),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list all anti-affinity policies: %w", err)
+		}
+		result = append(result, policies...)
+	}
+	return result, nil
+}
+
+func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODataOption) (facade.ODataListIterator[*v4policies.VmAntiAffinityPolicy], error) {
 	reqParams, err := OptsToV4ODataParams(opts...)
 	if err != nil {
-		return &FacadeV4ODataIterator[*v4policies.ListVmAntiAffinityPoliciesApiResponse, *v4policies.VmAntiAffinityPolicy]{
-			iteratorError: fmt.Errorf("failed to convert options to V4 OData params: %w", err),
-		}
+		return nil, fmt.Errorf("failed to convert options to V4 OData params: %w", err)
 	}
+
 	page := 0
 	reqParams.Limit = nil  // Let API use the default limit
 	reqParams.Page = &page // Start from the page 0
@@ -74,9 +91,7 @@ func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODat
 		f.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(&page, nil, reqParams.Filter, reqParams.OrderBy),
 	)
 	if err != nil {
-		return &FacadeV4ODataIterator[*v4policies.ListVmAntiAffinityPoliciesApiResponse, *v4policies.VmAntiAffinityPolicy]{
-			iteratorError: fmt.Errorf("failed to list anti-affinity policies: %w", err),
-		}
+		return nil, fmt.Errorf("failed to list anti-affinity policies: %w", err)
 	}
 
 	return NewFacadeV4ODataIterator[*v4policies.ListVmAntiAffinityPoliciesApiResponse, *v4policies.VmAntiAffinityPolicy](
@@ -92,7 +107,7 @@ func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODat
 			)
 		},
 		opts...,
-	)
+	), nil
 }
 
 // CreateAntiAffinityPolicy creates a new anti-affinity policy.
