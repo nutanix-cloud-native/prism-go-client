@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.5.1]
+## [v0.5.3]
+### Added
+- Added support for authenticating using API key based authentication.
+
+## [v0.5.2]
 ### Added
 - Added support for creating, deleting, and listing idempotence identifiers.
 - added the new v4 storage container client from clustermgmt namespace as it is based on the v4 beta APIs.
