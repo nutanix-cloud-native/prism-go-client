@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for creating, deleting, and listing idempotence identifiers.
 - added the new v4 storage container client from clustermgmt namespace as it is based on the v4 beta APIs.
+- Added support for authenticating using API key based authentication.  
 
 ### Changed
 - Update the v3 VM structs to include VM vTPM configuration.

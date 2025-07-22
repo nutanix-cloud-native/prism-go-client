@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 )
 
-func TestNewV3Client(t *testing.T) {
+func TestNewV3ClientBasicAuth(t *testing.T) {
 	// verifies positive client creation
 	cred := prismgoclient.Credentials{
 		URL:                "foo.com",
@@ -40,7 +40,38 @@ func TestNewV3Client(t *testing.T) {
 
 	v3Client, err = NewV3Client(cred)
 	assert.Nil(t, v3Client)
-	assert.EqualError(t, err, "username, password and endpoint are required")
+	assert.EqualError(t, err, "username, password and endpoint are required for basic auth")
+}
+
+func TestNewV3ClientAPIKey(t *testing.T) {
+	// verifies positive client creation
+	cred := prismgoclient.Credentials{
+		URL:                "foo.com",
+		Port:               "",
+		Endpoint:           "0.0.0.0",
+		Insecure:           true,
+		FoundationEndpoint: "10.0.0.0",
+		FoundationPort:     "8000",
+		RequiredFields:     nil,
+		APIKey:             "my-api-key",
+	}
+	v3Client, err := NewV3Client(cred)
+	assert.NoError(t, err)
+	assert.NotNil(t, v3Client)
+
+	// verify missing client scenario
+	cred = prismgoclient.Credentials{
+		URL:      "foo.com",
+		Insecure: true,
+		RequiredFields: map[string][]string{
+			"prism_central": {"username", "password", "endpoint"},
+		},
+		APIKey: "my-api-key",
+	}
+
+	v3Client, err = NewV3Client(cred)
+	assert.Nil(t, v3Client)
+	assert.EqualError(t, err, "endpoint is required for api key auth")
 }
 
 func TestNewV3ClientWithPEMEncodedCertBundle(t *testing.T) {
