@@ -16,5 +16,5 @@ type StorageContainersFacadeV4 interface {
 	ListAllStorageContainers(filterParam *string, orderbyParam *string, selectParam *string) ([]storageContainerModels.StorageContainer, error)
 
 	// GetListIteratorStorageContainers returns an iterator for listing storage containers.
-	GetListIteratorStorageContainers(opts ...ODataOption) (ODataListIterator[*storageContainerModels.StorageContainer], error)
+	GetListIteratorStorageContainers(opts ...ODataOption) (ODataListIterator[storageContainerModels.StorageContainer], error)
 }

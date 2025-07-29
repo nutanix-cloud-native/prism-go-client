@@ -1,38 +1,115 @@
 package v4
 
 import (
-	"fmt"
-
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	clustersModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
 // GetCluster returns the cluster for the given UUID.
 func (f *FacadeV4Client) GetCluster(uuid string) (*clustersModels.Cluster, error) {
-	return nil, fmt.Errorf("GetCluster not implemented in FacadeV4Client")
+	return CommonGetEntity[*clustersModels.GetClusterApiResponse, clustersModels.Cluster](
+		func() (*clustersModels.GetClusterApiResponse, error) {
+			return f.client.ClustersApiInstance.GetClusterById(&uuid, nil)
+		},
+		"cluster",
+	)
 }
 
 // ListClusters returns a list of clusters.
 func (f *FacadeV4Client) ListClusters(opts ...facade.ODataOption) ([]clustersModels.Cluster, error) {
-	return nil, fmt.Errorf("ListClusters not implemented in FacadeV4Client")
+	return CommonListEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
+			return f.client.ClustersApiInstance.ListClusters(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Expand,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"clusters",
+	)
 }
 
 // ListAllClusters returns all clusters without pagination.
 func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]clustersModels.Cluster, error) {
-	return nil, fmt.Errorf("ListAllClusters not implemented in FacadeV4Client")
+	reqParams := &V4ODataParams{
+		Filter:  filterParam,
+		OrderBy: orderbyParam,
+		Expand:  expandParam,
+		Select:  selectParam,
+	}
+
+	return CommonListAllEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
+			return f.client.ClustersApiInstance.ListClusters(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Expand,
+				reqParams.Select,
+			)
+		},
+		reqParams,
+		"clusters",
+	)
 }
 
 // GetListIteratorClusters returns an iterator for listing clusters.
-func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) (facade.ODataListIterator[*clustersModels.Cluster], error) {
-	return nil, fmt.Errorf("GetListIteratorClusters not implemented in FacadeV4Client")
+func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) (facade.ODataListIterator[clustersModels.Cluster], error) {
+	return CommonGetListIterator[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+		f,
+		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
+			return f.client.ClustersApiInstance.ListClusters(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Expand,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"clusters",
+	)
 }
 
 // ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
-func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...facade.ODataOption) ([]*clustersModels.VirtualGpuProfile, error) {
-	return nil, fmt.Errorf("ListClusterVirtualGPUs not implemented in FacadeV4Client")
+func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.VirtualGpuProfile, error) {
+	return CommonListEntities[*clustersModels.ListVirtualGpuProfilesApiResponse, clustersModels.VirtualGpuProfile](
+		func(reqParams *V4ODataParams) (*clustersModels.ListVirtualGpuProfilesApiResponse, error) {
+			return f.client.ClustersApiInstance.ListVirtualGpuProfiles(
+				&clusterUuid,
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+			)
+		},
+		opts,
+		"virtual GPU profiles",
+	)
 }
 
 // ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
-func (f *FacadeV4Client) ListClusterPhysicalGPUs(clusterUuid string, opts ...facade.ODataOption) ([]*clustersModels.PhysicalGpuProfile, error) {
-	return nil, fmt.Errorf("ListClusterPhysicalGPUs not implemented in FacadeV4Client")
+func (f *FacadeV4Client) ListClusterPhysicalGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.PhysicalGpuProfile, error) {
+	return CommonListEntities[*clustersModels.ListPhysicalGpuProfilesApiResponse, clustersModels.PhysicalGpuProfile](
+		func(reqParams *V4ODataParams) (*clustersModels.ListPhysicalGpuProfilesApiResponse, error) {
+			return f.client.ClustersApiInstance.ListPhysicalGpuProfiles(
+				&clusterUuid,
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+			)
+		},
+		opts,
+		"physical GPU profiles",
+	)
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
-	responseModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/common/v1/response"
 )
 
 type V4ODataParams struct {
@@ -17,6 +16,7 @@ type V4ODataParams struct {
 	OrderBy *string
 	Expand  *string
 	Select  *string
+	Apply   *string
 }
 
 func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
@@ -61,6 +61,11 @@ func (o *V4ODataParams) SetSelectOption(selectFields string) error {
 	return nil
 }
 
+func (o *V4ODataParams) SetApplyOption(apply string) error {
+	o.Apply = &apply
+	return nil
+}
+
 func GetEtag(object interface{}) string {
 	var reserved reflect.Value
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
@@ -82,6 +87,49 @@ func GetEtag(object interface{}) string {
 	}
 
 	return ""
+}
+
+func DropEtag(object interface{}) interface{} {
+	if reflect.TypeOf(object).Kind() == reflect.Struct {
+		reserved := reflect.ValueOf(object).FieldByName("Reserved_")
+		if reserved.IsValid() {
+			reservedMap := reserved.Interface().(map[string]interface{})
+			allEtagKeys := make([]string, 0)
+			for k := range reservedMap {
+				if strings.ToLower(k) == "etag" {
+					allEtagKeys = append(allEtagKeys, k)
+				}
+			}
+			for _, k := range allEtagKeys {
+				delete(reservedMap, k)
+			}
+		}
+	}
+	return object
+}
+
+func CopyEtag(source, destination interface{}) interface{} {
+	var reserved reflect.Value
+
+	destination = DropEtag(destination)
+	if reflect.TypeOf(source).Kind() == reflect.Struct {
+		reserved = reflect.ValueOf(source).FieldByName("Reserved_")
+	} else if reflect.TypeOf(source).Kind() == reflect.Interface || reflect.TypeOf(source).Kind() == reflect.Ptr {
+		reserved = reflect.ValueOf(source).Elem().FieldByName("Reserved_")
+	} else {
+		return destination
+	}
+
+	if reserved.IsValid() {
+		etag := GetEtag(source)
+		if etag == "" {
+			return destination
+		}
+		reservedMap := reserved.Interface().(map[string]interface{})
+		reservedMap["Etag"] = etag
+	}
+
+	return destination
 }
 
 var (
@@ -128,13 +176,25 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	return result, nil
 }
 
-func GetMetadata[R APIResponse](response R) (*responseModels.ApiResponseMetadata, error) {
+func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
-		return nil, fmt.Errorf("response does not have Metadata field")
+		return 0, fmt.Errorf("response does not have Metadata field")
 	}
-	metadata := hasMetadataField.Interface().(responseModels.ApiResponseMetadata)
-	return &metadata, nil
+	metadata := hasMetadataField.Interface()
+	if reflect.ValueOf(metadata).IsNil() {
+		return 0, fmt.Errorf("no metadata found in response")
+	}
+
+	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
+	if !totalCountField.IsValid() || totalCountField.IsNil() {
+		return 0, fmt.Errorf("metadata does not have TotalAvailableResults field")
+	}
+	totalCount := totalCountField.Interface().(*int)
+	if totalCount == nil || *totalCount < 0 {
+		return 0, fmt.Errorf("invalid total count: %v", totalCount)
+	}
+	return int(*totalCount), nil
 }
 
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
@@ -143,13 +203,9 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 		return zero, 0, fmt.Errorf("API call failed: %w", err)
 	}
 
-	totalCount := 0
-	metadata, err := GetMetadata(response)
+	totalCount, err := GetMetadataTotalResults[R](response)
 	if err != nil {
-		return zero, 0, fmt.Errorf("failed to get metadata: %w", err)
-	}
-	if metadata != nil && metadata.TotalAvailableResults != nil {
-		totalCount = *metadata.TotalAvailableResults
+		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
 	}
 
 	data := response.GetData()
@@ -187,8 +243,10 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 func OptsToV4ODataParams(opts ...facade.ODataOption) (*V4ODataParams, error) {
 	params := &V4ODataParams{}
 	for _, opt := range opts {
-		if err := opt(params); err != nil {
-			return nil, fmt.Errorf("failed to apply OData option: %w", err)
+		if opt != nil {
+			if err := opt(params); err != nil {
+				return nil, fmt.Errorf("failed to apply OData option: %w", err)
+			}
 		}
 	}
 	return params, nil

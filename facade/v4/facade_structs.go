@@ -124,19 +124,26 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 			}
 			f.appendEntityUUID(*entityRef.ExtId)
 		}
+	}
 
-		for _, uuid := range f.entityUUIDs {
-			entity, err := f.entityGetter(uuid)
+	for _, uuid := range f.entityUUIDs {
+		entity, err := f.entityGetter(uuid)
+
+		// TODO: Get rid of this check when we will be sure that the correct amount of entities is returned (see comment below)
+		if entity != nil {
 			if err != nil {
 				return nil, fmt.Errorf("failed to get entity %s: %w", uuid, err)
 			}
-			if entity == nil {
-				return nil, fmt.Errorf("entity %s not found", uuid)
-			}
+			// TODO: Uncomment this when we will be sure that the correct amount of entities is returned
+			// STATE: 2025-07-29 - Ilya Alekseyev - On VM creation sometimes returns 2 entities one if which can not be found.
+			// if entity == nil {
+			// 	return nil, fmt.Errorf("entity %s not found", uuid)
+			// }
+
 			result = append(result, entity)
 		}
-
 	}
+
 	return result, nil
 }
 

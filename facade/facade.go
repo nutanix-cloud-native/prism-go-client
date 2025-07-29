@@ -7,6 +7,7 @@ type FacadeClientV4 interface {
 	ClustersFacadeV4
 	ImagesFacadeV4
 	StorageContainersFacadeV4
+	SubnetsFacadeV4
 	// Additional facade interfaces can be added here as needed.
 }
 
@@ -19,6 +20,7 @@ type ODataOptions interface {
 	SetOrderByOption(orderBy string) error
 	SetExpandOption(expand string) error
 	SetSelectOption(selectFields string) error
+	SetApplyOption(apply string) error
 }
 
 func WithPage(page int) ODataOption {
@@ -54,6 +56,12 @@ func WithExpand(expand string) ODataOption {
 func WithSelect(selectFields string) ODataOption {
 	return func(params ODataOptions) error {
 		return params.SetSelectOption(selectFields)
+	}
+}
+
+func WithApply(apply string) ODataOption {
+	return func(params ODataOptions) error {
+		return params.SetApplyOption(apply)
 	}
 }
 

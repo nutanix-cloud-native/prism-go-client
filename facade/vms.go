@@ -12,19 +12,25 @@ type VMsFacadeV4 interface {
 	ListVMs(opts ...ODataOption) ([]vmmModels.Vm, error)
 
 	// ListAllVMs returns all VMs without pagination.
-	ListAllVMs(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]vmmModels.Vm, error)
+	ListAllVMs(filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error)
 
 	// GetListIteratorVMs returns an iterator for listing VMs.
-	GetListIteratorVMs(opts ...ODataOption) (ODataListIterator[*vmmModels.Vm], error)
+	GetListIteratorVMs(opts ...ODataOption) (ODataListIterator[vmmModels.Vm], error)
 
 	// CreateVM creates a new VM.
-	CreateVM(vm *vmmModels.Vm) (*vmmModels.Vm, error)
+	CreateVM(vm *vmmModels.Vm) (TaskWaiter[vmmModels.Vm], error)
 
 	// UpdateVM updates an existing VM.
-	UpdateVM(uuid string, vm *vmmModels.Vm) (*vmmModels.Vm, error)
+	UpdateVM(uuid string, vm *vmmModels.Vm) (TaskWaiter[vmmModels.Vm], error)
 
 	// DeleteVM deletes the VM with the given UUID.
-	DeleteVM(uuid string) error
+	DeleteVM(uuid string) (TaskWaiter[NoEntity], error)
+
+	// PowerOnVM powers on the VM with the given UUID.
+	PowerOnVM(uuid string) (TaskWaiter[vmmModels.Vm], error)
+
+	// PowerOffVM powers off the VM with the given UUID.
+	PowerOffVM(uuid string) (TaskWaiter[vmmModels.Vm], error)
 
 	// Additional methods can be added here as needed.
 }
