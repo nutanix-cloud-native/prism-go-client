@@ -57,20 +57,11 @@ func NewFacadeV4TaskWaiter[T any](taskUUID string, client *v4prismGoClient.Clien
 func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 	var result []*T
 
-	task, err := CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
-		f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
-	)
+	var task v4prismModels.Task
+	var err error
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to get task %s: %w", f.taskUUID, err)
-	}
-
-	taskStatus := task.Status
-	if taskStatus == nil {
-		return nil, fmt.Errorf("task %s status is nil", f.taskUUID)
-	}
-
-	f.setTaskStatus(ConvertTaskStatus(*taskStatus))
+	taskStatusValue := v4prismModels.TASKSTATUS_UNKNOWN
+	taskStatus := &taskStatusValue
 
 	for *taskStatus != v4prismModels.TASKSTATUS_SUCCEEDED {
 		time.Sleep(1 * time.Second)
