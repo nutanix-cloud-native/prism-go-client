@@ -1,0 +1,168 @@
+{
+    "cdRoms": [
+        {
+            "$objectType": "vmm.v4.ahv.config.CdRom",
+            "$reserved": {
+                "$fv": "v4.r0"
+            },
+            "backingInfo": {
+                "$objectType": "vmm.v4.ahv.config.VmDisk",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "dataSource": {
+                    "$objectType": "vmm.v4.ahv.config.DataSource",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "reference": {
+                        "$objectType": "vmm.v4.ahv.config.ImageReference",
+                        "$reserved": {
+                            "$fv": "v4.r0"
+                        },
+                        "imageExtId": "b3fc460f-f55b-4c95-97ba-8eb28270b9ef"
+                    }
+                }
+            },
+            "diskAddress": {
+                "$objectType": "vmm.v4.ahv.config.CdRomAddress",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "busType": "IDE",
+                "index": 0
+            }
+        },
+        {
+            "$objectType": "vmm.v4.ahv.config.CdRom",
+            "$reserved": {
+                "$fv": "v4.r0"
+            },
+            "backingInfo": {
+                "$objectType": "vmm.v4.ahv.config.VmDisk",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "dataSource": {
+                    "$objectType": "vmm.v4.ahv.config.DataSource",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "reference": {
+                        "$objectType": "vmm.v4.ahv.config.ImageReference",
+                        "$reserved": {
+                            "$fv": "v4.r0"
+                        },
+                        "imageExtId": "b3fc460f-f55b-4c95-97ba-8eb28270b9ef"
+                    }
+                },
+                "diskSizeBytes": 32212254720,
+                "storageConfig": {
+                    "$objectType": "vmm.v4.ahv.config.VmDiskStorageConfig",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "isFlashModeEnabled": true
+                },
+                "storageContainer": {
+                    "$objectType": "vmm.v4.ahv.config.VmDiskContainerReference",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    }
+                }
+            },
+            "diskAddress": {
+                "$objectType": "vmm.v4.ahv.config.CdRomAddress",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "busType": "IDE",
+                "index": 1
+            }
+        }
+    ],
+    "cluster": {
+        "extId": "00061f7f-44f7-19dc-3be1-7cc25586ee44"
+    },
+    "disks": [
+        {
+            "$objectType": "vmm.v4.ahv.config.Disk",
+            "$reserved": {
+                "$fv": "v4.r0"
+            },
+            "$backingInfoItemDiscriminator": "vmm.v4.ahv.config.VmDisk",
+            "backingInfo": {
+                "$objectType": "vmm.v4.ahv.config.VmDisk",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "dataSource": {
+                    "$objectType": "vmm.v4.ahv.config.DataSource",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "reference": {
+                        "$objectType": "vmm.v4.ahv.config.ImageReference",
+                        "$reserved": {
+                            "$fv": "v4.r0"
+                        },
+                        "imageExtId": "b3fc460f-f55b-4c95-97ba-8eb28270b9ef"
+                    }
+                },
+                "diskSizeBytes": 32212254720
+            }
+        },
+        {
+            "$objectType": "vmm.v4.ahv.config.Disk",
+            "$reserved": {
+                "$fv": "v4.r0"
+            },
+            "$backingInfoItemDiscriminator": "vmm.v4.ahv.config.VmDisk",
+            "backingInfo": {
+                "$objectType": "vmm.v4.ahv.config.VmDisk",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "dataSource": {
+                    "$objectType": "vmm.v4.ahv.config.DataSource",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "reference": {
+                        "$objectType": "vmm.v4.ahv.config.ImageReference",
+                        "$reserved": {
+                            "$fv": "v4.r0"
+                        },
+                        "imageExtId": "b3fc460f-f55b-4c95-97ba-8eb28270b9ef"
+                    }
+                },
+                "diskSizeBytes": 32212254720,
+                "storageConfig": {
+                    "$objectType": "vmm.v4.ahv.config.VmDiskStorageConfig",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    },
+                    "isFlashModeEnabled": false
+                },
+                "storageContainer": {
+                    "$objectType": "vmm.v4.ahv.config.VmDiskContainerReference",
+                    "$reserved": {
+                        "$fv": "v4.r0"
+                    }
+                }
+            },
+            "diskAddress": {
+                "$objectType": "vmm.v4.ahv.config.DiskAddress",
+                "$reserved": {
+                    "$fv": "v4.r0"
+                },
+                "busType": "SCSI",
+                "index": 10
+            }
+        }
+    ],
+    "memorySizeBytes": 4294967296,
+    "name": "test-createvm-data-disks",
+    "numCoresPerSocket": 1,
+    "numSockets": 1
+}
