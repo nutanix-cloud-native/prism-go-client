@@ -56,7 +56,7 @@ func (f *FacadeV4Client) ListAllImages(filterParam *string, orderbyParam *string
 }
 
 // GetListIteratorImages returns an iterator for listing images.
-func (f *FacadeV4Client) GetListIteratorImages(opts ...facade.ODataOption) (facade.ODataListIterator[imageModels.Image], error) {
+func (f *FacadeV4Client) GetListIteratorImages(opts ...facade.ODataOption) facade.ODataListIterator[imageModels.Image] {
 	return CommonGetListIterator[*imageModels.ListImagesApiResponse, imageModels.Image](
 		f,
 		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {

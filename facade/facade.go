@@ -1,5 +1,7 @@
 package facade
 
+import "iter"
+
 type FacadeClientV4 interface {
 	AntiAffinityPolicyFacadeV4
 	CategoriesFacadeV4
@@ -93,8 +95,12 @@ func NoEntityGetter(uuid string) (*NoEntity, error) {
 	return nil, nil
 }
 
-type ODataListIterator[T any] interface {
-	Next() bool
-	GetCurrent() (T, error)
-	Count() int
-}
+// make it more Go-ish style iterator
+type ODataListIterator[T any] iter.Seq2[T, error]
+
+//
+// 1. Error handling
+// 2. Go iterator
+// 3. Naming
+// 4. Context in every API call
+//

@@ -61,7 +61,7 @@ func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *stri
 }
 
 // GetListIteratorClusters returns an iterator for listing clusters.
-func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) (facade.ODataListIterator[clustersModels.Cluster], error) {
+func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) facade.ODataListIterator[clustersModels.Cluster] {
 	return CommonGetListIterator[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
 		f,
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {

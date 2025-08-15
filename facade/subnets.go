@@ -15,5 +15,5 @@ type SubnetsFacadeV4 interface {
 	ListAllSubnets(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]subnetModels.Subnet, error)
 
 	// GetListIteratorSubnets returns an iterator for listing subnets.
-	GetListIteratorSubnets(opts ...ODataOption) (ODataListIterator[subnetModels.Subnet], error)
+	GetListIteratorSubnets(opts ...ODataOption) ODataListIterator[subnetModels.Subnet]
 }

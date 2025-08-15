@@ -15,5 +15,5 @@ type ImagesFacadeV4 interface {
 	ListAllImages(filterParam *string, orderbyParam *string, selectParam *string) ([]imageModels.Image, error)
 
 	// GetListIteratorImages returns an iterator for listing images.
-	GetListIteratorImages(opts ...ODataOption) (ODataListIterator[imageModels.Image], error)
+	GetListIteratorImages(opts ...ODataOption) ODataListIterator[imageModels.Image]
 }

@@ -53,7 +53,7 @@ func (f *FacadeV4Client) ListAllAntiAffinityPolicies(filterParam *string, orderb
 	)
 }
 
-func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODataOption) (facade.ODataListIterator[v4policies.VmAntiAffinityPolicy], error) {
+func (f *FacadeV4Client) GetListIteratorAntiAffinityPolicies(opts ...facade.ODataOption) facade.ODataListIterator[v4policies.VmAntiAffinityPolicy] {
 	return CommonGetListIterator[*v4policies.ListVmAntiAffinityPoliciesApiResponse, v4policies.VmAntiAffinityPolicy](
 		f,
 		func(reqParams *V4ODataParams) (*v4policies.ListVmAntiAffinityPoliciesApiResponse, error) {

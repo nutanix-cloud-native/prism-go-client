@@ -2,6 +2,7 @@ package v4
 
 import (
 	"fmt"
+	"iter"
 	"sync"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	"k8s.io/utils/ptr"
 )
 
 type FacadeV4Client struct {
@@ -192,79 +194,58 @@ type FacadeV4ODataIterator[R APIResponse, T any] struct {
 
 func NewFacadeV4ODataIterator[R APIResponse, T any](
 	client *v4prismGoClient.Client,
-	totalCount int,
-	items []T,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,
-) *FacadeV4ODataIterator[R, T] {
-	return &FacadeV4ODataIterator[R, T]{
-		client:       client,
-		opts:         opts,
-		currentPage:  0,
-		itemsBuffer:  items,
-		currentIndex: 0,
-		listFunc:     listFunc,
-		totalCount:   totalCount,
-		mutex:        sync.Mutex{},
-	}
-}
+) facade.ODataListIterator[T] {
+	var zero T
 
-func (it *FacadeV4ODataIterator[R, T]) Next() bool {
-	it.mutex.Lock()
-	defer it.mutex.Unlock()
+	iterFunc := func(yield func(T, error) bool) {
+		var items []T
+		var err error
 
-	if it.currentIndex >= it.totalCount {
-		return false
-	}
+		iterateAllPages := false
+		totalCount := 0
+		batchIndex := 0
+		totalIndex := 0
 
-	it.currentIndex++
-	it.currentBufferIndex++
+		reqParams, err := OptsToV4ODataParams(opts...)
+		if err != nil {
+			return
+		}
 
-	if it.currentBufferIndex < len(it.itemsBuffer) {
-		return true
-	}
+		if reqParams.Page == nil {
+			reqParams.Page = ptr.To(0) // Start from the first page
+			reqParams.Limit = nil      // Let API use the default limit
+			iterateAllPages = true     // Iterate through all pages
+		}
 
-	reqParams, err := OptsToV4ODataParams(it.opts...)
-	if err != nil {
-		it.iteratorError = fmt.Errorf("failed to convert options to V4 OData params: %w", err)
-		return false
-	}
-	reqParams.Limit = nil // Let API use the default limit
-	reqParams.Page = &it.currentPage
+		for {
+			if iterateAllPages && totalIndex != 0 {
+				reqParams.Page = ptr.To(*reqParams.Page + 1) // Move to the next page
+				batchIndex = 0
+			}
 
-	items, totalCount, err := CallListAPI[R, T](
-		it.listFunc(reqParams),
-	)
-	if err != nil {
-		it.currentBufferIndex-- // Reset buffer index since we failed to fetch new items
-		it.currentIndex--       // Reset current index since we failed to fetch new items
-		it.iteratorError = fmt.Errorf("failed to list items: %w", err)
-		return false
-	}
+			// Get next page
+			items, totalCount, err = CallListAPI[R, T](listFunc(reqParams))
+			if err != nil {
+				yield(zero, err)
+				return
+			}
 
-	it.currentBufferIndex = 0
-	it.currentPage++
+			for batchIndex < len(items) && totalIndex < totalCount {
+				if !yield(items[batchIndex], nil) {
+					return
+				}
 
-	it.totalCount = totalCount
-	it.itemsBuffer = items
+				totalIndex += 1
+				batchIndex += 1
+			}
 
-	return len(it.itemsBuffer) > 0 && it.currentIndex < it.totalCount
-}
-
-func (it *FacadeV4ODataIterator[R, T]) GetCurrent() (T, error) {
-	if it.iteratorError != nil {
-		var zero T
-		return zero, it.iteratorError
+			if totalIndex >= totalCount {
+				return // All items have been yielded
+			}
+		}
 	}
 
-	if it.currentBufferIndex < 0 || it.currentBufferIndex >= len(it.itemsBuffer) {
-		var zero T
-		return zero, fmt.Errorf("current buffer index %d is out of bounds for items buffer of length %d", it.currentBufferIndex, len(it.itemsBuffer))
-	}
-
-	return it.itemsBuffer[it.currentBufferIndex], nil
-}
-
-func (it *FacadeV4ODataIterator[R, T]) Count() int {
-	return it.totalCount
+	return facade.ODataListIterator[T](iter.Seq2[T, error](iterFunc))
 }

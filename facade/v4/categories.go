@@ -64,7 +64,7 @@ func (f *FacadeV4Client) ListAllCategories(filterParam *string, orderbyParam *st
 }
 
 // GetListIteratorCategories returns an iterator for listing categories.
-func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) (facade.ODataListIterator[v4prismModels.Category], error) {
+func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) facade.ODataListIterator[v4prismModels.Category] {
 	return CommonGetListIterator[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
 		f,
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {

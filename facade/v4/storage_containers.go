@@ -56,7 +56,7 @@ func (f *FacadeV4Client) ListAllStorageContainers(filterParam *string, orderbyPa
 }
 
 // GetListIteratorStorageContainers returns an iterator for listing storage containers.
-func (f *FacadeV4Client) GetListIteratorStorageContainers(opts ...facade.ODataOption) (facade.ODataListIterator[storageContainerModels.StorageContainer], error) {
+func (f *FacadeV4Client) GetListIteratorStorageContainers(opts ...facade.ODataOption) facade.ODataListIterator[storageContainerModels.StorageContainer] {
 	return CommonGetListIterator[*storageContainerModels.ListStorageContainersApiResponse, storageContainerModels.StorageContainer](
 		f,
 		func(reqParams *V4ODataParams) (*storageContainerModels.ListStorageContainersApiResponse, error) {

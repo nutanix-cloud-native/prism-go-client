@@ -15,7 +15,7 @@ type CategoriesFacadeV4 interface {
 	ListAllCategories(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]v4prismModels.Category, error)
 
 	// GetListIteratorCategories returns an iterator for listing categories.
-	GetListIteratorCategories(opts ...ODataOption) (ODataListIterator[v4prismModels.Category], error)
+	GetListIteratorCategories(opts ...ODataOption) ODataListIterator[v4prismModels.Category]
 
 	// CreateCategory creates a new category.
 	CreateCategory(category *v4prismModels.Category) (*v4prismModels.Category, error)

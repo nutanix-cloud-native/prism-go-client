@@ -15,7 +15,7 @@ type ClustersFacadeV4 interface {
 	ListAllClusters(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]clusterModels.Cluster, error)
 
 	// GetListIteratorClusters returns an iterator for listing clusters.
-	GetListIteratorClusters(opts ...ODataOption) (ODataListIterator[clusterModels.Cluster], error)
+	GetListIteratorClusters(opts ...ODataOption) ODataListIterator[clusterModels.Cluster]
 
 	// ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
 	ListClusterVirtualGPUs(clusterUuid string, opts ...ODataOption) ([]clusterModels.VirtualGpuProfile, error)
