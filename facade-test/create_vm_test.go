@@ -45,26 +45,9 @@ func TestCreateVmCases(t *testing.T) {
 		t.Errorf("failed to intialize prism clients, error: %v", err)
 	}
 
-	response, err := v3Client.V3.ListAllCluster(context.Background(), "")
+	peExtId, peGpuExtId, err := getPeExtIds(t)
 	if err != nil {
-		t.Errorf("unable to list all clusters: %v", err)
-	}
-
-	peUUID := ""
-	peGpuUUID := ""
-	for _, pe := range response.Entities {
-		if pe.Spec.Resources.Config.GpuDriverVersion == "" {
-			if peUUID == "" {
-				peUUID = *pe.Metadata.UUID
-			}
-		} else {
-			if peGpuUUID == "" {
-				peGpuUUID = *pe.Metadata.UUID
-			}
-		}
-	}
-	if peUUID == "" || peGpuUUID == "" {
-		t.Errorf("valid PEs not found")
+		t.Errorf("failed to get PEs, error: %v", err)
 	}
 
 	baseVmConfig := vmmconfig.Vm{
@@ -72,21 +55,26 @@ func TestCreateVmCases(t *testing.T) {
 		NumSockets:        utils.IntPtr(1),
 		MemorySizeBytes:   utils.Int64Ptr(1e10),
 	}
+	systemDisk, err := newSystemDisk()
+	if err != nil {
+		t.Errorf("failed to load system disk, error: %v", err)
+	}
+	baseVmConfig.Disks = []vmmconfig.Disk{*systemDisk}
 
 	tests := []struct {
 		name            string
 		vmName          string
-		peUUID          string
+		peExtId         *string
 		vmConfigBuilder func() (*vmmconfig.Vm, error)
 	}{
 		{
-			name:   "create vm with data disks",
-			vmName: "test-createvm-facade-v4-data-disks",
-			peUUID: peUUID,
+			name:    "create vm with data disks",
+			vmName:  "test-createvm-facade-v4-data-disks",
+			peExtId: peExtId,
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
-				images, err := v4FacadeClient.ListImages()
+				images, err := v4FacadeClient.ListAllImages(nil, nil, nil)
 				if err != nil {
 					return nil, err
 				}
@@ -102,9 +90,9 @@ func TestCreateVmCases(t *testing.T) {
 					return nil, errors.New("no images found")
 				}
 
-				vmConfig.Disks = []vmmconfig.Disk{
+				vmConfig.Disks = append(vmConfig.Disks,
 					*newDisk(imageExtId, true, vmmconfig.DISKBUSTYPE_SCSI, 1),
-				}
+				)
 				vmConfig.CdRoms = []vmmconfig.CdRom{
 					*newCdRom(imageExtId, true, vmmconfig.CDROMBUSTYPE_IDE, 0),
 				}
@@ -113,9 +101,9 @@ func TestCreateVmCases(t *testing.T) {
 			},
 		},
 		{
-			name:   "create vm with uefi boot type",
-			vmName: "test-createvm-facade-v4-uefi",
-			peUUID: peUUID,
+			name:    "create vm with uefi boot type",
+			vmName:  "test-createvm-facade-v4-uefi",
+			peExtId: peExtId,
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
@@ -126,13 +114,13 @@ func TestCreateVmCases(t *testing.T) {
 			},
 		},
 		{
-			name:   "create vm with attached gpu",
-			vmName: "test-createvm-facade-v4-gpu",
-			peUUID: peGpuUUID,
+			name:    "create vm with attached gpu",
+			vmName:  "test-createvm-facade-v4-gpu",
+			peExtId: peGpuExtId,
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
-				gpus, err := v4FacadeClient.ListClusterVirtualGPUs(peGpuUUID)
+				gpus, err := v4FacadeClient.ListClusterVirtualGPUs(*peGpuExtId)
 				if err != nil {
 					return nil, err
 				}
@@ -162,9 +150,9 @@ func TestCreateVmCases(t *testing.T) {
 			},
 		},
 		{
-			name:   "create vm attached to a project",
-			vmName: "test-createvm-facade-v4-project",
-			peUUID: peUUID,
+			name:    "create vm attached to a project",
+			vmName:  "test-createvm-facade-v4-project",
+			peExtId: peExtId,
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
@@ -193,7 +181,7 @@ func TestCreateVmCases(t *testing.T) {
 
 			vmConfig.Name = &test.vmName
 			vmConfig.Cluster = vmmconfig.NewClusterReference()
-			vmConfig.Cluster.ExtId = utils.StringPtr(test.peUUID)
+			vmConfig.Cluster.ExtId = test.peExtId
 
 			// create VM
 			newVmTaskWaiter, err := v4FacadeClient.CreateVM(vmConfig)
@@ -212,11 +200,11 @@ func TestCreateVmCases(t *testing.T) {
 			if len(errs) > 0 {
 				t.Errorf("errors: %v", err)
 			}
-			vmUUID := vmEntities[0].ExtId
-			t.Logf("created - VM with name: %s, UUID: %s", *vmConfig.Name, *vmUUID)
+			vmExtId := vmEntities[0].ExtId
+			t.Logf("created - VM with name: %s, extId: %s", *vmConfig.Name, *vmExtId)
 
 			// power on the VM
-			newVmTaskWaiter, err = v4FacadeClient.PowerOnVM(*vmUUID)
+			newVmTaskWaiter, err = v4FacadeClient.PowerOnVM(*vmExtId)
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
@@ -228,10 +216,10 @@ func TestCreateVmCases(t *testing.T) {
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
-			t.Logf("power on - VM with name: %s, UUID: %s", *vmConfig.Name, *vmUUID)
+			t.Logf("power on - VM with name: %s, extId: %s", *vmConfig.Name, *vmExtId)
 
 			// delete the VM
-			waiter, err := v4FacadeClient.DeleteVM(*vmUUID)
+			waiter, err := v4FacadeClient.DeleteVM(*vmExtId)
 			if err != nil {
 				t.Fatal("failed to delete vm, errors:", err)
 			}
@@ -243,9 +231,40 @@ func TestCreateVmCases(t *testing.T) {
 			if len(errs) > 0 {
 				t.Fatal("failed to delete vm, errors:", errs)
 			}
-			t.Logf("deleted - VM with name: %s, UUID: %s", *vmConfig.Name, *vmUUID)
+			t.Logf("deleted - VM with name: %s, extId: %s", *vmConfig.Name, *vmExtId)
 		})
 	}
+}
+
+func getPeExtIds(t *testing.T) (*string, *string, error) {
+	PEs, err := v4FacadeClient.ListAllClusters(nil, nil, nil, nil)
+	if err != nil {
+		t.Errorf("unable to list all clusters: %v", err)
+	}
+
+	var peExtId *string
+	var peGpuExtId *string
+	for _, pe := range PEs {
+		gpus, _ := v4FacadeClient.ListClusterVirtualGPUs(*pe.ExtId)
+
+		if len(gpus) == 0 {
+			if peExtId == nil {
+				peExtId = pe.ExtId
+			}
+		} else {
+			if peGpuExtId == nil {
+				peGpuExtId = pe.ExtId
+			}
+		}
+		if peExtId != nil && peGpuExtId != nil {
+			break
+		}
+	}
+	if peExtId == nil || peGpuExtId == nil {
+		return nil, nil, errors.New("valid PEs not found")
+	}
+
+	return peExtId, peGpuExtId, nil
 }
 
 func vendorStringToV4Model(vendor *string) *vmmconfig.GpuVendor {
@@ -259,6 +278,38 @@ func vendorStringToV4Model(vendor *string) *vmmconfig.GpuVendor {
 	default:
 		return vmmconfig.GPUVENDOR_UNKNOWN.Ref()
 	}
+}
+
+func newSystemDisk() (*vmmconfig.Disk, error) {
+	images, err := v4FacadeClient.ListAllImages(nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var osImageExtId *string
+	for _, image := range images {
+		if *image.Type != vmmcontent.IMAGETYPE_UNKNOWN && *image.Type != vmmcontent.IMAGETYPE_REDACTED {
+			osImageExtId = image.ExtId
+			break
+		}
+	}
+	if osImageExtId == nil {
+		return nil, errors.New("no image found")
+	}
+
+	vmDisk := vmmconfig.NewVmDisk()
+	vmDisk.DiskSizeBytes = utils.Int64Ptr(1e10)
+
+	imageRef := vmmconfig.NewImageReference()
+	imageRef.ImageExtId = osImageExtId
+	vmDisk.DataSource = vmmconfig.NewDataSource()
+	vmDisk.DataSource.SetReference(*imageRef)
+	vmDisk.DataSource.ReferenceItemDiscriminator_ = nil
+
+	systemDisk := vmmconfig.NewDisk()
+	systemDisk.SetBackingInfo(*vmDisk)
+
+	return systemDisk, nil
 }
 
 func newDisk(imageExtId string, flashModeEnabled bool, busType vmmconfig.DiskBusType, deviceIndex int) *vmmconfig.Disk {
@@ -316,9 +367,9 @@ func newGpu(deviceId *int, mode *vmmconfig.GpuMode, vendor *vmmconfig.GpuVendor)
 	return gpu
 }
 
-func newProjectRef(projectUUID *string) *vmmconfig.ProjectReference {
+func newProjectRef(projectExtId *string) *vmmconfig.ProjectReference {
 	projRef := vmmconfig.NewProjectReference()
-	projRef.ExtId = projectUUID
+	projRef.ExtId = projectExtId
 
 	return projRef
 }
