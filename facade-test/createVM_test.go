@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/joho/godotenv"
-	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	prismclientv4facade "github.com/nutanix-cloud-native/prism-go-client/facade/v4"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	prismclientv3 "github.com/nutanix-cloud-native/prism-go-client/v3"
 	clustermgmtconfig "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
@@ -18,49 +16,31 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-func GetCredentials() prismgoclient.Credentials {
-	err := godotenv.Load("../../prism-client-dotenv")
-	if err != nil {
-		fmt.Println("Error loading .env file: ", err)
-	}
-	username := os.Getenv("NUTANIX_USER")
-	password := os.Getenv("NUTANIX_PASSWORD")
-	endpoint := os.Getenv("NUTANIX_ENDPOINT")
-	return prismgoclient.Credentials{
-		Endpoint:    endpoint,
-		URL:         fmt.Sprintf("%s:9440", endpoint),
-		Username:    username,
-		Password:    password,
-		SessionAuth: true,
-		Insecure:    true,
-	}
-}
-
 var (
 	v4FacadeClient *prismclientv4facade.FacadeV4Client
 	v3Client       *prismclientv3.Client
 )
 
-func initializeClients() error {
+func initializeClients(t *testing.T) error {
 	var err error
-	credentials := GetCredentials()
+	credentials := testhelpers.CredentialsFromEnvironment(t)
 	fmt.Printf("Using credentials for host: %s", credentials.Endpoint)
 
 	v3Client, err = prismclientv3.NewV3Client(credentials)
 	if err != nil {
-		return fmt.Errorf("Error creating v3 client: %v", err)
+		t.Errorf("Error creating v3 client: %v", err)
 	}
 
 	v4FacadeClient, err = prismclientv4facade.NewFacadeV4Client(credentials)
 	if err != nil {
-		return fmt.Errorf("Error creating facade v4 client: %v", err)
+		t.Errorf("Error creating facade v4 client: %v", err)
 	}
 
 	return nil
 }
 
 func TestCreateVm(t *testing.T) {
-	err := initializeClients()
+	err := initializeClients(t)
 	if err != nil {
 		t.Errorf("failed to intialize prism clients, error: %v", err)
 	}
