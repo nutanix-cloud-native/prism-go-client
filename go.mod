@@ -14,7 +14,6 @@ require (
 	github.com/go-openapi/validate v0.24.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
-	github.com/joho/godotenv v1.5.1
 	github.com/keploy/go-sdk v0.9.0
 	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.0.1
 	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.0.1

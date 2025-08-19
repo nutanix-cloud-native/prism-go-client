@@ -39,7 +39,7 @@ func initializeClients(t *testing.T) error {
 	return nil
 }
 
-func TestCreateVm(t *testing.T) {
+func TestCreateVmCases(t *testing.T) {
 	err := initializeClients(t)
 	if err != nil {
 		t.Errorf("failed to intialize prism clients, error: %v", err)
