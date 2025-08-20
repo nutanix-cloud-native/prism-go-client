@@ -59,7 +59,7 @@ func (f *FacadeV4Client) ListAllSubnets(filterParam *string, orderbyParam *strin
 }
 
 // GetListIteratorSubnets returns an iterator for listing subnets.
-func (f *FacadeV4Client) GetListIteratorSubnets(opts ...facade.ODataOption) (facade.ODataListIterator[subnetModels.Subnet], error) {
+func (f *FacadeV4Client) GetListIteratorSubnets(opts ...facade.ODataOption) facade.ODataListIterator[subnetModels.Subnet] {
 	return CommonGetListIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
 		f,
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {

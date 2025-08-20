@@ -203,7 +203,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 		return zero, 0, fmt.Errorf("API call failed: %w", err)
 	}
 
-	totalCount, err := GetMetadataTotalResults[R](response)
+	totalCount, err := GetMetadataTotalResults(response)
 	if err != nil {
 		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
 	}

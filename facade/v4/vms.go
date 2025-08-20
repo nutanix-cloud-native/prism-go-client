@@ -9,100 +9,55 @@ import (
 )
 
 func (f *FacadeV4Client) GetVM(uuid string) (*vmmModels.Vm, error) {
-	result, err := CallAPI[*vmmModels.GetVmApiResponse, vmmModels.Vm](
-		f.client.VmApiInstance.GetVmById(&uuid),
+	return CommonGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm](
+		func() (*vmmModels.GetVmApiResponse, error) {
+			return f.client.VmApiInstance.GetVmById(&uuid)
+		},
+		"VM",
 	)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
 }
 
 func (f *FacadeV4Client) ListVMs(opts ...facade.ODataOption) ([]vmmModels.Vm, error) {
-	reqParams, err := OptsToV4ODataParams(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert options to OData params: %w", err)
-	}
-
-	result, err := CallAPI[*vmmModels.ListVmsApiResponse, []vmmModels.Vm](
-		f.client.VmApiInstance.ListVms(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Select),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func (f *FacadeV4Client) ListAllVMs(filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error) {
-	var result []vmmModels.Vm
-	page := 0
-
-	reqParams := &V4ODataParams{
-		Page:    &page,
-		Limit:   nil, // Let API use the default limit
-		Filter:  filterParam,
-		OrderBy: orderbyParam,
-		Select:  selectParam,
-	}
-
-	vms, totalCount, err := CallListAPI[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
-		f.client.VmApiInstance.ListVms(
-			reqParams.Page,
-			reqParams.Limit,
-			reqParams.Filter,
-			reqParams.OrderBy,
-			reqParams.Select,
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list all VMs: %w", err)
-	}
-	result = append(result, vms...)
-
-	for len(result) < totalCount {
-		page++
-		reqParams.Page = &page
-		vms, _, err = CallListAPI[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
-			f.client.VmApiInstance.ListVms(
+	return CommonListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
+		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
+			return f.client.VmApiInstance.ListVms(
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
 				reqParams.Select,
-			),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list all VMs: %w", err)
-		}
-		result = append(result, vms...)
-	}
-
-	return result, nil
+			)
+		},
+		opts,
+		"VMs",
+	)
 }
 
-func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) (facade.ODataListIterator[vmmModels.Vm], error) {
-	reqParams, err := OptsToV4ODataParams(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert options to OData params: %w", err)
+func (f *FacadeV4Client) ListAllVMs(filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error) {
+	reqParams := &V4ODataParams{
+		Filter:  filterParam,
+		OrderBy: orderbyParam,
+		Select:  selectParam,
 	}
 
-	vms, totalCount, err := CallListAPI[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
-		f.client.VmApiInstance.ListVms(
-			reqParams.Page,
-			reqParams.Limit,
-			reqParams.Filter,
-			reqParams.OrderBy,
-			reqParams.Select,
-		),
+	return CommonListAllEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
+		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
+			return f.client.VmApiInstance.ListVms(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		reqParams,
+		"VMs",
 	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list VMs: %w", err)
-	}
+}
 
-	return NewFacadeV4ODataIterator(
+func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) facade.ODataListIterator[vmmModels.Vm] {
+	return NewFacadeV4ODataIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
 		f.client,
-		totalCount,
-		vms,
 		func(params *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
 				params.Page,
@@ -113,7 +68,7 @@ func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) (facade.
 			)
 		},
 		opts...,
-	), nil
+	)
 }
 
 func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {

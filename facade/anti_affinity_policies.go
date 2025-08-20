@@ -15,7 +15,7 @@ type AntiAffinityPolicyFacadeV4 interface {
 	ListAllAntiAffinityPolicies(filterParam *string, orderbyParam *string) ([]v4policies.VmAntiAffinityPolicy, error)
 
 	// GetListIteratorAntiAffinityPolicies returns an iterator for listing anti-affinity policies.
-	GetListIteratorAntiAffinityPolicies(opts ...ODataOption) (ODataListIterator[v4policies.VmAntiAffinityPolicy], error)
+	GetListIteratorAntiAffinityPolicies(opts ...ODataOption) ODataListIterator[v4policies.VmAntiAffinityPolicy]
 
 	// CreateAntiAffinityPolicy creates a new anti-affinity policy.
 	CreateAntiAffinityPolicy(policy v4policies.VmAntiAffinityPolicy) (TaskWaiter[v4policies.VmAntiAffinityPolicy], error)

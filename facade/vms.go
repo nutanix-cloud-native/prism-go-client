@@ -15,7 +15,7 @@ type VMsFacadeV4 interface {
 	ListAllVMs(filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error)
 
 	// GetListIteratorVMs returns an iterator for listing VMs.
-	GetListIteratorVMs(opts ...ODataOption) (ODataListIterator[vmmModels.Vm], error)
+	GetListIteratorVMs(opts ...ODataOption) ODataListIterator[vmmModels.Vm]
 
 	// CreateVM creates a new VM.
 	CreateVM(vm *vmmModels.Vm) (TaskWaiter[vmmModels.Vm], error)

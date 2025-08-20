@@ -60,28 +60,12 @@ func CommonListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4OData
 	return result, nil
 }
 
-func CommonGetListIterator[R APIResponse, T any](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) (facade.ODataListIterator[T], error) {
-	reqParams, err := OptsToV4ODataParams(options...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert options to V4 OData params: %w", err)
-	}
-
-	page := 0
-	reqParams.Limit = nil  // Let API use the default limit
-	reqParams.Page = &page // Start from the page 0
-
-	itemsBuffer, totalCount, err := CallListAPI[R, T](apiCall(reqParams))
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list iterator for %s: %w", entitiesName, err)
-	}
-
-	return NewFacadeV4ODataIterator(
+func CommonGetListIterator[R APIResponse, T any](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
+	return NewFacadeV4ODataIterator[R, T](
 		f.client,
-		totalCount,
-		itemsBuffer,
 		func(reqParams *V4ODataParams) (R, error) {
 			return apiCall(reqParams)
 		},
 		options...,
-	), nil
+	)
 }

@@ -1,8 +1,8 @@
 module github.com/nutanix-cloud-native/prism-go-client
 
-go 1.21
+go 1.23
 
-toolchain go1.22.2
+toolchain go1.23.0
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
