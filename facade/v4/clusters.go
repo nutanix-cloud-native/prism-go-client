@@ -3,11 +3,12 @@ package v4
 import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	clustersModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	clusterModelsError "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/error"
 )
 
 // GetCluster returns the cluster for the given UUID.
 func (f *FacadeV4Client) GetCluster(uuid string) (*clustersModels.Cluster, error) {
-	return CommonGetEntity[*clustersModels.GetClusterApiResponse, clustersModels.Cluster](
+	return CommonGetEntity[*clustersModels.GetClusterApiResponse, clustersModels.Cluster, *clustersModels.OneOfGetClusterApiResponseData, *clusterModelsError.ErrorResponse](
 		func() (*clustersModels.GetClusterApiResponse, error) {
 			return f.client.ClustersApiInstance.GetClusterById(&uuid, nil)
 		},
@@ -17,7 +18,7 @@ func (f *FacadeV4Client) GetCluster(uuid string) (*clustersModels.Cluster, error
 
 // ListClusters returns a list of clusters.
 func (f *FacadeV4Client) ListClusters(opts ...facade.ODataOption) ([]clustersModels.Cluster, error) {
-	return CommonListEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+	return CommonListEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster, *clustersModels.OneOfListClustersApiResponseData, *clusterModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
 			return f.client.ClustersApiInstance.ListClusters(
 				reqParams.Page,
@@ -43,7 +44,7 @@ func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *stri
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+	return CommonListAllEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster, *clustersModels.OneOfListClustersApiResponseData, *clusterModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
 			return f.client.ClustersApiInstance.ListClusters(
 				reqParams.Page,
@@ -62,7 +63,7 @@ func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *stri
 
 // GetListIteratorClusters returns an iterator for listing clusters.
 func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) facade.ODataListIterator[clustersModels.Cluster] {
-	return CommonGetListIterator[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+	return CommonGetListIterator[*clustersModels.ListClustersApiResponse, clustersModels.Cluster, *clustersModels.OneOfListClustersApiResponseData, *clusterModelsError.ErrorResponse](
 		f,
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
 			return f.client.ClustersApiInstance.ListClusters(
@@ -82,7 +83,7 @@ func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) fac
 
 // ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
 func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.VirtualGpuProfile, error) {
-	return CommonListEntities[*clustersModels.ListVirtualGpuProfilesApiResponse, clustersModels.VirtualGpuProfile](
+	return CommonListEntities[*clustersModels.ListVirtualGpuProfilesApiResponse, clustersModels.VirtualGpuProfile, *clustersModels.OneOfListVirtualGpuProfilesApiResponseData, *clusterModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*clustersModels.ListVirtualGpuProfilesApiResponse, error) {
 			return f.client.ClustersApiInstance.ListVirtualGpuProfiles(
 				&clusterUuid,
@@ -99,7 +100,7 @@ func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...faca
 
 // ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
 func (f *FacadeV4Client) ListClusterPhysicalGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.PhysicalGpuProfile, error) {
-	return CommonListEntities[*clustersModels.ListPhysicalGpuProfilesApiResponse, clustersModels.PhysicalGpuProfile](
+	return CommonListEntities[*clustersModels.ListPhysicalGpuProfilesApiResponse, clustersModels.PhysicalGpuProfile, *clustersModels.OneOfListPhysicalGpuProfilesApiResponseData, *clusterModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*clustersModels.ListPhysicalGpuProfilesApiResponse, error) {
 			return f.client.ClustersApiInstance.ListPhysicalGpuProfiles(
 				&clusterUuid,

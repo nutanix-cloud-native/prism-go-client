@@ -6,13 +6,14 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	prismMessages "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
+	v4prismError "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
 // FacadeV4Client implements the CategoriesFacadeV4 interface.
 
 // GetCategory returns the category for the given UUID.
 func (f *FacadeV4Client) GetCategory(uuid string) (*v4prismModels.Category, error) {
-	return CommonGetEntity[*v4prismModels.GetCategoryApiResponse, v4prismModels.Category](
+	return CommonGetEntity[*v4prismModels.GetCategoryApiResponse, v4prismModels.Category, *v4prismModels.OneOfGetCategoryApiResponseData, *v4prismError.ErrorResponse](
 		func() (*v4prismModels.GetCategoryApiResponse, error) {
 			return f.client.CategoriesApiInstance.GetCategoryById(&uuid, nil)
 		},
@@ -22,7 +23,7 @@ func (f *FacadeV4Client) GetCategory(uuid string) (*v4prismModels.Category, erro
 
 // ListCategories returns a list of categories.
 func (f *FacadeV4Client) ListCategories(opts ...facade.ODataOption) ([]v4prismModels.Category, error) {
-	return CommonListEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
+	return CommonListEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismModels.OneOfListCategoriesApiResponseData, *v4prismError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
 				reqParams.Page,
@@ -47,7 +48,7 @@ func (f *FacadeV4Client) ListAllCategories(filterParam *string, orderbyParam *st
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
+	return CommonListAllEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismModels.OneOfListCategoriesApiResponseData, *v4prismError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
 				reqParams.Page,
@@ -65,7 +66,7 @@ func (f *FacadeV4Client) ListAllCategories(filterParam *string, orderbyParam *st
 
 // GetListIteratorCategories returns an iterator for listing categories.
 func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) facade.ODataListIterator[v4prismModels.Category] {
-	return CommonGetListIterator[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
+	return CommonGetListIterator[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismModels.OneOfListCategoriesApiResponseData, *v4prismError.ErrorResponse](
 		f,
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
@@ -84,7 +85,7 @@ func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) f
 
 // CreateCategory creates a new category.
 func (f *FacadeV4Client) CreateCategory(category *v4prismModels.Category) (*v4prismModels.Category, error) {
-	newCategory, err := CallAPI[*v4prismModels.CreateCategoryApiResponse, v4prismModels.Category](
+	newCategory, err := CallAPI[*v4prismModels.CreateCategoryApiResponse, v4prismModels.Category, *v4prismModels.OneOfCreateCategoryApiResponseData, *v4prismError.ErrorResponse](
 		f.client.CategoriesApiInstance.CreateCategory(category),
 	)
 	if err != nil {
@@ -105,7 +106,7 @@ func (f *FacadeV4Client) UpdateCategory(uuid string, category *v4prismModels.Cat
 		return nil, fmt.Errorf("no category found with UUID %s", uuid)
 	}
 
-	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage](
+	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage, *v4prismModels.OneOfUpdateCategoryApiResponseData, *v4prismError.ErrorResponse](
 		f.client.CategoriesApiInstance.UpdateCategoryById(&uuid, category, args),
 	)
 	if err != nil {

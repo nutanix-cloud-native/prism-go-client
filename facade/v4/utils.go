@@ -1,11 +1,13 @@
 package v4
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
+	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
 
@@ -157,10 +159,18 @@ type APIResponse interface {
 	GetData() interface{}
 }
 
-func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
+type APIResponseData interface {
+	GetValue() interface{}
+}
+
+type APIOneOfErrorResponseError interface {
+	GetError() interface{} // either AppMessage or SchemaValidationError
+}
+
+func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponseError](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
-		return zero, fmt.Errorf("API call failed: %w", err)
+		return zero, ClassifyV4APICallError[R, Rerr, Terr](response, err)
 	}
 
 	data := response.GetData()
@@ -170,7 +180,8 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 	result, ok := data.(T)
 	if !ok {
-		return zero, fmt.Errorf("unexpected type for API response data: %T", data)
+		errStr := fmt.Sprintf("unexpected type for API response data: %T", data)
+		return zero, ferrors.NewErrTypeAssertionError(errStr, errors.New(errStr))
 	}
 
 	return result, nil
@@ -197,10 +208,10 @@ func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	return int(*totalCount), nil
 }
 
-func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
+func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponseError](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
-		return zero, 0, fmt.Errorf("API call failed: %w", err)
+		return zero, 0, ClassifyV4APICallError[R, Rerr, Terr](response, err)
 	}
 
 	totalCount, err := GetMetadataTotalResults(response)

@@ -3,11 +3,12 @@ package v4
 import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
+	subnetModelsError "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/error"
 )
 
 // GetSubnet returns the subnet for the given UUID.
 func (f *FacadeV4Client) GetSubnet(uuid string) (*subnetModels.Subnet, error) {
-	return CommonGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet](
+	return CommonGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet, *subnetModels.OneOfGetSubnetApiResponseData, *subnetModelsError.ErrorResponse](
 		func() (*subnetModels.GetSubnetApiResponse, error) {
 			return f.client.SubnetsApiInstance.GetSubnetById(&uuid)
 		},
@@ -17,7 +18,7 @@ func (f *FacadeV4Client) GetSubnet(uuid string) (*subnetModels.Subnet, error) {
 
 // ListSubnets returns a list of subnets.
 func (f *FacadeV4Client) ListSubnets(opts ...facade.ODataOption) ([]subnetModels.Subnet, error) {
-	return CommonListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
+	return CommonListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModels.OneOfListSubnetsApiResponseData, *subnetModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(
 				reqParams.Page,
@@ -42,7 +43,7 @@ func (f *FacadeV4Client) ListAllSubnets(filterParam *string, orderbyParam *strin
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
+	return CommonListAllEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModels.OneOfListSubnetsApiResponseData, *subnetModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(
 				reqParams.Page,
@@ -60,7 +61,7 @@ func (f *FacadeV4Client) ListAllSubnets(filterParam *string, orderbyParam *strin
 
 // GetListIteratorSubnets returns an iterator for listing subnets.
 func (f *FacadeV4Client) GetListIteratorSubnets(opts ...facade.ODataOption) facade.ODataListIterator[subnetModels.Subnet] {
-	return CommonGetListIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
+	return CommonGetListIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModels.OneOfListSubnetsApiResponseData, *subnetModelsError.ErrorResponse](
 		f,
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(
