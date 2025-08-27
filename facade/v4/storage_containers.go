@@ -1,12 +1,14 @@
 package v4
 
 import (
+	"context"
+
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	storageContainerModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
 // GetStorageContainer returns the storage container for the given UUID.
-func (f *FacadeV4Client) GetStorageContainer(uuid string) (*storageContainerModels.StorageContainer, error) {
+func (f *FacadeV4Client) GetStorageContainer(ctx context.Context, uuid string) (*storageContainerModels.StorageContainer, error) {
 	return CommonGetEntity[*storageContainerModels.GetStorageContainerApiResponse, storageContainerModels.StorageContainer](
 		func() (*storageContainerModels.GetStorageContainerApiResponse, error) {
 			return f.client.StorageContainerAPI.GetStorageContainerById(&uuid)
@@ -16,7 +18,7 @@ func (f *FacadeV4Client) GetStorageContainer(uuid string) (*storageContainerMode
 }
 
 // ListStorageContainers returns a list of storage containers.
-func (f *FacadeV4Client) ListStorageContainers(opts ...facade.ODataOption) ([]storageContainerModels.StorageContainer, error) {
+func (f *FacadeV4Client) ListStorageContainers(ctx context.Context, opts ...facade.ODataOption) ([]storageContainerModels.StorageContainer, error) {
 	return CommonListEntities[*storageContainerModels.ListStorageContainersApiResponse, storageContainerModels.StorageContainer](
 		func(reqParams *V4ODataParams) (*storageContainerModels.ListStorageContainersApiResponse, error) {
 			return f.client.StorageContainerAPI.ListStorageContainers(
@@ -33,7 +35,7 @@ func (f *FacadeV4Client) ListStorageContainers(opts ...facade.ODataOption) ([]st
 }
 
 // ListAllStorageContainers returns all storage containers without pagination.
-func (f *FacadeV4Client) ListAllStorageContainers(filterParam *string, orderbyParam *string, selectParam *string) ([]storageContainerModels.StorageContainer, error) {
+func (f *FacadeV4Client) ListAllStorageContainers(ctx context.Context, filterParam *string, orderbyParam *string, selectParam *string) ([]storageContainerModels.StorageContainer, error) {
 	reqParams := &V4ODataParams{
 		Filter:  filterParam,
 		OrderBy: orderbyParam,
@@ -56,8 +58,9 @@ func (f *FacadeV4Client) ListAllStorageContainers(filterParam *string, orderbyPa
 }
 
 // GetListIteratorStorageContainers returns an iterator for listing storage containers.
-func (f *FacadeV4Client) GetListIteratorStorageContainers(opts ...facade.ODataOption) facade.ODataListIterator[storageContainerModels.StorageContainer] {
+func (f *FacadeV4Client) GetListIteratorStorageContainers(ctx context.Context, opts ...facade.ODataOption) facade.ODataListIterator[storageContainerModels.StorageContainer] {
 	return CommonGetListIterator[*storageContainerModels.ListStorageContainersApiResponse, storageContainerModels.StorageContainer](
+		ctx,
 		f,
 		func(reqParams *V4ODataParams) (*storageContainerModels.ListStorageContainersApiResponse, error) {
 			return f.client.StorageContainerAPI.ListStorageContainers(
