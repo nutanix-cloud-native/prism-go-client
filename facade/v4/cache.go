@@ -1,7 +1,6 @@
 package v4
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -72,7 +71,7 @@ func (c *FacadeV4ClientCache) GetOrCreate(cachedClientParams types.CachedClientP
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	client, err = NewFacadeV4Client(context.TODO(), credentials, opts...)
+	client, err = NewFacadeV4Client(credentials, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}

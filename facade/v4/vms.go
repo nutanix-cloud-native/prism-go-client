@@ -1,7 +1,6 @@
 package v4
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
@@ -9,7 +8,7 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
-func (f *FacadeV4Client) GetVM(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
+func (f *FacadeV4Client) GetVM(uuid string) (*vmmModels.Vm, error) {
 	return CommonGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm](
 		func() (*vmmModels.GetVmApiResponse, error) {
 			return f.client.VmApiInstance.GetVmById(&uuid)
@@ -18,7 +17,7 @@ func (f *FacadeV4Client) GetVM(ctx context.Context, uuid string) (*vmmModels.Vm,
 	)
 }
 
-func (f *FacadeV4Client) ListVMs(ctx context.Context, opts ...facade.ODataOption) ([]vmmModels.Vm, error) {
+func (f *FacadeV4Client) ListVMs(opts ...facade.ODataOption) ([]vmmModels.Vm, error) {
 	return CommonListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
 		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
@@ -34,7 +33,7 @@ func (f *FacadeV4Client) ListVMs(ctx context.Context, opts ...facade.ODataOption
 	)
 }
 
-func (f *FacadeV4Client) ListAllVMs(ctx context.Context, filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error) {
+func (f *FacadeV4Client) ListAllVMs(filterParam *string, orderbyParam *string, selectParam *string) ([]vmmModels.Vm, error) {
 	reqParams := &V4ODataParams{
 		Filter:  filterParam,
 		OrderBy: orderbyParam,
@@ -56,25 +55,23 @@ func (f *FacadeV4Client) ListAllVMs(ctx context.Context, filterParam *string, or
 	)
 }
 
-func (f *FacadeV4Client) GetListIteratorVMs(ctx context.Context, opts ...facade.ODataOption) facade.ODataListIterator[vmmModels.Vm] {
-	return CommonGetListIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
-		ctx,
-		f,
-		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
+func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) facade.ODataListIterator[vmmModels.Vm] {
+	return NewFacadeV4ODataIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
+		f.client,
+		func(params *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
+				params.Page,
+				params.Limit,
+				params.Filter,
+				params.OrderBy,
+				params.Select,
 			)
 		},
-		opts,
-		"VMs",
+		opts...,
 	)
 }
 
-func (f *FacadeV4Client) CreateVM(ctx context.Context, vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {
+func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {
 	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, v4VmmConfig.TaskReference](
 		f.client.VmApiInstance.CreateVm(vm),
 	)
@@ -86,17 +83,15 @@ func (f *FacadeV4Client) CreateVM(ctx context.Context, vm *vmmModels.Vm) (facade
 		return nil, fmt.Errorf("task reference ExtId is nil for created VM")
 	}
 
-	return NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
-		return f.GetVM(ctx, uuid)
-	}), nil
+	return NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM), nil
 }
 
-func (f *FacadeV4Client) UpdateVM(ctx context.Context, uuid string, vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {
+func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {
 	currentVM, args, err := GetEntityAndEtag(
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for update: %w", err)
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
@@ -112,13 +107,11 @@ func (f *FacadeV4Client) UpdateVM(ctx context.Context, uuid string, vm *vmmModel
 		return nil, fmt.Errorf("task reference ExtId is nil for updated VM")
 	}
 
-	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
-		return f.GetVM(ctx, uuid)
-	})
+	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
 	return waiter, nil
 }
 
-func (f *FacadeV4Client) DeleteVM(ctx context.Context, uuid string) (facade.TaskWaiter[facade.NoEntity], error) {
+func (f *FacadeV4Client) DeleteVM(uuid string) (facade.TaskWaiter[facade.NoEntity], error) {
 	_, args, err := GetEntityAndEtag(
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
@@ -137,18 +130,16 @@ func (f *FacadeV4Client) DeleteVM(ctx context.Context, uuid string) (facade.Task
 		return nil, fmt.Errorf("task reference ExtId is nil for deleted VM")
 	}
 
-	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*facade.NoEntity, error) {
-		return facade.NoEntityGetter(uuid)
-	})
+	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, facade.NoEntityGetter)
 	return waiter, nil
 }
 
-func (f *FacadeV4Client) PowerOnVM(ctx context.Context, uuid string) (facade.TaskWaiter[vmmModels.Vm], error) {
+func (f *FacadeV4Client) PowerOnVM(uuid string) (facade.TaskWaiter[vmmModels.Vm], error) {
 	_, args, err := GetEntityAndEtag(
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for power on: %w", err)
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, v4VmmConfig.TaskReference](
@@ -162,18 +153,16 @@ func (f *FacadeV4Client) PowerOnVM(ctx context.Context, uuid string) (facade.Tas
 		return nil, fmt.Errorf("task reference ExtId is nil for powered on VM")
 	}
 
-	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
-		return f.GetVM(ctx, uuid)
-	})
+	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
 	return waiter, nil
 }
 
-func (f *FacadeV4Client) PowerOffVM(ctx context.Context, uuid string) (facade.TaskWaiter[vmmModels.Vm], error) {
+func (f *FacadeV4Client) PowerOffVM(uuid string) (facade.TaskWaiter[vmmModels.Vm], error) {
 	_, args, err := GetEntityAndEtag(
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for power off: %w", err)
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, v4VmmConfig.TaskReference](
@@ -187,8 +176,6 @@ func (f *FacadeV4Client) PowerOffVM(ctx context.Context, uuid string) (facade.Ta
 		return nil, fmt.Errorf("task reference ExtId is nil for powered off VM")
 	}
 
-	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
-		return f.GetVM(ctx, uuid)
-	})
+	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
 	return waiter, nil
 }

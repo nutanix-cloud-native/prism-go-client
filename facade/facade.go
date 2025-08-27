@@ -1,9 +1,6 @@
 package facade
 
-import (
-	"context"
-	"iter"
-)
+import "iter"
 
 type FacadeClientV4 interface {
 	AntiAffinityPolicyFacadeV4
@@ -85,7 +82,7 @@ const (
 )
 
 type TaskWaiter[T any] interface {
-	WaitForTaskCompletion(ctx context.Context) ([]*T, error)
+	WaitForTaskCompletion() ([]*T, error)
 	GetTaskUUID() string
 	GetTaskStatus() TaskStatus
 	GetTaskErrors() []error

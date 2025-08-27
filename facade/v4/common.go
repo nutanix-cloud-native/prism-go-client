@@ -1,7 +1,6 @@
 package v4
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
@@ -61,11 +60,10 @@ func CommonListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4OData
 	return result, nil
 }
 
-func CommonGetListIterator[R APIResponse, T any](ctx context.Context, f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
+func CommonGetListIterator[R APIResponse, T any](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
 	return NewFacadeV4ODataIterator[R, T](
-		ctx,
 		f.client,
-		func(ctx context.Context, reqParams *V4ODataParams) (R, error) {
+		func(reqParams *V4ODataParams) (R, error) {
 			return apiCall(reqParams)
 		},
 		options...,
