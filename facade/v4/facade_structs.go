@@ -1,6 +1,7 @@
 package v4
 
 import (
+	"context"
 	"fmt"
 	"iter"
 	"sync"
@@ -19,7 +20,7 @@ type FacadeV4Client struct {
 }
 
 // NewFacadeV4Client creates a new FacadeV4Client with the provided credentials and options.
-func NewFacadeV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*FacadeV4Client, error) {
+func NewFacadeV4Client(ctx context.Context, credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*FacadeV4Client, error) {
 	client, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
 		return nil, err
@@ -40,11 +41,10 @@ type FacadeV4TaskWaiter[T any] struct {
 	taskStatus       facade.TaskStatus
 	taskErrors       []error
 	client           *v4prismGoClient.Client
-	entityGetter     func(uuid string) (*T, error)
+	entityGetter     func(ctx context.Context, uuid string) (*T, error)
 }
 
-// NewFacadeV4TaskWaiter creates a new FacadeV4TaskWaiter for the given task UUID and client.
-func NewFacadeV4TaskWaiter[T any](taskUUID string, client *v4prismGoClient.Client, entityGetter func(uuid string) (*T, error)) *FacadeV4TaskWaiter[T] {
+func NewFacadeV4TaskWaiter[T any](taskUUID string, client *v4prismGoClient.Client, entityGetter func(ctx context.Context, uuid string) (*T, error)) *FacadeV4TaskWaiter[T] {
 	return &FacadeV4TaskWaiter[T]{
 		lock:         &sync.Mutex{},
 		entityUUIDs:  make([]string, 0),
@@ -56,7 +56,7 @@ func NewFacadeV4TaskWaiter[T any](taskUUID string, client *v4prismGoClient.Clien
 	}
 }
 
-func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
+func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion(ctx context.Context) ([]*T, error) {
 	var result []*T
 
 	var task v4prismModels.Task
@@ -65,62 +65,68 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 	taskStatusValue := v4prismModels.TASKSTATUS_UNKNOWN
 	taskStatus := &taskStatusValue
 
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	for *taskStatus != v4prismModels.TASKSTATUS_SUCCEEDED {
-		time.Sleep(1 * time.Second)
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task wait canceled: %w", ctx.Err())
+		case <-ticker.C:
+			// Wait for the task to complete
+			task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
+				f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
+			)
 
-		// Wait for the task to complete
-		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
-			f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
-		)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get task %s: %w", f.taskUUID, err)
+			}
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to get task %s: %w", f.taskUUID, err)
-		}
+			taskStatus = task.Status
+			if taskStatus == nil {
+				return nil, fmt.Errorf("task %s status is nil", f.taskUUID)
+			}
 
-		taskStatus = task.Status
-		if taskStatus == nil {
-			return nil, fmt.Errorf("task %s status is nil", f.taskUUID)
-		}
+			f.setTaskStatus(ConvertTaskStatus(*taskStatus))
 
-		f.setTaskStatus(ConvertTaskStatus(*taskStatus))
+			if *taskStatus == v4prismModels.TASKSTATUS_FAILED {
+				errMessages := ""
+				if task.ErrorMessages != nil {
+					for _, msg := range task.ErrorMessages {
+						errMessages += fmt.Sprintf("%s; ", *msg.Message)
+					}
 
-		if *taskStatus == v4prismModels.TASKSTATUS_FAILED {
-			errMessages := ""
-			if task.ErrorMessages != nil {
-				for _, msg := range task.ErrorMessages {
-					errMessages += fmt.Sprintf("%s; ", *msg.Message)
+					for _, msg := range task.ErrorMessages {
+						f.appendTaskError(fmt.Errorf("task %s error: %s", f.taskUUID, *msg.Message))
+					}
+
+					return nil, fmt.Errorf("task %s failed: %s", f.taskUUID, errMessages)
 				}
-
-				for _, msg := range task.ErrorMessages {
-					f.appendTaskError(fmt.Errorf("task %s error: %s", f.taskUUID, *msg.Message))
-				}
-
-				return nil, fmt.Errorf("task %s failed: %s", f.taskUUID, errMessages)
 			}
 
 			if *taskStatus == v4prismModels.TASKSTATUS_CANCELED || *taskStatus == v4prismModels.TASKSTATUS_CANCELING {
 				return nil, fmt.Errorf("task %s was canceled", f.taskUUID)
 			}
 		}
+	}
 
-		if task.EntitiesAffected != nil {
-			f.setEntitiesAffected(len(task.EntitiesAffected))
-		}
+	if task.EntitiesAffected != nil {
+		f.setEntitiesAffected(len(task.EntitiesAffected))
+	}
 
-		if f.entitiesAffected == 0 {
-			return nil, fmt.Errorf("task %s did not affect any entities", f.taskUUID)
-		}
+	if f.entitiesAffected == 0 {
+		return nil, fmt.Errorf("task %s did not affect any entities", f.taskUUID)
+	}
 
-		for _, entityRef := range task.EntitiesAffected {
-			if entityRef.ExtId == nil {
-				return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", f.taskUUID)
-			}
-			f.appendEntityUUID(*entityRef.ExtId)
+	for _, entityRef := range task.EntitiesAffected {
+		if entityRef.ExtId == nil {
+			return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", f.taskUUID)
 		}
+		f.appendEntityUUID(*entityRef.ExtId)
 	}
 
 	for _, uuid := range f.entityUUIDs {
-		entity, err := f.entityGetter(uuid)
+		entity, err := f.entityGetter(ctx, uuid)
 
 		// TODO: Get rid of this check when we will be sure that the correct amount of entities is returned (see comment below)
 		if entity != nil {
@@ -130,7 +136,7 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 			// TODO: Uncomment this when we will be sure that the correct amount of entities is returned
 			// STATE: 2025-07-29 - Ilya Alekseyev - On VM creation sometimes returns 2 entities one if which can not be found.
 			// if entity == nil {
-			// 	return nil, fmt.Errorf("entity %s not found", uuid)
+			//  return nil, fmt.Errorf("entity %s not found", uuid)
 			// }
 
 			result = append(result, entity)
@@ -193,8 +199,9 @@ type FacadeV4ODataIterator[R APIResponse, T any] struct {
 }
 
 func NewFacadeV4ODataIterator[R APIResponse, T any](
+	ctx context.Context,
 	client *v4prismGoClient.Client,
-	listFunc func(*V4ODataParams) (R, error),
+	listFunc func(context.Context, *V4ODataParams) (R, error),
 	opts ...facade.ODataOption,
 ) facade.ODataListIterator[T] {
 	var zero T
@@ -210,6 +217,7 @@ func NewFacadeV4ODataIterator[R APIResponse, T any](
 
 		reqParams, err := OptsToV4ODataParams(opts...)
 		if err != nil {
+			yield(zero, err) // Fixed: yield error instead of just returning
 			return
 		}
 
@@ -220,19 +228,35 @@ func NewFacadeV4ODataIterator[R APIResponse, T any](
 		}
 
 		for {
-			if iterateAllPages && totalIndex != 0 {
-				reqParams.Page = ptr.To(*reqParams.Page + 1) // Move to the next page
-				batchIndex = 0
+			select {
+			case <-ctx.Done():
+				yield(zero, ctx.Err())
+				return
+			default:
+				// Continue with iteration
 			}
 
 			// Get next page
-			items, totalCount, err = CallListAPI[R, T](listFunc(reqParams))
+			items, totalCount, err = CallListAPI[R, T](listFunc(ctx, reqParams))
 			if err != nil {
 				yield(zero, err)
 				return
 			}
 
+			// Handle empty response
+			if len(items) == 0 {
+				return
+			}
+
 			for batchIndex < len(items) && totalIndex < totalCount {
+				select {
+				case <-ctx.Done():
+					yield(zero, ctx.Err())
+					return
+				default:
+					// Continue yielding items
+				}
+
 				if !yield(items[batchIndex], nil) {
 					return
 				}
@@ -241,9 +265,14 @@ func NewFacadeV4ODataIterator[R APIResponse, T any](
 				batchIndex += 1
 			}
 
-			if totalIndex >= totalCount {
-				return // All items have been yielded
+			// Fixed: Check if we should continue pagination
+			if !iterateAllPages || totalIndex >= totalCount || len(items) == 0 {
+				return // All items have been yielded or single page requested
 			}
+
+			// Move to the next page for pagination
+			reqParams.Page = ptr.To(*reqParams.Page + 1)
+			batchIndex = 0 // Reset batch index for next page
 		}
 	}
 
