@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
+	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
-	prismMessages "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 	v4prismError "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
@@ -89,7 +89,7 @@ func (f *FacadeV4Client) CreateCategory(category *v4prismModels.Category) (*v4pr
 		f.client.CategoriesApiInstance.CreateCategory(category),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create category: %w", err)
+		return nil, err
 	}
 	return &newCategory, nil
 }
@@ -100,28 +100,28 @@ func (f *FacadeV4Client) UpdateCategory(uuid string, category *v4prismModels.Cat
 		f.GetCategory(uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get category with UUID %s: %w", uuid, err)
+		return nil, err
 	}
 	if existingCategory == nil {
-		return nil, fmt.Errorf("no category found with UUID %s", uuid)
+		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no category found with UUID %s", uuid))
 	}
 
-	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage, *v4prismModels.OneOfUpdateCategoryApiResponseData, *v4prismError.ErrorResponse](
+	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []v4prismError.AppMessage, *v4prismModels.OneOfUpdateCategoryApiResponseData, *v4prismError.ErrorResponse](
 		f.client.CategoriesApiInstance.UpdateCategoryById(&uuid, category, args),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update category with UUID %s: %w", uuid, err)
+		return nil, err
 	}
 
 	updatedCategory, err := f.GetCategory(uuid)
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve updated category with UUID %s: %w", uuid, err)
+		return nil, err
 	}
 	if updatedCategory == nil {
-		return nil, fmt.Errorf("no updated category found with UUID %s", uuid)
+		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no updated category found with UUID %s", uuid))
 	}
 	if updatedCategory.ExtId == nil {
-		return nil, fmt.Errorf("updated category ExtId is nil for UUID %s", uuid)
+		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("updated category ExtId is nil for UUID %s", uuid))
 	}
 	return updatedCategory, nil
 }
@@ -132,15 +132,15 @@ func (f *FacadeV4Client) DeleteCategory(uuid string) error {
 		f.GetCategory(uuid),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get category with UUID %s: %w", uuid, err)
+		return err
 	}
 	if category == nil {
-		return fmt.Errorf("no category found with UUID %s", uuid)
+		return ferrors.NewErrUncategorisedError("", fmt.Errorf("no category found with UUID %s", uuid))
 	}
 
 	_, err = f.client.CategoriesApiInstance.DeleteCategoryById(&uuid, args)
 	if err != nil {
-		return fmt.Errorf("failed to delete category with UUID %s: %w", uuid, err)
+		return err
 	}
 
 	return nil

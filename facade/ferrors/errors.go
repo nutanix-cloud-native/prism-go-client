@@ -8,7 +8,7 @@ import (
 type ErrorType string
 
 const (
-	ErrorTypeUnknown       ErrorType = "UNKNOWN_ERROR"
+	ErrorTypeUncategorised ErrorType = "UNCATEGORISED_ERROR"
 	ErrorTypeApiError      ErrorType = "V4_API_ERROR"
 	ErrorTypeTypeAssertion ErrorType = "TYPE_ASSERTION_ERROR"
 )
@@ -52,8 +52,8 @@ func New(errType ErrorType, msg string, err interface{}, args ...map[string]inte
 	}
 }
 
-func NewErrUnknownError(msg string, err interface{}, args ...map[string]interface{}) error {
-	return New(ErrorTypeUnknown, msg, err, args...)
+func NewErrUncategorisedError(msg string, err interface{}, args ...map[string]interface{}) error {
+	return New(ErrorTypeUncategorised, msg, err, args...)
 }
 
 func NewErrTypeAssertionError(msg string, err interface{}, args ...map[string]interface{}) error {

@@ -1,7 +1,6 @@
 package v4
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -30,7 +29,7 @@ func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
 		return v4Params, nil
 	}
 
-	return nil, fmt.Errorf("expected *V4ODataParams, got %T", params)
+	return nil, ferrors.NewErrTypeAssertionError("", fmt.Errorf("expected *V4ODataParams, got %T", params))
 }
 
 func (o *V4ODataParams) SetPageOption(page int) error {
@@ -163,11 +162,11 @@ type APIResponseData interface {
 	GetValue() interface{}
 }
 
-type APIOneOfErrorResponseError interface {
+type APIOneOfErrorResponse interface {
 	GetError() interface{} // either AppMessage or SchemaValidationError
 }
 
-func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponseError](response R, err error) (T, error) {
+func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
 		return zero, ClassifyV4APICallError[R, Rerr, Terr](response, err)
@@ -180,8 +179,7 @@ func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorRespo
 
 	result, ok := data.(T)
 	if !ok {
-		errStr := fmt.Sprintf("unexpected type for API response data: %T", data)
-		return zero, ferrors.NewErrTypeAssertionError(errStr, errors.New(errStr))
+		return zero, ferrors.NewErrTypeAssertionError("", fmt.Errorf("unexpected type for API response data: %T", data))
 	}
 
 	return result, nil
@@ -190,25 +188,25 @@ func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorRespo
 func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
-		return 0, fmt.Errorf("response does not have Metadata field")
+		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("response does not have Metadata field"))
 	}
 	metadata := hasMetadataField.Interface()
 	if reflect.ValueOf(metadata).IsNil() {
-		return 0, fmt.Errorf("no metadata found in response")
+		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("no metadata found in response"))
 	}
 
 	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
 	if !totalCountField.IsValid() || totalCountField.IsNil() {
-		return 0, fmt.Errorf("metadata does not have TotalAvailableResults field")
+		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("metadata does not have TotalAvailableResults field"))
 	}
 	totalCount := totalCountField.Interface().(*int)
 	if totalCount == nil || *totalCount < 0 {
-		return 0, fmt.Errorf("invalid total count: %v", totalCount)
+		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("invalid total count: %d", totalCount))
 	}
 	return int(*totalCount), nil
 }
 
-func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponseError](response R, err error) ([]T, int, error) {
+func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
 		return zero, 0, ClassifyV4APICallError[R, Rerr, Terr](response, err)
@@ -216,7 +214,7 @@ func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorR
 
 	totalCount, err := GetMetadataTotalResults(response)
 	if err != nil {
-		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
+		return zero, 0, err
 	}
 
 	data := response.GetData()
@@ -226,7 +224,7 @@ func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorR
 
 	result, ok := data.([]T)
 	if !ok {
-		return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
+		return zero, 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("unexpected type for API response data: %T", data))
 	}
 
 	return result, totalCount, nil
@@ -236,12 +234,12 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 	var zero T
 
 	if err != nil {
-		return zero, nil, fmt.Errorf("failed to get entity: %w", err)
+		return zero, nil, err
 	}
 
 	etag := GetEtag(entity)
 	if etag == "" {
-		return zero, nil, fmt.Errorf("no ETag found for entity of type %T", entity)
+		return zero, nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no ETag found for entity of type %T", entity))
 	}
 
 	args := map[string]interface{}{
@@ -256,7 +254,7 @@ func OptsToV4ODataParams(opts ...facade.ODataOption) (*V4ODataParams, error) {
 	for _, opt := range opts {
 		if opt != nil {
 			if err := opt(params); err != nil {
-				return nil, fmt.Errorf("failed to apply OData option: %w", err)
+				return nil, ferrors.NewErrUncategorisedError("failed to apply OData option", err)
 			}
 		}
 	}

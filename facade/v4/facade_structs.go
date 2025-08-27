@@ -193,7 +193,7 @@ type FacadeV4ODataIterator[R APIResponse, T any] struct {
 	mutex              sync.Mutex
 }
 
-func NewFacadeV4ODataIterator[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponseError](
+func NewFacadeV4ODataIterator[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](
 	client *v4prismGoClient.Client,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,

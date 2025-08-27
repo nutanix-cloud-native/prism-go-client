@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
+	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4VmmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	vmmModelsError "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/error"
@@ -77,11 +78,11 @@ func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels
 		f.client.VmApiInstance.CreateVm(vm),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create VM: %w", err)
+		return nil, err
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for created VM")
+		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("task reference ExtId is nil for created VM"))
 	}
 
 	return NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM), nil
@@ -92,7 +93,7 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
+		return nil, err
 	}
 
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
@@ -101,11 +102,11 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 		f.client.VmApiInstance.UpdateVmById(&uuid, vm, args),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update VM: %w", err)
+		return nil, err
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for updated VM")
+		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for updated VM", nil)
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
@@ -117,18 +118,18 @@ func (f *FacadeV4Client) DeleteVM(uuid string) (facade.TaskWaiter[facade.NoEntit
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
+		return nil, err
 	}
 
 	taskRef, err := CallAPI[*vmmModels.DeleteVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfDeleteVmApiResponseData, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.DeleteVmById(&uuid, args),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete VM: %w", err)
+		return nil, err
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for deleted VM")
+		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for deleted VM", nil)
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, facade.NoEntityGetter)
@@ -140,18 +141,18 @@ func (f *FacadeV4Client) PowerOnVM(uuid string) (facade.TaskWaiter[vmmModels.Vm]
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
+		return nil, err
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfPowerOnVmApiResponseData, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.PowerOnVm(&uuid, args),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to power on VM: %w", err)
+		return nil, err
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for powered on VM")
+		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for powered on VM", nil)
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
@@ -163,18 +164,18 @@ func (f *FacadeV4Client) PowerOffVM(uuid string) (facade.TaskWaiter[vmmModels.Vm
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
+		return nil, err
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfPowerOffVmApiResponseData, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.PowerOffVm(&uuid, args),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to power off VM: %w", err)
+		return nil, err
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for powered off VM")
+		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for powered off VM", nil)
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
