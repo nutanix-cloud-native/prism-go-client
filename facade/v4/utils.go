@@ -154,22 +154,19 @@ func ConvertTaskStatus(status v4prismModels.TaskStatus) facade.TaskStatus {
 	return facade.TaskStatusUnknown
 }
 
-type APIResponse interface {
+type ApiResponse interface {
 	GetData() interface{}
 }
 
-type APIResponseData interface {
-	GetValue() interface{}
+type ApiErrorResponse interface {
+	GetError() interface{}
 }
 
-type APIOneOfErrorResponse interface {
-	GetError() interface{} // either AppMessage or SchemaValidationError
-}
-
-func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](response R, err error) (T, error) {
+// Rerr -> ErrorResponse
+func CallAPI[R ApiResponse, T any, Rerr ApiErrorResponse](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
-		return zero, ClassifyV4APICallError[R, Rerr, Terr](response, err)
+		return zero, GetCategorisedV4ApiCallError[R, Rerr](response, err)
 	}
 
 	data := response.GetData()
@@ -185,7 +182,7 @@ func CallAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorRespo
 	return result, nil
 }
 
-func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
+func GetMetadataTotalResults[R ApiResponse](response R) (int, error) {
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
 		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("response does not have Metadata field"))
@@ -206,10 +203,10 @@ func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	return int(*totalCount), nil
 }
 
-func CallListAPI[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](response R, err error) ([]T, int, error) {
+func CallListAPI[R ApiResponse, T any, Rerr ApiErrorResponse](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
-		return zero, 0, ClassifyV4APICallError[R, Rerr, Terr](response, err)
+		return zero, 0, GetCategorisedV4ApiCallError[R, Rerr](response, err)
 	}
 
 	totalCount, err := GetMetadataTotalResults(response)

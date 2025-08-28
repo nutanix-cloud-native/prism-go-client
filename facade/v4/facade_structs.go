@@ -70,7 +70,7 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 		time.Sleep(1 * time.Second)
 
 		// Wait for the task to complete
-		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task, *v4prismModels.OneOfCancelTaskApiResponseData, *v4prismModelsError.ErrorResponse](
+		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task, *v4prismModelsError.ErrorResponse](
 			f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
 		)
 
@@ -180,7 +180,7 @@ func (f *FacadeV4TaskWaiter[T]) appendEntityUUID(uuid string) {
 	f.entityUUIDs = append(f.entityUUIDs, uuid)
 }
 
-type FacadeV4ODataIterator[R APIResponse, T any] struct {
+type FacadeV4ODataIterator[R ApiResponse, T any] struct {
 	client             *v4prismGoClient.Client
 	opts               []facade.ODataOption
 	totalCount         int
@@ -193,7 +193,7 @@ type FacadeV4ODataIterator[R APIResponse, T any] struct {
 	mutex              sync.Mutex
 }
 
-func NewFacadeV4ODataIterator[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](
+func NewFacadeV4ODataIterator[R ApiResponse, T any, Rerr ApiErrorResponse](
 	client *v4prismGoClient.Client,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,
@@ -227,7 +227,7 @@ func NewFacadeV4ODataIterator[R APIResponse, T any, Rerr APIResponseData, Terr A
 			}
 
 			// Get next page
-			items, totalCount, err = CallListAPI[R, T, Rerr, Terr](listFunc(reqParams))
+			items, totalCount, err = CallListAPI[R, T, Rerr](listFunc(reqParams))
 			if err != nil {
 				yield(zero, err)
 				return

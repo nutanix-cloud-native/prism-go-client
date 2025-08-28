@@ -6,29 +6,29 @@ import (
 
 // Common generic function for CRUD operations
 
-func CommonGetEntity[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](apiCall func() (R, error), entityName string) (*T, error) {
-	result, err := CallAPI[R, T, Rerr, Terr](apiCall())
+func CommonGetEntity[R ApiResponse, T any, Rerr ApiErrorResponse](apiCall func() (R, error), entityName string) (*T, error) {
+	result, err := CallAPI[R, T, Rerr](apiCall())
 	if err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
-func CommonListEntities[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) ([]T, error) {
+func CommonListEntities[R ApiResponse, T any, Rerr ApiErrorResponse](apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) ([]T, error) {
 	reqParams, err := OptsToV4ODataParams(options...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := CallAPI[R, []T, Rerr, Terr](apiCall(reqParams))
+	result, err := CallAPI[R, []T, Rerr](apiCall(reqParams))
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func CommonListAllEntities[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](apiCall func(reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams, entitiesName string) ([]T, error) {
+func CommonListAllEntities[R ApiResponse, T any, Rerr ApiErrorResponse](apiCall func(reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams, entitiesName string) ([]T, error) {
 	result := []T{}
 	page := 0
 
@@ -39,7 +39,7 @@ func CommonListAllEntities[R APIResponse, T any, Rerr APIResponseData, Terr APIO
 	reqParams.Page = &page
 	reqParams.Limit = nil // Let API use the default limit
 
-	items, totalCount, err := CallListAPI[R, T, Rerr, Terr](apiCall(reqParams))
+	items, totalCount, err := CallListAPI[R, T, Rerr](apiCall(reqParams))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func CommonListAllEntities[R APIResponse, T any, Rerr APIResponseData, Terr APIO
 	for len(result) < totalCount {
 		page++
 		reqParams.Page = &page
-		moreItems, _, err := CallListAPI[R, T, Rerr, Terr](apiCall(reqParams))
+		moreItems, _, err := CallListAPI[R, T, Rerr](apiCall(reqParams))
 		if err != nil {
 			return nil, err
 		}
@@ -58,8 +58,8 @@ func CommonListAllEntities[R APIResponse, T any, Rerr APIResponseData, Terr APIO
 	return result, nil
 }
 
-func CommonGetListIterator[R APIResponse, T any, Rerr APIResponseData, Terr APIOneOfErrorResponse](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
-	return NewFacadeV4ODataIterator[R, T, Rerr, Terr](
+func CommonGetListIterator[R ApiResponse, T any, Rerr ApiErrorResponse](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
+	return NewFacadeV4ODataIterator[R, T, Rerr](
 		f.client,
 		func(reqParams *V4ODataParams) (R, error) {
 			return apiCall(reqParams)

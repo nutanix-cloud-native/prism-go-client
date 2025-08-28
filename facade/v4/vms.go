@@ -11,7 +11,7 @@ import (
 )
 
 func (f *FacadeV4Client) GetVM(uuid string) (*vmmModels.Vm, error) {
-	return CommonGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm, *vmmModels.OneOfGetVmApiResponseData, *vmmModelsError.ErrorResponse](
+	return CommonGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm, *vmmModelsError.ErrorResponse](
 		func() (*vmmModels.GetVmApiResponse, error) {
 			return f.client.VmApiInstance.GetVmById(&uuid)
 		},
@@ -20,7 +20,7 @@ func (f *FacadeV4Client) GetVM(uuid string) (*vmmModels.Vm, error) {
 }
 
 func (f *FacadeV4Client) ListVMs(opts ...facade.ODataOption) ([]vmmModels.Vm, error) {
-	return CommonListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModels.OneOfListVmsApiResponseData, *vmmModelsError.ErrorResponse](
+	return CommonListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
 				reqParams.Page,
@@ -42,7 +42,7 @@ func (f *FacadeV4Client) ListAllVMs(filterParam *string, orderbyParam *string, s
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModels.OneOfListVmsApiResponseData, *vmmModelsError.ErrorResponse](
+	return CommonListAllEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModelsError.ErrorResponse](
 		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
 				reqParams.Page,
@@ -58,7 +58,7 @@ func (f *FacadeV4Client) ListAllVMs(filterParam *string, orderbyParam *string, s
 }
 
 func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) facade.ODataListIterator[vmmModels.Vm] {
-	return NewFacadeV4ODataIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModels.OneOfListVmsApiResponseData, *vmmModelsError.ErrorResponse](
+	return NewFacadeV4ODataIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm, *vmmModelsError.ErrorResponse](
 		f.client,
 		func(params *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return f.client.VmApiInstance.ListVms(
@@ -74,7 +74,7 @@ func (f *FacadeV4Client) GetListIteratorVMs(opts ...facade.ODataOption) facade.O
 }
 
 func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels.Vm], error) {
-	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfCreateVmApiResponseData, *vmmModelsError.ErrorResponse](
+	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, v4VmmConfig.TaskReference, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.CreateVm(vm),
 	)
 	if err != nil {
@@ -98,7 +98,7 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
 
-	taskRef, err := CallAPI[*vmmModels.UpdateVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfUpdateVmApiResponseData, *vmmModelsError.ErrorResponse](
+	taskRef, err := CallAPI[*vmmModels.UpdateVmApiResponse, v4VmmConfig.TaskReference, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.UpdateVmById(&uuid, vm, args),
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func (f *FacadeV4Client) DeleteVM(uuid string) (facade.TaskWaiter[facade.NoEntit
 		return nil, err
 	}
 
-	taskRef, err := CallAPI[*vmmModels.DeleteVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfDeleteVmApiResponseData, *vmmModelsError.ErrorResponse](
+	taskRef, err := CallAPI[*vmmModels.DeleteVmApiResponse, v4VmmConfig.TaskReference, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.DeleteVmById(&uuid, args),
 	)
 	if err != nil {
@@ -144,7 +144,7 @@ func (f *FacadeV4Client) PowerOnVM(uuid string) (facade.TaskWaiter[vmmModels.Vm]
 		return nil, err
 	}
 
-	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfPowerOnVmApiResponseData, *vmmModelsError.ErrorResponse](
+	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, v4VmmConfig.TaskReference, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.PowerOnVm(&uuid, args),
 	)
 	if err != nil {
@@ -167,7 +167,7 @@ func (f *FacadeV4Client) PowerOffVM(uuid string) (facade.TaskWaiter[vmmModels.Vm
 		return nil, err
 	}
 
-	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, v4VmmConfig.TaskReference, *vmmModels.OneOfPowerOffVmApiResponseData, *vmmModelsError.ErrorResponse](
+	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, v4VmmConfig.TaskReference, *vmmModelsError.ErrorResponse](
 		f.client.VmApiInstance.PowerOffVm(&uuid, args),
 	)
 	if err != nil {
