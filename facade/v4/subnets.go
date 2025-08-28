@@ -8,7 +8,7 @@ import (
 
 // GetSubnet returns the subnet for the given UUID.
 func (f *FacadeV4Client) GetSubnet(uuid string) (*subnetModels.Subnet, error) {
-	return CommonGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet, *subnetModelsError.ErrorResponse](
+	return CommonGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet, *subnetModelsError.OneOfErrorResponseError](
 		func() (*subnetModels.GetSubnetApiResponse, error) {
 			return f.client.SubnetsApiInstance.GetSubnetById(&uuid)
 		},
@@ -18,7 +18,7 @@ func (f *FacadeV4Client) GetSubnet(uuid string) (*subnetModels.Subnet, error) {
 
 // ListSubnets returns a list of subnets.
 func (f *FacadeV4Client) ListSubnets(opts ...facade.ODataOption) ([]subnetModels.Subnet, error) {
-	return CommonListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.ErrorResponse](
+	return CommonListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.OneOfErrorResponseError](
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(
 				reqParams.Page,
@@ -43,7 +43,7 @@ func (f *FacadeV4Client) ListAllSubnets(filterParam *string, orderbyParam *strin
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.ErrorResponse](
+	return CommonListAllEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.OneOfErrorResponseError](
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(
 				reqParams.Page,
@@ -61,7 +61,7 @@ func (f *FacadeV4Client) ListAllSubnets(filterParam *string, orderbyParam *strin
 
 // GetListIteratorSubnets returns an iterator for listing subnets.
 func (f *FacadeV4Client) GetListIteratorSubnets(opts ...facade.ODataOption) facade.ODataListIterator[subnetModels.Subnet] {
-	return CommonGetListIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.ErrorResponse](
+	return CommonGetListIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet, *subnetModelsError.OneOfErrorResponseError](
 		f,
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return f.client.SubnetsApiInstance.ListSubnets(

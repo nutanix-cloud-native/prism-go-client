@@ -158,12 +158,12 @@ type ApiResponse interface {
 	GetData() interface{}
 }
 
-type ApiErrorResponse interface {
-	GetError() interface{}
+type ApiErrorResponseError interface {
+	GetValue() interface{}
 }
 
 // Rerr -> ErrorResponse
-func CallAPI[R ApiResponse, T any, Rerr ApiErrorResponse](response R, err error) (T, error) {
+func CallAPI[R ApiResponse, T any, Rerr ApiErrorResponseError](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
 		return zero, GetCategorisedV4ApiCallError[R, Rerr](response, err)
@@ -203,7 +203,7 @@ func GetMetadataTotalResults[R ApiResponse](response R) (int, error) {
 	return int(*totalCount), nil
 }
 
-func CallListAPI[R ApiResponse, T any, Rerr ApiErrorResponse](response R, err error) ([]T, int, error) {
+func CallListAPI[R ApiResponse, T any, Rerr ApiErrorResponseError](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
 		return zero, 0, GetCategorisedV4ApiCallError[R, Rerr](response, err)

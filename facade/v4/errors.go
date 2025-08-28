@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
+	"strings"
 	"syscall"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
-	v4VmmError "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/error"
 )
 
-// GetCategorisedV4ApiCallError return classified and wrapped errors.
-func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponse](response R, err error) error {
+// GetCategorisedV4ApiCallError return categorised and wrapped errors.
+func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponseError](response R, err error) error {
 	if err == nil {
 		return nil
 	}
@@ -25,19 +26,9 @@ func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponse](response
 		return ferrors.NewErrUncategorisedError("API call failed", err)
 	}
 
-	data := response.GetData()
-	if data == nil {
-		return ferrors.NewErrUncategorisedError("", err)
-	}
+	errorResponse := response.GetData()
 
-	// 4xx, 5xx from v4
-	// ERROR: Rerr is an interface how can I get the struct?
-	unstructuredErrorResponse, ok := data.(Rerr) // 400 -> ErrorResponse 401 -> TProjection
-	if !ok {
-		return ferrors.NewErrTypeAssertionError("", fmt.Errorf("unexpected type for API response data: %T", data))
-	}
-
-	return getCategorisedV4ApiErrorFromErrorResponse(unstructuredErrorResponse)
+	return getCategorisedV4ApiError[Rerr](errorResponse)
 }
 
 // isNetworkError returns true if the given error is network-related.
@@ -75,25 +66,66 @@ func isNetworkError(err error) bool {
 	return false
 }
 
-func getCategorisedV4ApiErrorFromErrorResponse[Rerr ApiErrorResponse](errorResponse Rerr) error {
-	errResponseError := errorResponse.GetError() // either of []AppMessage or SchemaValidationError
-
-	if result, ok := errResponseError.(v4VmmError.SchemaValidationError); ok {
-		return ferrors.NewErrV4ApiSchemaValidationError("", result)
-	} else if result, ok := errResponseError.([]v4VmmError.AppMessage); ok {
-		return getCategorisedV4ApiErrorFromAppMessages(result)
+func getCategorisedV4ApiError[Rerr ApiErrorResponseError](errorResponse interface{}) error {
+	unstructuredErrorResponseError, err := getErrorField(errorResponse)
+	if err != nil {
+		return err
 	}
-	return ferrors.NewErrV4ApiUncategorisedError("API call failed", errResponseError)
+
+	errorResponseError, ok := unstructuredErrorResponseError.(Rerr)
+	if !ok {
+		return ferrors.NewErrTypeAssertionError("Invalid API response format", errorResponse)
+	}
+	errorVal := errorResponseError.GetValue()
+
+	objectType, err := getObjectType(unstructuredErrorResponseError)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(objectType, "SchemaValidationError") {
+		return ferrors.NewErrV4ApiSchemaValidationError("", errorResponse)
+	}
+
+	if strings.Contains(objectType, "AppMessage") {
+		return getCategorisedV4ApiErrorFromAppMessages(errorResponse, errorVal)
+	}
+
+	return ferrors.NewErrV4ApiUncategorisedError("Invalid OneOfErrorResponseError", errorResponse)
 }
 
-func getCategorisedV4ApiErrorFromAppMessages(appMessages []v4VmmError.AppMessage) error {
-	err := ferrors.NewErrUncategorisedError("", appMessages)
+func getErrorField(unstructuredErrorResponse interface{}) (interface{}, error) {
+	// TODO av
+	v := reflect.ValueOf(unstructuredErrorResponse)
+	fbn := v.FieldByName("Error").Interface()
 
-	fmt.Println("AHO")
-	for _, appMessage := range appMessages {
-		// string search each appMessage.errorGroup and add it to a categorised subtype
-		// but do we need to rank them if multiple are present????
-		fmt.Printf("%s ,", *appMessage.ErrorGroup)
+	return fbn, nil
+}
+
+func getObjectType(unstructuredErrorResponseError interface{}) (string, error) {
+	// TODO av
+	v := reflect.ValueOf(unstructuredErrorResponseError).Elem()
+	fbn := v.FieldByName("ObjectType_")
+	objectType := *fbn.Interface().(*string)
+	return objectType, nil
+}
+
+func getCategorisedV4ApiErrorFromAppMessages(errorResponse interface{}, appMessages interface{}) error {
+	v := reflect.ValueOf(appMessages)
+	if v.Kind() != reflect.Slice {
+		return ferrors.NewErrTypeAssertionError("Invalid type for []AppMessage", errorResponse)
+	}
+
+	err := ferrors.NewErrV4ApiUncategorisedError("", errorResponse)
+
+	len := v.Len()
+	for i := range len {
+		elem := v.Index(i)
+
+		// TODO av
+		errorGroup := *reflect.ValueOf(elem.Interface()).FieldByName("ErrorGroup").Interface().(*string)
+
+		fmt.Println(errorGroup)
 	}
 
 	return err

@@ -70,7 +70,7 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 		time.Sleep(1 * time.Second)
 
 		// Wait for the task to complete
-		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task, *v4prismModelsError.ErrorResponse](
+		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task, *v4prismModelsError.OneOfErrorResponseError](
 			f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
 		)
 
@@ -193,7 +193,7 @@ type FacadeV4ODataIterator[R ApiResponse, T any] struct {
 	mutex              sync.Mutex
 }
 
-func NewFacadeV4ODataIterator[R ApiResponse, T any, Rerr ApiErrorResponse](
+func NewFacadeV4ODataIterator[R ApiResponse, T any, Rerr ApiErrorResponseError](
 	client *v4prismGoClient.Client,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,

@@ -8,7 +8,7 @@ import (
 
 // GetImage returns the image for the given UUID.
 func (f *FacadeV4Client) GetImage(uuid string) (*imageModels.Image, error) {
-	return CommonGetEntity[*imageModels.GetImageApiResponse, imageModels.Image, *imageModelsError.ErrorResponse](
+	return CommonGetEntity[*imageModels.GetImageApiResponse, imageModels.Image, *imageModelsError.OneOfErrorResponseError](
 		func() (*imageModels.GetImageApiResponse, error) {
 			return f.client.ImagesApiInstance.GetImageById(&uuid)
 		},
@@ -18,7 +18,7 @@ func (f *FacadeV4Client) GetImage(uuid string) (*imageModels.Image, error) {
 
 // ListImages returns a list of images.
 func (f *FacadeV4Client) ListImages(opts ...facade.ODataOption) ([]imageModels.Image, error) {
-	return CommonListEntities[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.ErrorResponse](
+	return CommonListEntities[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.OneOfErrorResponseError](
 		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return f.client.ImagesApiInstance.ListImages(
 				reqParams.Page,
@@ -41,7 +41,7 @@ func (f *FacadeV4Client) ListAllImages(filterParam *string, orderbyParam *string
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.ErrorResponse](
+	return CommonListAllEntities[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.OneOfErrorResponseError](
 		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return f.client.ImagesApiInstance.ListImages(
 				reqParams.Page,
@@ -58,7 +58,7 @@ func (f *FacadeV4Client) ListAllImages(filterParam *string, orderbyParam *string
 
 // GetListIteratorImages returns an iterator for listing images.
 func (f *FacadeV4Client) GetListIteratorImages(opts ...facade.ODataOption) facade.ODataListIterator[imageModels.Image] {
-	return CommonGetListIterator[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.ErrorResponse](
+	return CommonGetListIterator[*imageModels.ListImagesApiResponse, imageModels.Image, *imageModelsError.OneOfErrorResponseError](
 		f,
 		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return f.client.ImagesApiInstance.ListImages(
