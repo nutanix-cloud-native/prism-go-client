@@ -67,7 +67,7 @@ func isNetworkError(err error) bool {
 }
 
 func getCategorisedV4ApiError[Rerr ApiErrorResponseError](errorResponse interface{}) error {
-	unstructuredErrorResponseError, err := getErrorField(errorResponse)
+	unstructuredErrorResponseError, err := getErrorFieldValue(errorResponse)
 	if err != nil {
 		return err
 	}
@@ -94,26 +94,47 @@ func getCategorisedV4ApiError[Rerr ApiErrorResponseError](errorResponse interfac
 	return ferrors.NewErrV4ApiUncategorisedError("Invalid OneOfErrorResponseError", errorResponse)
 }
 
-func getErrorField(unstructuredErrorResponse interface{}) (interface{}, error) {
-	// TODO av
+func getErrorFieldValue(unstructuredErrorResponse interface{}) (interface{}, error) {
 	v := reflect.ValueOf(unstructuredErrorResponse)
-	fbn := v.FieldByName("Error").Interface()
+	if v.Kind() != reflect.Struct {
+		return nil, ferrors.NewErrTypeAssertionError("API Error Response is not a struct", unstructuredErrorResponse)
+	}
+	fbn := v.FieldByName("Error")
+	if !fbn.IsValid() {
+		return nil, ferrors.NewErrInternalError("Error field missing in API Error Response", unstructuredErrorResponse)
+	}
 
-	return fbn, nil
+	return fbn.Interface(), nil
 }
 
 func getObjectType(unstructuredErrorResponseError interface{}) (string, error) {
-	// TODO av
-	v := reflect.ValueOf(unstructuredErrorResponseError).Elem()
-	fbn := v.FieldByName("ObjectType_")
-	objectType := *fbn.Interface().(*string)
-	return objectType, nil
+	v := reflect.ValueOf(unstructuredErrorResponseError)
+	if v.Kind() != reflect.Ptr {
+		return "", ferrors.NewErrTypeAssertionError("Invalid API Error Response Error, should be a pointer", unstructuredErrorResponseError)
+	}
+
+	vElem := v.Elem()
+	if vElem.Kind() != reflect.Struct {
+		return "", ferrors.NewErrTypeAssertionError("API Error Response is not a struct", unstructuredErrorResponseError)
+	}
+
+	fbn := vElem.FieldByName("ObjectType_")
+	if !fbn.IsValid() {
+		return "", ferrors.NewErrInternalError("`ObjectType_` field missing in API Error Response Error", unstructuredErrorResponseError)
+	}
+
+	strPtr, ok := fbn.Interface().(*string)
+	if !ok || strPtr == nil {
+		return "", ferrors.NewErrInternalError("Invalid value for field `ObjectType_`", unstructuredErrorResponseError)
+	}
+
+	return *strPtr, nil
 }
 
 func getCategorisedV4ApiErrorFromAppMessages(errorResponse interface{}, appMessages interface{}) error {
 	v := reflect.ValueOf(appMessages)
 	if v.Kind() != reflect.Slice {
-		return ferrors.NewErrTypeAssertionError("Invalid type for []AppMessage", errorResponse)
+		return ferrors.NewErrTypeAssertionError("Invalid type for []AppMessage in API Error Response", errorResponse)
 	}
 
 	err := ferrors.NewErrV4ApiUncategorisedError("", errorResponse)
@@ -122,9 +143,21 @@ func getCategorisedV4ApiErrorFromAppMessages(errorResponse interface{}, appMessa
 	for i := range len {
 		elem := v.Index(i)
 
-		// TODO av
-		errorGroup := *reflect.ValueOf(elem.Interface()).FieldByName("ErrorGroup").Interface().(*string)
+		if elem.Kind() != reflect.Struct {
+			return ferrors.NewErrTypeAssertionError("Invalid AppMessage type", errorResponse, map[string]interface{}{"index": i})
+		}
 
+		fbn := elem.FieldByName("ErrorGroup")
+		if !fbn.IsValid() {
+			return ferrors.NewErrInternalError("`ErrorGroup` field missing in API Error Response", errorResponse)
+		}
+
+		strPtr, ok := fbn.Interface().(*string)
+		if !ok || strPtr == nil {
+			return ferrors.NewErrInternalError("Invalid value for field `Error`", errorResponse)
+		}
+
+		errorGroup := *strPtr
 		fmt.Println(errorGroup)
 	}
 

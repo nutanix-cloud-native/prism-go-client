@@ -13,6 +13,7 @@ const (
 	ErrorTypeTypeAssertion      ErrorType = "TYPE_ASSERTION_ERROR"
 	ErrorTypeNetworkError       ErrorType = "NETWORK_ERROR"
 	ErrorTypeTimeoutError       ErrorType = "TIMEOUT_ERROR"
+	ErrorTypeInternalError      ErrorType = "INTERNAL_ERROR"
 )
 
 type ErrorSubType string
@@ -81,7 +82,11 @@ func NewErrNetworkError(msg string, err interface{}, args ...map[string]interfac
 }
 
 func NewErrTimeoutError(msg string, err interface{}, args ...map[string]interface{}) error {
-	return new(ErrorTypeNetworkError, "", msg, err, args...)
+	return new(ErrorTypeTimeoutError, "", msg, err, args...)
+}
+
+func NewErrInternalError(msg string, err interface{}, args ...map[string]interface{}) error {
+	return new(ErrorTypeInternalError, "", msg, err, args...)
 }
 
 func NewErrV4ApiUncategorisedError(msg string, err interface{}, args ...map[string]interface{}) error {
