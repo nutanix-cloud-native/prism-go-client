@@ -36,15 +36,15 @@ type Err struct {
 	Args       []map[string]interface{} `json:"-"`
 }
 
-func (fe Err) Error() string {
+func (fe *Err) Error() string {
 	return fmt.Sprintf("ErrorType: %v, Message: %s, Detail: %v", fe.Type, fe.Message, fe.Err)
 }
 
-func (fe Err) GetErrorType() ErrorType {
+func (fe *Err) GetErrorType() ErrorType {
 	return fe.Type
 }
 
-func (fe Err) GetError() interface{} {
+func (fe *Err) GetError() interface{} {
 	return fe.Err
 }
 
@@ -58,7 +58,7 @@ func new(errType ErrorType, errSubType ErrorSubType, msg string, err interface{}
 		stacktrace = append(stacktrace, fmt.Sprintf("%s:%d", frame.File, frame.Line))
 	}
 
-	return Err{
+	return &Err{
 		Type:       errType,
 		SubType:    errSubType,
 		Message:    msg,
