@@ -28,7 +28,7 @@ func TestClassifyV4APICallErrorForVM(t *testing.T) {
 
 	err := v4.GetCategorisedV4ApiCallError[*vmmConfigModels.GetVmApiResponse, *vmmErrorModels.OneOfErrorResponseError](sampleResponse, sampleErr)
 	if err == nil {
-		t.Fatal("Expected error to be returned, got nil")
+		t.Fatal("Expected error, got nil")
 	}
 
 	if ferr, ok := err.(*ferrors.Err); ok {
