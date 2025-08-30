@@ -162,7 +162,6 @@ type ApiErrorResponseError interface {
 	GetValue() interface{}
 }
 
-// Rerr -> ErrorResponse
 func CallAPI[R ApiResponse, T any, Rerr ApiErrorResponseError](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
