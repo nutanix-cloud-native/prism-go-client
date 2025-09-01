@@ -11,7 +11,7 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 )
 
-// GetCategorisedV4ApiCallError return categorised and wrapped errors.
+// GetCategorisedV4ApiCallError returns categorised and wrapped errors.
 func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponseError](response R, err error) error {
 	if err == nil {
 		return nil
@@ -77,6 +77,7 @@ func isNetworkError(err error) bool {
 	return false
 }
 
+// getCategorisedV4ApiError categorises the error based on the error data in the API response.
 func getCategorisedV4ApiError[Rerr ApiErrorResponseError](apiResponse ApiResponse) error {
 	errorData := apiResponse.GetData()
 
@@ -85,21 +86,22 @@ func getCategorisedV4ApiError[Rerr ApiErrorResponseError](apiResponse ApiRespons
 		return err
 	}
 
+	errorFieldIntf, ok := unstructuredErrorFieldPtr.(Rerr)
+	if !ok {
+		return ferrors.NewErrTypeAssertionError("Invalid value of field `Data` in ApiResponse", errorData)
+	}
+	errorFieldValue := errorFieldIntf.GetValue()
+
 	objectType, err := getObjectType(unstructuredErrorFieldPtr)
 	if err != nil {
 		return err
 	}
 
 	if strings.Contains(objectType, "SchemaValidationError") {
-		return ferrors.NewErrV4ApiSchemaValidationError("", errorData)
+		return ferrors.NewErrV4ApiSchemaValidationError("", errorFieldValue)
 	}
 	if strings.Contains(objectType, "AppMessage") {
-		errorFieldIntf, ok := unstructuredErrorFieldPtr.(Rerr)
-		if !ok {
-			return ferrors.NewErrTypeAssertionError("Invalid value of field `Data` in ApiResponse", errorData)
-		}
-
-		return getCategorisedV4ApiErrorFromAppMessages(errorFieldIntf.GetValue(), errorData)
+		return getCategorisedV4ApiErrorFromAppMessages(errorFieldValue)
 	}
 
 	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", errorData)
@@ -142,10 +144,10 @@ func getObjectType(unstructuredErrorFieldPtr interface{}) (string, error) {
 	return *strPtr, nil
 }
 
-func getCategorisedV4ApiErrorFromAppMessages(appMessages interface{}, errorData interface{}) error {
+func getCategorisedV4ApiErrorFromAppMessages(appMessages interface{}) error {
 	v := reflect.ValueOf(appMessages)
 	if v.Kind() != reflect.Slice {
-		return ferrors.NewErrTypeAssertionError("Invalid type for `[]AppMessage`", errorData)
+		return ferrors.NewErrTypeAssertionError("Invalid type for `[]AppMessage`", appMessages)
 	}
 
 	apiErrSubType := ferrors.ErrorSubTypeV4ApiUncategorisedError
@@ -156,16 +158,16 @@ func getCategorisedV4ApiErrorFromAppMessages(appMessages interface{}, errorData 
 		errArg := map[string]interface{}{"index": i}
 		elem := v.Index(i)
 		if elem.Kind() != reflect.Struct {
-			return ferrors.NewErrTypeAssertionError("Invalid `AppMessage` type", errorData, errArg)
+			return ferrors.NewErrTypeAssertionError("Invalid `AppMessage` type", appMessages, errArg)
 		}
 
 		fbn := elem.FieldByName("ErrorGroup")
 		if !fbn.IsValid() {
-			return ferrors.NewErrInternalError("`ErrorGroup` field missing in `AppMessage`", errorData, errArg)
+			return ferrors.NewErrInternalError("`ErrorGroup` field missing in `AppMessage`", appMessages, errArg)
 		}
 		errorGroupStrPtr, ok := fbn.Interface().(*string)
 		if !ok || errorGroupStrPtr == nil {
-			return ferrors.NewErrInternalError("Invalid value for field `ErrorGroup`", errorData, errArg)
+			return ferrors.NewErrInternalError("Invalid value for field `ErrorGroup`", appMessages, errArg)
 		}
 
 		subType := getV4ApiErrorSubTypeForErrorGroup(*errorGroupStrPtr)
@@ -175,7 +177,7 @@ func getCategorisedV4ApiErrorFromAppMessages(appMessages interface{}, errorData 
 		}
 	}
 
-	return getErrorForV4ApiErrSubType(apiErrSubType, errorData)
+	return getErrorForV4ApiErrSubType(apiErrSubType, appMessages)
 }
 
 func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4Api {
@@ -183,6 +185,8 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4
 		"AUTHORIZATION": ferrors.ErrorSubTypeV4ApiAuthorizationError,
 		"RATE_LIMIT":    ferrors.ErrorSubTypeV4ApiRateLimitError,
 		"NOT_FOUND":     ferrors.ErrorSubTypeV4ApiResourceNotFoundError,
+		"SERVICE_ERROR": ferrors.ErrorSubTypeV4ApiInternalServiceError,
+		"INVALID_INPUT": ferrors.ErrorSubTypeV4ApiInvalidInputError,
 	}
 
 	for key, subType := range searchKeyToSubTypeMap {

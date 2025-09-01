@@ -23,9 +23,11 @@ type ErrorSubTypeV4Api ErrorSubType
 const (
 	ErrorSubTypeV4ApiUncategorisedError    ErrorSubTypeV4Api = "UNCATEGORISED_ERROR"
 	ErrorSubTypeV4ApiAuthorizationError    ErrorSubTypeV4Api = "AUTHORIZATION_ERROR"
-	ErrorSubTypeV4ApiResourceNotFoundError ErrorSubTypeV4Api = "RESOURCE_NOT_FOUND"
+	ErrorSubTypeV4ApiResourceNotFoundError ErrorSubTypeV4Api = "RESOURCE_NOT_FOUND_ERROR"
 	ErrorSubTypeV4ApiRateLimitError        ErrorSubTypeV4Api = "RATE_LIMIT_ERROR"
 	ErrorSubTypeV4ApiSchemaValidationError ErrorSubTypeV4Api = "SCHEMA_VALIDATION_ERROR"
+	ErrorSubTypeV4ApiInternalServiceError  ErrorSubTypeV4Api = "INTERNAL_SERVICE_ERROR"
+	ErrorSubTypeV4ApiInvalidInputError     ErrorSubTypeV4Api = "INVALID_INPUT_ERROR"
 )
 
 type Err struct {
