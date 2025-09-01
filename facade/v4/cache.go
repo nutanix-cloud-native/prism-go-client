@@ -32,7 +32,7 @@ func NewFacadeV4ClientCache(opts ...types.CacheOpts[v4.ClientCache]) *FacadeV4Cl
 	return cache
 }
 
-func (c *FacadeV4ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[v4.Client]) (facade.FacadeClientV4, error) {
+func (c *FacadeV4ClientCache) GetOrCreate(ctx context.Context, cachedClientParams types.CachedClientParams, opts ...types.ClientOption[v4.Client]) (facade.FacadeClientV4, error) {
 	client, validationHash, err := c.get(cachedClientParams.Key())
 	if err != nil {
 		if !errors.Is(err, types.ErrorClientNotFound) {
@@ -72,7 +72,7 @@ func (c *FacadeV4ClientCache) GetOrCreate(cachedClientParams types.CachedClientP
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	client, err = NewFacadeV4Client(context.TODO(), credentials, opts...)
+	client, err = NewFacadeV4Client(ctx, credentials, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}

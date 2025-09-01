@@ -19,6 +19,7 @@ import (
 var (
 	v4FacadeClient *prismclientv4facade.FacadeV4Client
 	v3Client       *prismclientv3.Client
+	ctx            = context.Background()
 )
 
 func initializeClients(t *testing.T) error {
@@ -31,7 +32,7 @@ func initializeClients(t *testing.T) error {
 		t.Errorf("Error creating v3 client: %v", err)
 	}
 
-	v4FacadeClient, err = prismclientv4facade.NewFacadeV4Client(context.Background(), credentials)
+	v4FacadeClient, err = prismclientv4facade.NewFacadeV4Client(ctx, credentials)
 	if err != nil {
 		t.Errorf("Error creating facade v4 client: %v", err)
 	}
@@ -74,7 +75,7 @@ func TestCreateVmCases(t *testing.T) {
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
-				images, err := v4FacadeClient.ListAllImages(context.Background(), nil, nil, nil)
+				images, err := v4FacadeClient.ListAllImages(ctx, nil, nil, nil)
 				if err != nil {
 					return nil, err
 				}
@@ -120,7 +121,7 @@ func TestCreateVmCases(t *testing.T) {
 			vmConfigBuilder: func() (*vmmconfig.Vm, error) {
 				vmConfig := ptr.To(baseVmConfig)
 
-				gpus, err := v4FacadeClient.ListClusterVirtualGPUs(context.Background(), *peGpuExtId)
+				gpus, err := v4FacadeClient.ListClusterVirtualGPUs(ctx, *peGpuExtId)
 				if err != nil {
 					return nil, err
 				}
@@ -157,7 +158,7 @@ func TestCreateVmCases(t *testing.T) {
 				vmConfig := ptr.To(baseVmConfig)
 
 				// TODO use facade v4
-				projects, err := v3Client.V3.ListAllProject(context.Background(), "")
+				projects, err := v3Client.V3.ListAllProject(ctx, "")
 				if err != nil {
 					return nil, err
 				}
@@ -184,7 +185,7 @@ func TestCreateVmCases(t *testing.T) {
 			vmConfig.Cluster.ExtId = test.peExtId
 
 			// create VM
-			newVmTaskWaiter, err := v4FacadeClient.CreateVM(context.Background(), vmConfig)
+			newVmTaskWaiter, err := v4FacadeClient.CreateVM(ctx, vmConfig)
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
@@ -192,7 +193,7 @@ func TestCreateVmCases(t *testing.T) {
 			if taskUUID == "" {
 				t.Errorf("error: %v", err)
 			}
-			vmEntities, err := newVmTaskWaiter.WaitForTaskCompletion(context.Background())
+			vmEntities, err := newVmTaskWaiter.WaitForTaskCompletion(ctx)
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
@@ -204,7 +205,7 @@ func TestCreateVmCases(t *testing.T) {
 			t.Logf("created - VM with name: %s, extId: %s", *vmConfig.Name, *vmExtId)
 
 			// power on the VM
-			newVmTaskWaiter, err = v4FacadeClient.PowerOnVM(context.Background(), *vmExtId)
+			newVmTaskWaiter, err = v4FacadeClient.PowerOnVM(ctx, *vmExtId)
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
@@ -212,18 +213,18 @@ func TestCreateVmCases(t *testing.T) {
 			if taskUUID == "" {
 				t.Errorf("error: %v", err)
 			}
-			_, err = newVmTaskWaiter.WaitForTaskCompletion(context.Background())
+			_, err = newVmTaskWaiter.WaitForTaskCompletion(ctx)
 			if err != nil {
 				t.Errorf("error: %v", err)
 			}
 			t.Logf("power on - VM with name: %s, extId: %s", *vmConfig.Name, *vmExtId)
 
 			// delete the VM
-			waiter, err := v4FacadeClient.DeleteVM(context.Background(), *vmExtId)
+			waiter, err := v4FacadeClient.DeleteVM(ctx, *vmExtId)
 			if err != nil {
 				t.Fatal("failed to delete vm, errors:", err)
 			}
-			_, err = waiter.WaitForTaskCompletion(context.Background())
+			_, err = waiter.WaitForTaskCompletion(ctx)
 			if err != nil {
 				t.Fatal("failed to delete vm, errors:", err)
 			}
@@ -237,7 +238,7 @@ func TestCreateVmCases(t *testing.T) {
 }
 
 func getPeExtIds(t *testing.T) (*string, *string, error) {
-	PEs, err := v4FacadeClient.ListAllClusters(context.Background(), nil, nil, nil, nil)
+	PEs, err := v4FacadeClient.ListAllClusters(ctx, nil, nil, nil, nil)
 	if err != nil {
 		t.Errorf("unable to list all clusters: %v", err)
 	}
@@ -245,7 +246,7 @@ func getPeExtIds(t *testing.T) (*string, *string, error) {
 	var peExtId *string
 	var peGpuExtId *string
 	for _, pe := range PEs {
-		gpus, _ := v4FacadeClient.ListClusterVirtualGPUs(context.Background(), *pe.ExtId)
+		gpus, _ := v4FacadeClient.ListClusterVirtualGPUs(ctx, *pe.ExtId)
 
 		if len(gpus) == 0 {
 			if peExtId == nil {
@@ -281,7 +282,7 @@ func vendorStringToV4Model(vendor *string) *vmmconfig.GpuVendor {
 }
 
 func newSystemDisk() (*vmmconfig.Disk, error) {
-	images, err := v4FacadeClient.ListAllImages(context.Background(), nil, nil, nil)
+	images, err := v4FacadeClient.ListAllImages(ctx, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
