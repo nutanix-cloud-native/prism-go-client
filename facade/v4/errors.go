@@ -17,7 +17,7 @@ func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponseError](res
 		return nil
 	}
 
-	if ApiResponse(response) == nil {
+	if isNil(response) {
 		if isNetworkError(err) {
 			return ferrors.NewErrNetworkError("API call failed", err)
 		}
@@ -26,6 +26,20 @@ func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponseError](res
 	}
 
 	return getCategorisedV4ApiError[Rerr](response)
+}
+
+func isNil(resp interface{}) bool {
+	if resp == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(resp)
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Slice:
+		return v.IsNil()
+	}
+
+	return false
 }
 
 // isNetworkError returns true if the given error is network-related.

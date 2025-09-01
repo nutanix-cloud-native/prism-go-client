@@ -2,6 +2,7 @@ package facadetest
 
 import (
 	"errors"
+	"net"
 	"testing"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
@@ -19,6 +20,20 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 		expectedErrorType    ferrors.ErrorType
 		expectedErrorSubType ferrors.ErrorSubType
 	}{
+		{
+			name:                 "Network/Transport error",
+			responseBuilder:      func() *vmmConfigModels.GetVmApiResponse { return nil },
+			sampleErr:            &net.OpError{},
+			expectedErrorType:    ferrors.ErrorTypeNetworkError,
+			expectedErrorSubType: "",
+		},
+		{
+			name:                 "Random error",
+			responseBuilder:      func() *vmmConfigModels.GetVmApiResponse { return nil },
+			sampleErr:            errors.New("random error"),
+			expectedErrorType:    ferrors.ErrorTypeUncategorisedError,
+			expectedErrorSubType: "",
+		},
 		{
 			name: "ApiErrorResponse : AppMessage : Uncategorised error group",
 			responseBuilder: func() *vmmConfigModels.GetVmApiResponse {
