@@ -182,3 +182,17 @@ type K8sClusterResource struct {
 	// UUID
 	UUID string `json:"UUID,omitempty"`
 }
+
+// K8sClusterKubeconfigResponse k8s cluster kubeconfig response
+type K8sClusterKubeconfigResponse struct {
+
+	// SHA-256 hash of the kubernetes cluster's kubeconfig content
+	// Required: true
+	KubeconfigChecksum *string `json:"kubeconfig_checksum"`
+
+	// Kubernetes cluster kubeconfig update status.
+	TaskStatus string `json:"task_status,omitempty"`
+
+	// The UUID of the task tracking the kubeconfig update.
+	TaskUUID string `json:"task_uuid,omitempty"`
+}
