@@ -32,7 +32,7 @@ func initializeClients(t *testing.T) error {
 		t.Errorf("Error creating v3 client: %v", err)
 	}
 
-	v4FacadeClient, err = prismclientv4facade.NewFacadeV4Client(ctx, credentials)
+	v4FacadeClient, err = prismclientv4facade.NewFacadeV4Client(credentials)
 	if err != nil {
 		t.Errorf("Error creating facade v4 client: %v", err)
 	}

@@ -20,7 +20,7 @@ type FacadeV4Client struct {
 }
 
 // NewFacadeV4Client creates a new FacadeV4Client with the provided credentials and options.
-func NewFacadeV4Client(ctx context.Context, credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*FacadeV4Client, error) {
+func NewFacadeV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*FacadeV4Client, error) {
 	client, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
 		return nil, err

@@ -1,8 +1,6 @@
 package cache
 
 import (
-	"context"
-
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	facadeV4 "github.com/nutanix-cloud-native/prism-go-client/facade/v4"
@@ -22,7 +20,7 @@ type ClientCacheStruct[T any] interface {
 }
 
 type ClientCacheIfc[T any, U any] interface {
-	GetOrCreate(ctx context.Context, cachedClientParams types.CachedClientParams, opts ...types.ClientOption[T]) (U, error)
+	GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[T]) (U, error)
 	Delete(cachedClientParams types.CachedClientParams)
 }
 
