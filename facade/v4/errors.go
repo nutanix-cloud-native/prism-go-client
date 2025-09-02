@@ -80,21 +80,21 @@ func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIE
 
 	errorData, ok := errResp.Data.(map[string]interface{})
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError)
+		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError.Error())
 	}
 	errorType, ok := errorData["$errorItemDiscriminator"].(string)
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError)
+		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError.Error())
 	}
 
 	if strings.Contains(errorType, "SchemaValidationError") {
-		return ferrors.NewErrV4ApiSchemaValidationError("API error response", openApiError)
+		return ferrors.NewErrV4ApiSchemaValidationError("API error response", openApiError.Error())
 	}
 	if strings.Contains(errorType, "AppMessage") {
 		return getCategorisedV4ApiErrorFromAppMessages(openApiError, errorData["error"])
 	}
 
-	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", openApiError)
+	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", openApiError.Error())
 }
 
 func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericOpenAPIError, appMessagesIntf interface{}) error {
@@ -102,18 +102,18 @@ func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericO
 
 	appMessages, ok := appMessagesIntf.([]interface{})
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid []AppMessage type in API error response", openApiError)
+		return ferrors.NewErrTypeAssertionError("Invalid []AppMessage type in API error response", openApiError.Error())
 	}
 
 	for _, appMessageIntf := range appMessages {
 		appMessages, ok := appMessageIntf.(map[string]interface{})
 		if !ok {
-			return ferrors.NewErrTypeAssertionError("Invalid AppMessage type in API error response", openApiError)
+			return ferrors.NewErrTypeAssertionError("Invalid AppMessage type in API error response", openApiError.Error())
 		}
 
 		errorGroup, ok := appMessages["errorGroup"].(string)
 		if !ok {
-			return ferrors.NewErrTypeAssertionError("Invalid ErrorGroup type in API error response", openApiError)
+			return ferrors.NewErrTypeAssertionError("Invalid ErrorGroup type in API error response", openApiError.Error())
 		}
 
 		subType := getV4ApiErrorSubTypeForErrorGroup(errorGroup)
@@ -144,7 +144,7 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4
 	return ""
 }
 
-func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, openApiError interface{}) error {
+func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, openApiError clusterClient.GenericOpenAPIError) error {
 	subTypeToConstructorMap := map[ferrors.ErrorSubTypeV4Api]interface{}{
 		ferrors.ErrorSubTypeV4ApiUncategorisedError:    ferrors.NewErrV4ApiUncategorisedError,
 		ferrors.ErrorSubTypeV4ApiAuthorizationError:    ferrors.NewErrV4ApiAuthorizationError,
@@ -153,8 +153,8 @@ func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, openApiError 
 	}
 
 	if constructor, found := subTypeToConstructorMap[subType]; found {
-		return constructor.(func(string, interface{}, ...map[string]interface{}) error)("", openApiError)
+		return constructor.(func(string, interface{}, ...map[string]interface{}) error)("", openApiError.Error())
 	}
 
-	return ferrors.NewErrInternalError("Invalid v4 API error sub-type", openApiError)
+	return ferrors.NewErrInternalError("Invalid v4 API error sub-type", openApiError.Error())
 }
