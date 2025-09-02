@@ -43,7 +43,7 @@ type FacadeError struct {
 	Message string       `json:"-"`
 	Type    ErrorType    `json:"type"`
 	SubType ErrorSubType `json:"sub_type,omitempty"`
-	Details any          `json:"details"`
+	Data    any          `json:"data"`
 }
 
 func (fe *FacadeError) Error() string {
@@ -54,7 +54,7 @@ func (fe *FacadeError) Error() string {
 	if fe.Message != "" {
 		errStr += fmt.Sprintf(", Message: %s", fe.Message)
 	}
-	errStr += fmt.Sprintf(", Detail: %v", fe.Details)
+	errStr += fmt.Sprintf(", Detail: %v", fe.Data)
 
 	return errStr
 }
@@ -64,7 +64,7 @@ func new(errType ErrorType, errSubType ErrorSubType, msg string, err any) error 
 		Type:    errType,
 		SubType: errSubType,
 		Message: msg,
-		Details: err,
+		Data:    err,
 	}
 }
 
