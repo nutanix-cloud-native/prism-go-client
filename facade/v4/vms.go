@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
-	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4VmmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
@@ -81,7 +80,7 @@ func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("task reference ExtId is nil for created VM"))
+		return nil, fmt.Errorf("task reference ExtId is nil for created VM")
 	}
 
 	return NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM), nil
@@ -105,7 +104,7 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for updated VM", nil)
+		return nil, fmt.Errorf("task reference ExtId is nil for updated VM")
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
@@ -128,7 +127,7 @@ func (f *FacadeV4Client) DeleteVM(uuid string) (facade.TaskWaiter[facade.NoEntit
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for deleted VM", nil)
+		return nil, fmt.Errorf("task reference ExtId is nil for deleted VM")
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, facade.NoEntityGetter)
@@ -151,7 +150,7 @@ func (f *FacadeV4Client) PowerOnVM(uuid string) (facade.TaskWaiter[vmmModels.Vm]
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for powered on VM", nil)
+		return nil, fmt.Errorf("task reference ExtId is nil for powered on VM")
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)
@@ -174,7 +173,7 @@ func (f *FacadeV4Client) PowerOffVM(uuid string) (facade.TaskWaiter[vmmModels.Vm
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("task reference ExtId is nil for powered off VM", nil)
+		return nil, fmt.Errorf("task reference ExtId is nil for powered off VM")
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetVM)

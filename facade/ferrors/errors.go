@@ -2,18 +2,15 @@ package ferrors
 
 import (
 	"fmt"
-	"runtime"
 )
 
 type ErrorType string
 
 const (
-	ErrorTypeUncategorisedError ErrorType = "UNCATEGORISED_ERROR"
-	ErrorTypeV4ApiError         ErrorType = "V4_API_ERROR"
-	ErrorTypeTypeAssertion      ErrorType = "TYPE_ASSERTION_ERROR"
-	ErrorTypeNetworkError       ErrorType = "NETWORK_ERROR"
-	ErrorTypeTimeoutError       ErrorType = "TIMEOUT_ERROR"
-	ErrorTypeInternalError      ErrorType = "INTERNAL_ERROR"
+	ErrorTypeV4ApiError    ErrorType = "V4_API_ERROR"
+	ErrorTypeTypeAssertion ErrorType = "TYPE_ASSERTION_ERROR"
+	ErrorTypeNetworkError  ErrorType = "NETWORK_ERROR"
+	ErrorTypeInternalError ErrorType = "INTERNAL_ERROR"
 )
 
 type ErrorSubType string
@@ -30,13 +27,24 @@ const (
 	ErrorSubTypeV4ApiInvalidInputError     ErrorSubTypeV4Api = "INVALID_INPUT_ERROR"
 )
 
+var (
+	V4ApiErrorSubTypeToErrConstructor = map[ErrorSubTypeV4Api]func(string, any, ...map[string]any) error{
+		ErrorSubTypeV4ApiUncategorisedError:    NewErrV4ApiUncategorisedError,
+		ErrorSubTypeV4ApiSchemaValidationError: NewErrV4ApiSchemaValidationError,
+		ErrorSubTypeV4ApiAuthorizationError:    NewErrV4ApiAuthorizationError,
+		ErrorSubTypeV4ApiResourceNotFoundError: NewErrV4ApiResourceNotFoundError,
+		ErrorSubTypeV4ApiRateLimitError:        NewErrV4ApiRateLimitError,
+		ErrorSubTypeV4ApiInternalServiceError:  NewErrV4ApiInternalError,
+		ErrorSubTypeV4ApiInvalidInputError:     NewErrV4ApiInvalidInputError,
+	}
+)
+
 type Err struct {
-	Message    string                   `json:"-"`
-	Type       ErrorType                `json:"type"`
-	SubType    ErrorSubType             `json:"sub_type,omitempty"`
-	Err        interface{}              `json:"error"`
-	StackTrace []string                 `json:"-"`
-	Args       []map[string]interface{} `json:"-"`
+	Message string           `json:"-"`
+	Type    ErrorType        `json:"type"`
+	SubType ErrorSubType     `json:"sub_type,omitempty"`
+	Err     any              `json:"error"`
+	Args    []map[string]any `json:"-"`
 }
 
 func (fe *Err) Error() string {
@@ -52,70 +60,60 @@ func (fe *Err) Error() string {
 	return errStr
 }
 
-func (fe *Err) GetErrorType() ErrorType {
-	return fe.Type
-}
-
-func (fe *Err) GetError() interface{} {
-	return fe.Err
-}
-
-func new(errType ErrorType, errSubType ErrorSubType, msg string, err interface{}, args ...map[string]interface{}) error {
-	pc := make([]uintptr, 10)
-	count := runtime.Callers(1, pc)
-	frames := runtime.CallersFrames(pc[:count])
-
-	var stacktrace []string
-	for frame, hasMore := frames.Next(); hasMore; frame, hasMore = frames.Next() {
-		stacktrace = append(stacktrace, fmt.Sprintf("%s:%d", frame.File, frame.Line))
-	}
-
+func new(errType ErrorType, errSubType ErrorSubType, msg string, err any, args ...map[string]any) error {
 	return &Err{
-		Type:       errType,
-		SubType:    errSubType,
-		Message:    msg,
-		Err:        err,
-		StackTrace: stacktrace,
-		Args:       args,
+		Type:    errType,
+		SubType: errSubType,
+		Message: msg,
+		Err:     err,
+		Args:    args,
 	}
 }
 
-func NewErrUncategorisedError(msg string, err interface{}, args ...map[string]interface{}) error {
-	return new(ErrorTypeUncategorisedError, "", msg, err, args...)
-}
-
-func NewErrTypeAssertionError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrTypeAssertionError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeTypeAssertion, "", msg, err, args...)
 }
 
-func NewErrNetworkError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrNetworkError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeNetworkError, "", msg, err, args...)
 }
 
-func NewErrTimeoutError(msg string, err interface{}, args ...map[string]interface{}) error {
-	return new(ErrorTypeTimeoutError, "", msg, err, args...)
-}
-
-func NewErrInternalError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrInternalError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeInternalError, "", msg, err, args...)
 }
 
-func NewErrV4ApiUncategorisedError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrV4ApiUncategorisedError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiUncategorisedError), msg, err, args...)
 }
 
-func NewErrV4ApiAuthorizationError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrV4ApiSchemaValidationError(msg string, err any, args ...map[string]any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiSchemaValidationError), msg, err, args...)
+}
+
+func NewErrV4ApiAuthorizationError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiAuthorizationError), msg, err, args...)
 }
 
-func NewErrV4ApiResourceNotFoundError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrV4ApiResourceNotFoundError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiResourceNotFoundError), msg, err, args...)
 }
 
-func NewErrV4ApiRateLimitError(msg string, err interface{}, args ...map[string]interface{}) error {
+func NewErrV4ApiRateLimitError(msg string, err any, args ...map[string]any) error {
 	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiRateLimitError), msg, err, args...)
 }
 
-func NewErrV4ApiSchemaValidationError(msg string, err interface{}, args ...map[string]interface{}) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiSchemaValidationError), msg, err, args...)
+func NewErrV4ApiInternalError(msg string, err any, args ...map[string]any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInternalServiceError), msg, err, args...)
+}
+
+func NewErrV4ApiInvalidInputError(msg string, err any, args ...map[string]any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInvalidInputError), msg, err, args...)
+}
+
+func (apiSubType ErrorSubTypeV4Api) ToError(apiError any) error {
+	if constructor, found := V4ApiErrorSubTypeToErrConstructor[apiSubType]; found {
+		return constructor("", apiError)
+	}
+
+	return NewErrInternalError("Invalid v4 API error sub-type", apiError)
 }

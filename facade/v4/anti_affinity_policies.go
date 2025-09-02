@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
-	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4VmmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/prism/v4/config"
 	v4policies "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 )
@@ -80,7 +79,7 @@ func (f *FacadeV4Client) CreateAntiAffinityPolicy(policy v4policies.VmAntiAffini
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("task reference ExtId is nil for created anti-affinity policy"))
+		return nil, fmt.Errorf("task reference ExtId is nil for created anti-affinity policy")
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, f.GetAntiAffinityPolicy)
@@ -110,7 +109,7 @@ func (f *FacadeV4Client) DeleteAntiAffinityPolicy(uuid string) (facade.TaskWaite
 	}
 
 	if policy == nil {
-		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no anti-affinity policy found with UUID: %s", uuid))
+		return nil, fmt.Errorf("no anti-affinity policy found with UUID: %s", uuid)
 	}
 
 	taskRef, err := CallAPI[*v4policies.DeleteVmAntiAffinityPolicyApiResponse, v4VmmConfig.TaskReference](
@@ -121,7 +120,7 @@ func (f *FacadeV4Client) DeleteAntiAffinityPolicy(uuid string) (facade.TaskWaite
 	}
 
 	if taskRef.ExtId == nil {
-		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("task reference ExtId is nil for deleted anti-affinity policy with UUID %s", uuid))
+		return nil, fmt.Errorf("task reference ExtId is nil for deleted anti-affinity policy with UUID %s", uuid)
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, facade.NoEntityGetter)

@@ -26,7 +26,7 @@ func GetCategorisedV4ApiCallError(err error) error {
 		return ferrors.NewErrNetworkError("API call failed", err)
 	}
 
-	return ferrors.NewErrUncategorisedError("API call failed", err)
+	return ferrors.NewErrV4ApiUncategorisedError("API call failed", err)
 }
 
 // isNetworkError returns true if the given error is network-related.
@@ -65,8 +65,7 @@ func isNetworkError(err error) bool {
 }
 
 type sampleErrorResponse struct {
-	ObjectType_ interface{} `json:"$errorItemDiscriminator"`
-	Data        interface{} `json:"data"`
+	Data interface{} `json:"data"`
 }
 
 // getCategorisedV4ApiResponseError categorises the error based on the error data in the API response.
@@ -123,7 +122,7 @@ func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericO
 		}
 	}
 
-	return getErrorForV4ApiErrSubType(apiErrSubType, openApiError)
+	return apiErrSubType.ToError(openApiError.Error())
 }
 
 func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4Api {
@@ -142,19 +141,4 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4
 	}
 
 	return ""
-}
-
-func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, openApiError clusterClient.GenericOpenAPIError) error {
-	subTypeToConstructorMap := map[ferrors.ErrorSubTypeV4Api]interface{}{
-		ferrors.ErrorSubTypeV4ApiUncategorisedError:    ferrors.NewErrV4ApiUncategorisedError,
-		ferrors.ErrorSubTypeV4ApiAuthorizationError:    ferrors.NewErrV4ApiAuthorizationError,
-		ferrors.ErrorSubTypeV4ApiResourceNotFoundError: ferrors.NewErrV4ApiResourceNotFoundError,
-		ferrors.ErrorSubTypeV4ApiRateLimitError:        ferrors.NewErrV4ApiRateLimitError,
-	}
-
-	if constructor, found := subTypeToConstructorMap[subType]; found {
-		return constructor.(func(string, interface{}, ...map[string]interface{}) error)("", openApiError.Error())
-	}
-
-	return ferrors.NewErrInternalError("Invalid v4 API error sub-type", openApiError.Error())
 }

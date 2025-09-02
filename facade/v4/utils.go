@@ -231,7 +231,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 
 	etag := GetEtag(entity)
 	if etag == "" {
-		return zero, nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no ETag found for entity of type %T", entity))
+		return zero, nil, fmt.Errorf("no ETag found for entity of type %T", entity)
 	}
 
 	args := map[string]interface{}{
@@ -246,7 +246,7 @@ func OptsToV4ODataParams(opts ...facade.ODataOption) (*V4ODataParams, error) {
 	for _, opt := range opts {
 		if opt != nil {
 			if err := opt(params); err != nil {
-				return nil, ferrors.NewErrUncategorisedError("failed to apply OData option", err)
+				return nil, fmt.Errorf("failed to apply OData option: %w", err)
 			}
 		}
 	}
