@@ -7,6 +7,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4 "github.com/nutanix-cloud-native/prism-go-client/facade/v4"
+	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	vmmConfigModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	vmmErrorModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/error"
 	"k8s.io/utils/ptr"
@@ -15,7 +16,7 @@ import (
 func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 	testCases := []struct {
 		name                 string
-		responseBuilder      func() *vmmConfigModels.GetVmApiResponse
+		responseBuilder      func() *vmmConfigModels.GetVmApiResponse // provide one of responseBuilder or sampleError
 		sampleErr            error
 		expectedErrorType    ferrors.ErrorType
 		expectedErrorSubType ferrors.ErrorSubType
@@ -49,7 +50,6 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			sampleErr:            errors.New(""),
 			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
 			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiUncategorisedError),
 		},
@@ -68,7 +68,6 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			sampleErr:            errors.New(""),
 			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
 			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiRateLimitError),
 		},
@@ -84,7 +83,6 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			sampleErr:            errors.New(""),
 			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
 			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiSchemaValidationError),
 		},
@@ -92,7 +90,22 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			err := v4.GetCategorisedV4ApiCallError[*vmmConfigModels.GetVmApiResponse, *vmmErrorModels.OneOfErrorResponseError](tt.responseBuilder(), tt.sampleErr)
+			var in error
+			if tt.sampleErr != nil {
+				in = tt.sampleErr
+			} else {
+				jsBytes, err := tt.responseBuilder().MarshalJSON()
+				if err != nil {
+					t.Fatal("Unable to marshal response json")
+				}
+
+				in = clusterClient.GenericOpenAPIError{
+					Body:   jsBytes,
+					Status: "4xx",
+				}
+			}
+
+			err := v4.GetCategorisedV4ApiCallError(in)
 			if err == nil {
 				t.Fatal("Expected error, got nil")
 			}

@@ -1,45 +1,32 @@
 package v4
 
 import (
+	"encoding/json"
 	"errors"
 	"net"
 	"net/url"
-	"reflect"
 	"strings"
 	"syscall"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
+	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 )
 
 // GetCategorisedV4ApiCallError returns categorised and wrapped errors.
-func GetCategorisedV4ApiCallError[R ApiResponse, Rerr ApiErrorResponseError](response R, err error) error {
+func GetCategorisedV4ApiCallError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	if isNil(response) {
-		if isNetworkError(err) {
-			return ferrors.NewErrNetworkError("API call failed", err)
-		}
-
-		return ferrors.NewErrUncategorisedError("API call failed", err)
+	if openApiError, ok := err.(clusterClient.GenericOpenAPIError); ok {
+		return getCategorisedV4ApiResponseError(openApiError)
 	}
 
-	return getCategorisedV4ApiError[Rerr](response)
-}
-
-func isNil(resp interface{}) bool {
-	if resp == nil {
-		return true
+	if isNetworkError(err) {
+		return ferrors.NewErrNetworkError("API call failed", err)
 	}
 
-	v := reflect.ValueOf(resp)
-	switch v.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Slice:
-		return v.IsNil()
-	}
-
-	return false
+	return ferrors.NewErrUncategorisedError("API call failed", err)
 }
 
 // isNetworkError returns true if the given error is network-related.
@@ -77,107 +64,66 @@ func isNetworkError(err error) bool {
 	return false
 }
 
-// getCategorisedV4ApiError categorises the error based on the error data in the API response.
-func getCategorisedV4ApiError[Rerr ApiErrorResponseError](apiResponse ApiResponse) error {
-	errorData := apiResponse.GetData()
+type sampleErrorResponse struct {
+	ObjectType_ interface{} `json:"$errorItemDiscriminator"`
+	Data        interface{} `json:"data"`
+}
 
-	unstructuredErrorFieldPtr, err := getErrorFieldValue(errorData) // *OneOfErrorResponseError
+// getCategorisedV4ApiResponseError categorises the error based on the error data in the API response.
+func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIError) error {
+	errResp := sampleErrorResponse{}
+
+	err := json.Unmarshal(openApiError.Body, &errResp)
 	if err != nil {
 		return err
 	}
 
-	errorFieldIntf, ok := unstructuredErrorFieldPtr.(Rerr)
+	errorData, ok := errResp.Data.(map[string]interface{})
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid value of field `Data` in ApiResponse", errorData)
+		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError)
 	}
-	errorFieldValue := errorFieldIntf.GetValue()
-
-	objectType, err := getObjectType(unstructuredErrorFieldPtr)
-	if err != nil {
-		return err
+	errorType, ok := errorData["$errorItemDiscriminator"].(string)
+	if !ok {
+		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError)
 	}
 
-	if strings.Contains(objectType, "SchemaValidationError") {
-		return ferrors.NewErrV4ApiSchemaValidationError("", errorFieldValue)
+	if strings.Contains(errorType, "SchemaValidationError") {
+		return ferrors.NewErrV4ApiSchemaValidationError("API error response", openApiError)
 	}
-	if strings.Contains(objectType, "AppMessage") {
-		return getCategorisedV4ApiErrorFromAppMessages(errorFieldValue)
+	if strings.Contains(errorType, "AppMessage") {
+		return getCategorisedV4ApiErrorFromAppMessages(openApiError, errorData["error"])
 	}
 
-	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", errorData)
+	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", openApiError)
 }
 
-func getErrorFieldValue(errorData interface{}) (interface{}, error) {
-	v := reflect.ValueOf(errorData)
-	if v.Kind() != reflect.Struct {
-		return nil, ferrors.NewErrTypeAssertionError("API Error Response is not a struct", errorData)
-	}
-	fbn := v.FieldByName("Error")
-	if !fbn.IsValid() {
-		return nil, ferrors.NewErrInternalError("Error field missing in API Error Response", errorData)
-	}
-
-	return fbn.Interface(), nil
-}
-
-func getObjectType(unstructuredErrorFieldPtr interface{}) (string, error) {
-	v := reflect.ValueOf(unstructuredErrorFieldPtr)
-	if v.Kind() != reflect.Ptr {
-		return "", ferrors.NewErrTypeAssertionError("Invalid value of `Error` field in ApiResponse, should be a pointer", unstructuredErrorFieldPtr)
-	}
-
-	vElem := v.Elem()
-	if vElem.Kind() != reflect.Struct {
-		return "", ferrors.NewErrTypeAssertionError("Invalid value of `Error` field pointer, should be a struct", unstructuredErrorFieldPtr)
-	}
-
-	fbn := vElem.FieldByName("ObjectType_")
-	if !fbn.IsValid() {
-		return "", ferrors.NewErrInternalError("`ObjectType_` field missing in `Error` field value", unstructuredErrorFieldPtr)
-	}
-
-	strPtr, ok := fbn.Interface().(*string)
-	if !ok || strPtr == nil {
-		return "", ferrors.NewErrInternalError("Invalid value for field `ObjectType_`", unstructuredErrorFieldPtr)
-	}
-
-	return *strPtr, nil
-}
-
-func getCategorisedV4ApiErrorFromAppMessages(appMessages interface{}) error {
-	v := reflect.ValueOf(appMessages)
-	if v.Kind() != reflect.Slice {
-		return ferrors.NewErrTypeAssertionError("Invalid type for `[]AppMessage`", appMessages)
-	}
-
+func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericOpenAPIError, appMessagesIntf interface{}) error {
 	apiErrSubType := ferrors.ErrorSubTypeV4ApiUncategorisedError
 
-	len := v.Len()
-	// DOUBT should we expect only 1???
-	for i := range len {
-		errArg := map[string]interface{}{"index": i}
-		elem := v.Index(i)
-		if elem.Kind() != reflect.Struct {
-			return ferrors.NewErrTypeAssertionError("Invalid `AppMessage` type", appMessages, errArg)
+	appMessages, ok := appMessagesIntf.([]interface{})
+	if !ok {
+		return ferrors.NewErrTypeAssertionError("Invalid []AppMessage type in API error response", openApiError)
+	}
+
+	for _, appMessageIntf := range appMessages {
+		appMessages, ok := appMessageIntf.(map[string]interface{})
+		if !ok {
+			return ferrors.NewErrTypeAssertionError("Invalid AppMessage type in API error response", openApiError)
 		}
 
-		fbn := elem.FieldByName("ErrorGroup")
-		if !fbn.IsValid() {
-			return ferrors.NewErrInternalError("`ErrorGroup` field missing in `AppMessage`", appMessages, errArg)
-		}
-		errorGroupStrPtr, ok := fbn.Interface().(*string)
-		if !ok || errorGroupStrPtr == nil {
-			return ferrors.NewErrInternalError("Invalid value for field `ErrorGroup`", appMessages, errArg)
+		errorGroup, ok := appMessages["errorGroup"].(string)
+		if !ok {
+			return ferrors.NewErrTypeAssertionError("Invalid ErrorGroup type in API error response", openApiError)
 		}
 
-		subType := getV4ApiErrorSubTypeForErrorGroup(*errorGroupStrPtr)
+		subType := getV4ApiErrorSubTypeForErrorGroup(errorGroup)
 		// DOUBT ranking???
 		if subType != "" {
 			apiErrSubType = subType
 		}
 	}
 
-	return getErrorForV4ApiErrSubType(apiErrSubType, appMessages)
+	return getErrorForV4ApiErrSubType(apiErrSubType, openApiError)
 }
 
 func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4Api {
@@ -198,7 +144,7 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4
 	return ""
 }
 
-func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, errorData interface{}) error {
+func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, openApiError interface{}) error {
 	subTypeToConstructorMap := map[ferrors.ErrorSubTypeV4Api]interface{}{
 		ferrors.ErrorSubTypeV4ApiUncategorisedError:    ferrors.NewErrV4ApiUncategorisedError,
 		ferrors.ErrorSubTypeV4ApiAuthorizationError:    ferrors.NewErrV4ApiAuthorizationError,
@@ -207,8 +153,8 @@ func getErrorForV4ApiErrSubType(subType ferrors.ErrorSubTypeV4Api, errorData int
 	}
 
 	if constructor, found := subTypeToConstructorMap[subType]; found {
-		return constructor.(func(string, interface{}, ...map[string]interface{}) error)("", errorData)
+		return constructor.(func(string, interface{}, ...map[string]interface{}) error)("", openApiError)
 	}
 
-	return ferrors.NewErrInternalError("Invalid v4 API error sub-type", errorData)
+	return ferrors.NewErrInternalError("Invalid v4 API error sub-type", openApiError)
 }

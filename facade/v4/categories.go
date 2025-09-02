@@ -13,7 +13,7 @@ import (
 
 // GetCategory returns the category for the given UUID.
 func (f *FacadeV4Client) GetCategory(uuid string) (*v4prismModels.Category, error) {
-	return CommonGetEntity[*v4prismModels.GetCategoryApiResponse, v4prismModels.Category, *v4prismError.OneOfErrorResponseError](
+	return CommonGetEntity[*v4prismModels.GetCategoryApiResponse, v4prismModels.Category](
 		func() (*v4prismModels.GetCategoryApiResponse, error) {
 			return f.client.CategoriesApiInstance.GetCategoryById(&uuid, nil)
 		},
@@ -23,7 +23,7 @@ func (f *FacadeV4Client) GetCategory(uuid string) (*v4prismModels.Category, erro
 
 // ListCategories returns a list of categories.
 func (f *FacadeV4Client) ListCategories(opts ...facade.ODataOption) ([]v4prismModels.Category, error) {
-	return CommonListEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismError.OneOfErrorResponseError](
+	return CommonListEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
 				reqParams.Page,
@@ -48,7 +48,7 @@ func (f *FacadeV4Client) ListAllCategories(filterParam *string, orderbyParam *st
 		Select:  selectParam,
 	}
 
-	return CommonListAllEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismError.OneOfErrorResponseError](
+	return CommonListAllEntities[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
 				reqParams.Page,
@@ -66,7 +66,7 @@ func (f *FacadeV4Client) ListAllCategories(filterParam *string, orderbyParam *st
 
 // GetListIteratorCategories returns an iterator for listing categories.
 func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) facade.ODataListIterator[v4prismModels.Category] {
-	return CommonGetListIterator[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category, *v4prismError.OneOfErrorResponseError](
+	return CommonGetListIterator[*v4prismModels.ListCategoriesApiResponse, v4prismModels.Category](
 		f,
 		func(reqParams *V4ODataParams) (*v4prismModels.ListCategoriesApiResponse, error) {
 			return f.client.CategoriesApiInstance.ListCategories(
@@ -85,7 +85,7 @@ func (f *FacadeV4Client) GetListIteratorCategories(opts ...facade.ODataOption) f
 
 // CreateCategory creates a new category.
 func (f *FacadeV4Client) CreateCategory(category *v4prismModels.Category) (*v4prismModels.Category, error) {
-	newCategory, err := CallAPI[*v4prismModels.CreateCategoryApiResponse, v4prismModels.Category, *v4prismError.OneOfErrorResponseError](
+	newCategory, err := CallAPI[*v4prismModels.CreateCategoryApiResponse, v4prismModels.Category](
 		f.client.CategoriesApiInstance.CreateCategory(category),
 	)
 	if err != nil {
@@ -106,7 +106,7 @@ func (f *FacadeV4Client) UpdateCategory(uuid string, category *v4prismModels.Cat
 		return nil, ferrors.NewErrUncategorisedError("", fmt.Errorf("no category found with UUID %s", uuid))
 	}
 
-	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []v4prismError.AppMessage, *v4prismError.OneOfErrorResponseError](
+	_, err = CallAPI[*v4prismModels.UpdateCategoryApiResponse, []v4prismError.AppMessage](
 		f.client.CategoriesApiInstance.UpdateCategoryById(&uuid, category, args),
 	)
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
-	v4prismModelsError "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 	"k8s.io/utils/ptr"
 )
 
@@ -70,7 +69,7 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion() ([]*T, error) {
 		time.Sleep(1 * time.Second)
 
 		// Wait for the task to complete
-		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task, *v4prismModelsError.OneOfErrorResponseError](
+		task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
 			f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
 		)
 
@@ -193,7 +192,7 @@ type FacadeV4ODataIterator[R ApiResponse, T any] struct {
 	mutex              sync.Mutex
 }
 
-func NewFacadeV4ODataIterator[R ApiResponse, T any, Rerr ApiErrorResponseError](
+func NewFacadeV4ODataIterator[R ApiResponse, T any](
 	client *v4prismGoClient.Client,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,
@@ -227,7 +226,7 @@ func NewFacadeV4ODataIterator[R ApiResponse, T any, Rerr ApiErrorResponseError](
 			}
 
 			// Get next page
-			items, totalCount, err = CallListAPI[R, T, Rerr](listFunc(reqParams))
+			items, totalCount, err = CallListAPI[R, T](listFunc(reqParams))
 			if err != nil {
 				yield(zero, err)
 				return
