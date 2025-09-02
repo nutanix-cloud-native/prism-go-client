@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	V4ApiErrorSubTypeToErrConstructor = map[ErrorSubTypeV4Api]func(string, any, ...map[string]any) error{
+	V4ApiErrorSubTypeToErrConstructor = map[ErrorSubTypeV4Api]func(string, any) error{
 		ErrorSubTypeV4ApiUncategorisedError:    NewErrV4ApiUncategorisedError,
 		ErrorSubTypeV4ApiSchemaValidationError: NewErrV4ApiSchemaValidationError,
 		ErrorSubTypeV4ApiAuthorizationError:    NewErrV4ApiAuthorizationError,
@@ -39,15 +39,14 @@ var (
 	}
 )
 
-type Err struct {
-	Message string           `json:"-"`
-	Type    ErrorType        `json:"type"`
-	SubType ErrorSubType     `json:"sub_type,omitempty"`
-	Err     any              `json:"error"`
-	Args    []map[string]any `json:"-"`
+type FacadeError struct {
+	Message string       `json:"-"`
+	Type    ErrorType    `json:"type"`
+	SubType ErrorSubType `json:"sub_type,omitempty"`
+	Details any          `json:"details"`
 }
 
-func (fe *Err) Error() string {
+func (fe *FacadeError) Error() string {
 	errStr := fmt.Sprintf("ErrorType: %v", fe.Type)
 	if fe.SubType != "" {
 		errStr += fmt.Sprintf(", ErrorSubType: %v", fe.SubType)
@@ -55,59 +54,58 @@ func (fe *Err) Error() string {
 	if fe.Message != "" {
 		errStr += fmt.Sprintf(", Message: %s", fe.Message)
 	}
-	errStr += fmt.Sprintf(", Detail: %v", fe.Err)
+	errStr += fmt.Sprintf(", Detail: %v", fe.Details)
 
 	return errStr
 }
 
-func new(errType ErrorType, errSubType ErrorSubType, msg string, err any, args ...map[string]any) error {
-	return &Err{
+func new(errType ErrorType, errSubType ErrorSubType, msg string, err any) error {
+	return &FacadeError{
 		Type:    errType,
 		SubType: errSubType,
 		Message: msg,
-		Err:     err,
-		Args:    args,
+		Details: err,
 	}
 }
 
-func NewErrTypeAssertionError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeTypeAssertion, "", msg, err, args...)
+func NewErrTypeAssertionError(msg string, err any) error {
+	return new(ErrorTypeTypeAssertion, "", msg, err)
 }
 
-func NewErrNetworkError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeNetworkError, "", msg, err, args...)
+func NewErrNetworkError(msg string, err any) error {
+	return new(ErrorTypeNetworkError, "", msg, err)
 }
 
-func NewErrInternalError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeInternalError, "", msg, err, args...)
+func NewErrInternalError(msg string, err any) error {
+	return new(ErrorTypeInternalError, "", msg, err)
 }
 
-func NewErrV4ApiUncategorisedError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiUncategorisedError), msg, err, args...)
+func NewErrV4ApiUncategorisedError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiUncategorisedError), msg, err)
 }
 
-func NewErrV4ApiSchemaValidationError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiSchemaValidationError), msg, err, args...)
+func NewErrV4ApiSchemaValidationError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiSchemaValidationError), msg, err)
 }
 
-func NewErrV4ApiAuthorizationError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiAuthorizationError), msg, err, args...)
+func NewErrV4ApiAuthorizationError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiAuthorizationError), msg, err)
 }
 
-func NewErrV4ApiResourceNotFoundError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiResourceNotFoundError), msg, err, args...)
+func NewErrV4ApiResourceNotFoundError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiResourceNotFoundError), msg, err)
 }
 
-func NewErrV4ApiRateLimitError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiRateLimitError), msg, err, args...)
+func NewErrV4ApiRateLimitError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiRateLimitError), msg, err)
 }
 
-func NewErrV4ApiInternalError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInternalServiceError), msg, err, args...)
+func NewErrV4ApiInternalError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInternalServiceError), msg, err)
 }
 
-func NewErrV4ApiInvalidInputError(msg string, err any, args ...map[string]any) error {
-	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInvalidInputError), msg, err, args...)
+func NewErrV4ApiInvalidInputError(msg string, err any) error {
+	return new(ErrorTypeV4ApiError, ErrorSubType(ErrorSubTypeV4ApiInvalidInputError), msg, err)
 }
 
 func (apiSubType ErrorSubTypeV4Api) ToError(apiError any) error {

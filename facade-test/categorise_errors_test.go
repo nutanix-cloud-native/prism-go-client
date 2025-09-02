@@ -102,7 +102,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				t.Fatal("Expected error, got nil")
 			}
 
-			if ferr, ok := err.(*ferrors.Err); ok {
+			if ferr, ok := err.(*ferrors.FacadeError); ok {
 				if ferr.Type != tt.expectedErrorType {
 					t.Errorf("Expected error type %v, got %v", tt.expectedErrorType, ferr.Type)
 				}
