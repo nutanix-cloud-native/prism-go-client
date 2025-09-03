@@ -85,11 +85,10 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 			}
 
 			var apiError *ferrors.ApiError
-			found := errors.As(err, &apiError)
-			if !found {
+			if !errors.As(err, &apiError) {
 				t.Errorf("Invalid error type")
 			}
-			if tt.expectedApiErrorType == nil || tt.expectedApiErrorType.Error() != apiError.Type.Error() {
+			if !errors.Is(apiError.Type, tt.expectedApiErrorType) {
 				t.Errorf("Invalid api error type")
 			}
 		})
