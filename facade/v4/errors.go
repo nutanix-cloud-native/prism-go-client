@@ -2,6 +2,7 @@ package v4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,7 +16,8 @@ func GetCategorisedV4ApiCallError(err error) error {
 		return nil
 	}
 
-	if openApiError, ok := err.(clusterClient.GenericOpenAPIError); ok {
+	var openApiError clusterClient.GenericOpenAPIError
+	if errors.As(err, &openApiError) {
 		return getCategorisedV4ApiResponseError(openApiError)
 	}
 
@@ -35,23 +37,42 @@ func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIE
 		return err
 	}
 
-	errorData, ok := errResp.Data.(map[string]interface{})
-	if !ok {
-		return ferrors.NewUnexpectedTypeError(map[string]interface{}{}, errResp.Data)
-	}
-	errorType, ok := errorData["$errorItemDiscriminator"].(string)
-	if !ok {
-		return ferrors.NewUnexpectedTypeError("", errorData["$errorItemDiscriminator"])
+	oneOfError, errorType, err := getErrorAndTypeFrom(errResp)
+	if err != nil {
+		return fmt.Errorf("failed to get error and type from `GenericOpenApiError` with: %w", err)
 	}
 
 	if strings.Contains(errorType, "SchemaValidationError") {
 		return ferrors.NewApiError(ferrors.ErrSchemaValidationError, openApiError)
 	}
 	if strings.Contains(errorType, "AppMessage") {
-		return getCategorisedV4ApiErrorFromAppMessages(openApiError, errorData["error"])
+		return getCategorisedV4ApiErrorFromAppMessages(openApiError, oneOfError)
 	}
 
 	return fmt.Errorf("invalid value of field `Data` in APIResponse: %s", openApiError.Error())
+}
+
+func getErrorAndTypeFrom(errResp sampleErrorResponse) (interface{}, string, error) {
+	errorDataMap, ok := errResp.Data.(map[string]interface{})
+	if !ok {
+		return nil, "", ferrors.NewUnexpectedTypeError(map[string]interface{}{}, errResp.Data)
+	}
+
+	errorTypeIntf, ok := errorDataMap["$errorItemDiscriminator"]
+	if !ok {
+		return nil, "", fmt.Errorf("field `$errorItemDiscriminator` missing from error data: %v", errResp)
+	}
+	errorType, ok := errorTypeIntf.(string)
+	if !ok {
+		return nil, "", ferrors.NewUnexpectedTypeError("", errorDataMap["$errorItemDiscriminator"])
+	}
+
+	oneOfError, ok := errorDataMap["error"]
+	if !ok {
+		return nil, "", fmt.Errorf("field `error` missing from error data: %v", errResp)
+	}
+
+	return oneOfError, errorType, nil
 }
 
 func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericOpenAPIError, appMessagesIntf interface{}) error {
