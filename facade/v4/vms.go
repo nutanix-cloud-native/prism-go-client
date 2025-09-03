@@ -76,7 +76,7 @@ func (f *FacadeV4Client) CreateVM(vm *vmmModels.Vm) (facade.TaskWaiter[vmmModels
 		f.client.VmApiInstance.CreateVm(vm),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create VM: %w", err)
 	}
 
 	if taskRef.ExtId == nil {
@@ -91,7 +91,7 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
@@ -100,7 +100,7 @@ func (f *FacadeV4Client) UpdateVM(uuid string, vm *vmmModels.Vm) (facade.TaskWai
 		f.client.VmApiInstance.UpdateVmById(&uuid, vm, args),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to update VM: %w", err)
 	}
 
 	if taskRef.ExtId == nil {
@@ -116,14 +116,14 @@ func (f *FacadeV4Client) DeleteVM(uuid string) (facade.TaskWaiter[facade.NoEntit
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	taskRef, err := CallAPI[*vmmModels.DeleteVmApiResponse, v4VmmConfig.TaskReference](
 		f.client.VmApiInstance.DeleteVmById(&uuid, args),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	if taskRef.ExtId == nil {
@@ -139,14 +139,14 @@ func (f *FacadeV4Client) PowerOnVM(uuid string) (facade.TaskWaiter[vmmModels.Vm]
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, v4VmmConfig.TaskReference](
 		f.client.VmApiInstance.PowerOnVm(&uuid, args),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to power on VM: %w", err)
 	}
 
 	if taskRef.ExtId == nil {
@@ -162,14 +162,14 @@ func (f *FacadeV4Client) PowerOffVM(uuid string) (facade.TaskWaiter[vmmModels.Vm
 		f.client.VmApiInstance.GetVmById(&uuid),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, v4VmmConfig.TaskReference](
 		f.client.VmApiInstance.PowerOffVm(&uuid, args),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to power off VM: %w", err)
 	}
 
 	if taskRef.ExtId == nil {

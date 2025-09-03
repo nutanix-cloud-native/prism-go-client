@@ -206,7 +206,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 
 	totalCount, err := GetMetadataTotalResults(response)
 	if err != nil {
-		return zero, 0, err
+		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
 	}
 
 	data := response.GetData()
@@ -226,7 +226,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 	var zero T
 
 	if err != nil {
-		return zero, nil, err
+		return zero, nil, fmt.Errorf("failed to get entity: %w", err)
 	}
 
 	etag := GetEtag(entity)

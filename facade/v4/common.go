@@ -1,6 +1,8 @@
 package v4
 
 import (
+	"fmt"
+
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 )
 
@@ -9,7 +11,7 @@ import (
 func CommonGetEntity[R APIResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
 	result, err := CallAPI[R, T](apiCall())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get %s: %w", entityName, err)
 	}
 	return &result, nil
 }
@@ -18,12 +20,12 @@ func CommonListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPar
 	reqParams, err := OptsToV4ODataParams(options...)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
 	}
 
 	result, err := CallAPI[R, []T](apiCall(reqParams))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list %s: %w", entitiesName, err)
 	}
 	return result, nil
 }
@@ -41,7 +43,7 @@ func CommonListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4OData
 
 	items, totalCount, err := CallListAPI[R, T](apiCall(reqParams))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list all %s: %w", entitiesName, err)
 	}
 	result = append(result, items...)
 
@@ -50,7 +52,7 @@ func CommonListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4OData
 		reqParams.Page = &page
 		moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, page, err)
 		}
 		result = append(result, moreItems...)
 	}
