@@ -129,8 +129,6 @@ func (f *FacadeV4Client) DeleteAntiAffinityPolicy(ctx context.Context, uuid stri
 		return nil, fmt.Errorf("task reference ExtId is nil for deleted anti-affinity policy with UUID %s", uuid)
 	}
 
-	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*facade.NoEntity, error) {
-		return facade.NoEntityGetter(ctx, uuid)
-	})
+	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, facade.NoEntityGetter)
 	return waiter, nil
 }
