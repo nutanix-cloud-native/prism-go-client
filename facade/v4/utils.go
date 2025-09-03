@@ -29,7 +29,7 @@ func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
 		return v4Params, nil
 	}
 
-	return nil, ferrors.NewErrTypeAssertionError("", fmt.Errorf("expected *V4ODataParams, got %T", params))
+	return nil, ferrors.NewUnexpectedTypeError(&V4ODataParams{}, params)
 }
 
 func (o *V4ODataParams) SetPageOption(page int) error {
@@ -154,11 +154,11 @@ func ConvertTaskStatus(status v4prismModels.TaskStatus) facade.TaskStatus {
 	return facade.TaskStatusUnknown
 }
 
-type ApiResponse interface {
+type APIResponse interface {
 	GetData() interface{}
 }
 
-func CallAPI[R ApiResponse, T any](response R, err error) (T, error) {
+func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
 		return zero, GetCategorisedV4ApiCallError(err)
@@ -171,34 +171,34 @@ func CallAPI[R ApiResponse, T any](response R, err error) (T, error) {
 
 	result, ok := data.(T)
 	if !ok {
-		return zero, ferrors.NewErrTypeAssertionError("", fmt.Errorf("unexpected type for API response data: %T", data))
+		return zero, ferrors.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, nil
 }
 
-func GetMetadataTotalResults[R ApiResponse](response R) (int, error) {
+func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
-		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("response does not have Metadata field"))
+		return 0, fmt.Errorf("response does not have Metadata field")
 	}
 	metadata := hasMetadataField.Interface()
 	if reflect.ValueOf(metadata).IsNil() {
-		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("no metadata found in response"))
+		return 0, fmt.Errorf("no metadata found in response")
 	}
 
 	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
 	if !totalCountField.IsValid() || totalCountField.IsNil() {
-		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("metadata does not have TotalAvailableResults field"))
+		return 0, fmt.Errorf("metadata does not have TotalAvailableResults field")
 	}
 	totalCount := totalCountField.Interface().(*int)
 	if totalCount == nil || *totalCount < 0 {
-		return 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("invalid total count: %d", totalCount))
+		return 0, fmt.Errorf("invalid total count: %v", totalCount)
 	}
 	return int(*totalCount), nil
 }
 
-func CallListAPI[R ApiResponse, T any](response R, err error) ([]T, int, error) {
+func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
 		return zero, 0, GetCategorisedV4ApiCallError(err)
@@ -216,7 +216,7 @@ func CallListAPI[R ApiResponse, T any](response R, err error) ([]T, int, error) 
 
 	result, ok := data.([]T)
 	if !ok {
-		return zero, 0, ferrors.NewErrTypeAssertionError("", fmt.Errorf("unexpected type for API response data: %T", data))
+		return zero, 0, ferrors.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, totalCount, nil

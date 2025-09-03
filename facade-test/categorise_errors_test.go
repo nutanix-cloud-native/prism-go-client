@@ -1,7 +1,7 @@
 package facadetest
 
 import (
-	"net"
+	"errors"
 	"testing"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
@@ -15,18 +15,9 @@ import (
 func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 	testCases := []struct {
 		name                 string
-		responseBuilder      func() *vmmConfigModels.GetVmApiResponse // provide one of responseBuilder or sampleError
-		sampleErr            error
-		expectedErrorType    ferrors.ErrorType
-		expectedErrorSubType ferrors.ErrorSubType
+		responseBuilder      func() *vmmConfigModels.GetVmApiResponse
+		expectedApiErrorType error
 	}{
-		{
-			name:                 "Network/Transport error",
-			responseBuilder:      func() *vmmConfigModels.GetVmApiResponse { return nil },
-			sampleErr:            &net.OpError{},
-			expectedErrorType:    ferrors.ErrorTypeNetworkError,
-			expectedErrorSubType: "",
-		},
 		{
 			name: "ApiErrorResponse : AppMessage : Uncategorised error group",
 			responseBuilder: func() *vmmConfigModels.GetVmApiResponse {
@@ -42,8 +33,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
-			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiUncategorisedError),
+			expectedApiErrorType: ferrors.ErrUnknownError,
 		},
 		{
 			name: "ApiErrorResponse : AppMessage : Rate limit error group",
@@ -60,8 +50,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
-			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiRateLimitError),
+			expectedApiErrorType: ferrors.ErrRateLimitExceeded,
 		},
 		{
 			name: "ApiErrorResponse : SchemaValidationError",
@@ -75,42 +64,33 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedErrorType:    ferrors.ErrorTypeV4ApiError,
-			expectedErrorSubType: ferrors.ErrorSubType(ferrors.ErrorSubTypeV4ApiSchemaValidationError),
+			expectedApiErrorType: ferrors.ErrSchemaValidationError,
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			var in error
-			if tt.sampleErr != nil {
-				in = tt.sampleErr
-			} else {
-				jsBytes, err := tt.responseBuilder().MarshalJSON()
-				if err != nil {
-					t.Fatal("Unable to marshal response json")
-				}
-
-				in = clusterClient.GenericOpenAPIError{
-					Body:   jsBytes,
-					Status: "4xx",
-				}
+			jsBytes, err := tt.responseBuilder().MarshalJSON()
+			if err != nil {
+				t.Errorf("Unable to marshal response json")
 			}
 
-			err := v4.GetCategorisedV4ApiCallError(in)
+			in := clusterClient.GenericOpenAPIError{
+				Body:   jsBytes,
+				Status: "4xx",
+			}
+			err = v4.GetCategorisedV4ApiCallError(in)
 			if err == nil {
-				t.Fatal("Expected error, got nil")
+				t.Errorf("Expected error, got nil")
 			}
 
-			if ferr, ok := err.(*ferrors.FacadeError); ok {
-				if ferr.Type != tt.expectedErrorType {
-					t.Errorf("Expected error type %v, got %v", tt.expectedErrorType, ferr.Type)
-				}
-				if ferr.SubType != tt.expectedErrorSubType {
-					t.Errorf("Expected error sub-type %v, got %v", tt.expectedErrorSubType, ferr.SubType)
-				}
-			} else {
-				t.Errorf("Expected error to be of type ferrors.Err, got %T", err)
+			var apiError *ferrors.ApiError
+			found := errors.As(err, &apiError)
+			if !found {
+				t.Errorf("Invalid error type")
+			}
+			if tt.expectedApiErrorType == nil || tt.expectedApiErrorType.Error() != apiError.Type.Error() {
+				t.Errorf("Invalid api error type")
 			}
 		})
 	}

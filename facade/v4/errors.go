@@ -2,11 +2,8 @@ package v4
 
 import (
 	"encoding/json"
-	"errors"
-	"net"
-	"net/url"
+	"fmt"
 	"strings"
-	"syscall"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
@@ -22,50 +19,11 @@ func GetCategorisedV4ApiCallError(err error) error {
 		return getCategorisedV4ApiResponseError(openApiError)
 	}
 
-	if isNetworkError(err) {
-		return ferrors.NewErrNetworkError("API call failed", err)
-	}
-
-	return ferrors.NewErrV4ApiUncategorisedError("API call failed", err)
-}
-
-// isNetworkError returns true if the given error is network-related.
-func isNetworkError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	var netErr net.Error
-	if errors.As(err, &netErr) {
-		return true
-	}
-
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
-		return true
-	}
-
-	var urlErr *url.Error
-	if errors.As(err, &urlErr) {
-		return true
-	}
-
-	// Check for syscall-level errors (connection refused, reset, etc.)
-	switch {
-	case errors.Is(err, syscall.ECONNREFUSED),
-		errors.Is(err, syscall.ECONNRESET),
-		errors.Is(err, syscall.ECONNABORTED),
-		errors.Is(err, syscall.ENETUNREACH),
-		errors.Is(err, syscall.EHOSTUNREACH),
-		errors.Is(err, syscall.ETIMEDOUT):
-		return true
-	}
-
-	return false
+	return fmt.Errorf("API call failed with error: %v", err)
 }
 
 type sampleErrorResponse struct {
-	Data interface{} `json:"data"`
+	Data any `json:"data"`
 }
 
 // getCategorisedV4ApiResponseError categorises the error based on the error data in the API response.
@@ -79,59 +37,64 @@ func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIE
 
 	errorData, ok := errResp.Data.(map[string]interface{})
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError.Error())
+		return ferrors.NewUnexpectedTypeError(map[string]interface{}{}, errResp.Data)
 	}
 	errorType, ok := errorData["$errorItemDiscriminator"].(string)
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid API error response", openApiError.Error())
+		return ferrors.NewUnexpectedTypeError("", errorData["$errorItemDiscriminator"])
 	}
 
 	if strings.Contains(errorType, "SchemaValidationError") {
-		return ferrors.NewErrV4ApiSchemaValidationError("API error response", openApiError.Error())
+		return ferrors.NewApiError(ferrors.ErrSchemaValidationError, openApiError)
 	}
 	if strings.Contains(errorType, "AppMessage") {
 		return getCategorisedV4ApiErrorFromAppMessages(openApiError, errorData["error"])
 	}
 
-	return ferrors.NewErrV4ApiUncategorisedError("Invalid value of field `Data` in ApiResponse", openApiError.Error())
+	return fmt.Errorf("invalid value of field `Data` in APIResponse: %s", openApiError.Error())
 }
 
 func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericOpenAPIError, appMessagesIntf interface{}) error {
-	apiErrSubType := ferrors.ErrorSubTypeV4ApiUncategorisedError
+	apiErrType := ferrors.ErrUnknownError
 
 	appMessages, ok := appMessagesIntf.([]interface{})
 	if !ok {
-		return ferrors.NewErrTypeAssertionError("Invalid []AppMessage type in API error response", openApiError.Error())
+		return ferrors.NewUnexpectedTypeError([]interface{}{}, appMessagesIntf)
 	}
 
 	for _, appMessageIntf := range appMessages {
-		appMessages, ok := appMessageIntf.(map[string]interface{})
+		appMessage, ok := appMessageIntf.(map[string]interface{})
 		if !ok {
-			return ferrors.NewErrTypeAssertionError("Invalid AppMessage type in API error response", openApiError.Error())
+			return ferrors.NewUnexpectedTypeError(map[string]interface{}{}, appMessageIntf)
 		}
 
-		errorGroup, ok := appMessages["errorGroup"].(string)
+		errorGroupIntf, ok := appMessage["errorGroup"]
 		if !ok {
-			return ferrors.NewErrTypeAssertionError("Invalid ErrorGroup type in API error response", openApiError.Error())
+			return fmt.Errorf("field `errorGroup` missing from AppMessage: %v", appMessage)
 		}
 
-		subType := getV4ApiErrorSubTypeForErrorGroup(errorGroup)
+		errorGroup, ok := errorGroupIntf.(string)
+		if !ok {
+			return ferrors.NewUnexpectedTypeError("", errorGroupIntf)
+		}
+
+		newErr := getV4ApiErrorSubTypeForErrorGroup(errorGroup)
 		// DOUBT ranking???
-		if subType != "" {
-			apiErrSubType = subType
+		if newErr != nil {
+			apiErrType = newErr
 		}
 	}
 
-	return apiErrSubType.ToError(openApiError.Error())
+	return ferrors.NewApiError(apiErrType, openApiError)
 }
 
-func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4Api {
-	searchKeyToSubTypeMap := map[string]ferrors.ErrorSubTypeV4Api{
-		"AUTHORIZATION": ferrors.ErrorSubTypeV4ApiAuthorizationError,
-		"RATE_LIMIT":    ferrors.ErrorSubTypeV4ApiRateLimitError,
-		"NOT_FOUND":     ferrors.ErrorSubTypeV4ApiResourceNotFoundError,
-		"SERVICE_ERROR": ferrors.ErrorSubTypeV4ApiInternalServiceError,
-		"INVALID_INPUT": ferrors.ErrorSubTypeV4ApiInvalidInputError,
+func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) error {
+	searchKeyToSubTypeMap := map[string]error{
+		"AUTHORIZATION": ferrors.ErrAuthorizationError,
+		"NOT_FOUND":     ferrors.ErrResourceNotFound,
+		"RATE_LIMIT":    ferrors.ErrRateLimitExceeded,
+		"SERVICE_ERROR": ferrors.ErrInternalServiceError,
+		"INVALID_INPUT": ferrors.ErrInvalidInput,
 	}
 
 	for key, subType := range searchKeyToSubTypeMap {
@@ -140,5 +103,5 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) ferrors.ErrorSubTypeV4
 		}
 	}
 
-	return ""
+	return nil
 }

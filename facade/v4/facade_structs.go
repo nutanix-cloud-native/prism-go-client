@@ -179,7 +179,7 @@ func (f *FacadeV4TaskWaiter[T]) appendEntityUUID(uuid string) {
 	f.entityUUIDs = append(f.entityUUIDs, uuid)
 }
 
-type FacadeV4ODataIterator[R ApiResponse, T any] struct {
+type FacadeV4ODataIterator[R APIResponse, T any] struct {
 	client             *v4prismGoClient.Client
 	opts               []facade.ODataOption
 	totalCount         int
@@ -192,7 +192,7 @@ type FacadeV4ODataIterator[R ApiResponse, T any] struct {
 	mutex              sync.Mutex
 }
 
-func NewFacadeV4ODataIterator[R ApiResponse, T any](
+func NewFacadeV4ODataIterator[R APIResponse, T any](
 	client *v4prismGoClient.Client,
 	listFunc func(*V4ODataParams) (R, error),
 	opts ...facade.ODataOption,

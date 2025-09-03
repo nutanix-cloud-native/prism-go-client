@@ -6,7 +6,7 @@ import (
 
 // Common generic function for CRUD operations
 
-func CommonGetEntity[R ApiResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
+func CommonGetEntity[R APIResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
 	result, err := CallAPI[R, T](apiCall())
 	if err != nil {
 		return nil, err
@@ -14,7 +14,7 @@ func CommonGetEntity[R ApiResponse, T any](apiCall func() (R, error), entityName
 	return &result, nil
 }
 
-func CommonListEntities[R ApiResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) ([]T, error) {
+func CommonListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) ([]T, error) {
 	reqParams, err := OptsToV4ODataParams(options...)
 
 	if err != nil {
@@ -28,7 +28,7 @@ func CommonListEntities[R ApiResponse, T any](apiCall func(reqParams *V4ODataPar
 	return result, nil
 }
 
-func CommonListAllEntities[R ApiResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams, entitiesName string) ([]T, error) {
+func CommonListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams, entitiesName string) ([]T, error) {
 	result := []T{}
 	page := 0
 
@@ -58,7 +58,7 @@ func CommonListAllEntities[R ApiResponse, T any](apiCall func(reqParams *V4OData
 	return result, nil
 }
 
-func CommonGetListIterator[R ApiResponse, T any](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
+func CommonGetListIterator[R APIResponse, T any](f *FacadeV4Client, apiCall func(reqParams *V4ODataParams) (R, error), options []facade.ODataOption, entitiesName string) facade.ODataListIterator[T] {
 	return NewFacadeV4ODataIterator[R, T](
 		f.client,
 		func(reqParams *V4ODataParams) (R, error) {
