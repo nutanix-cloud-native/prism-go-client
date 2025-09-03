@@ -65,14 +65,13 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion(ctx context.Context) ([]*T
 	taskStatusValue := v4prismModels.TASKSTATUS_UNKNOWN
 	taskStatus := &taskStatusValue
 
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-
 	for *taskStatus != v4prismModels.TASKSTATUS_SUCCEEDED {
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task wait canceled: %w", ctx.Err())
-		case <-ticker.C:
+		default:
+			time.Sleep(1 * time.Second)
+
 			// Wait for the task to complete
 			task, err = CallAPI[*v4prismModels.GetTaskApiResponse, v4prismModels.Task](
 				f.client.TasksApiInstance.GetTaskById(&f.taskUUID, nil),
@@ -102,27 +101,28 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion(ctx context.Context) ([]*T
 
 					return nil, fmt.Errorf("task %s failed: %s", f.taskUUID, errMessages)
 				}
+				return nil, fmt.Errorf("task %s failed", f.taskUUID)
 			}
 
 			if *taskStatus == v4prismModels.TASKSTATUS_CANCELED || *taskStatus == v4prismModels.TASKSTATUS_CANCELING {
 				return nil, fmt.Errorf("task %s was canceled", f.taskUUID)
 			}
+
+			if task.EntitiesAffected != nil {
+				f.setEntitiesAffected(len(task.EntitiesAffected))
+			}
+
+			if f.entitiesAffected == 0 {
+				return nil, fmt.Errorf("task %s did not affect any entities", f.taskUUID)
+			}
+
+			for _, entityRef := range task.EntitiesAffected {
+				if entityRef.ExtId == nil {
+					return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", f.taskUUID)
+				}
+				f.appendEntityUUID(*entityRef.ExtId)
+			}
 		}
-	}
-
-	if task.EntitiesAffected != nil {
-		f.setEntitiesAffected(len(task.EntitiesAffected))
-	}
-
-	if f.entitiesAffected == 0 {
-		return nil, fmt.Errorf("task %s did not affect any entities", f.taskUUID)
-	}
-
-	for _, entityRef := range task.EntitiesAffected {
-		if entityRef.ExtId == nil {
-			return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", f.taskUUID)
-		}
-		f.appendEntityUUID(*entityRef.ExtId)
 	}
 
 	for _, uuid := range f.entityUUIDs {
@@ -136,7 +136,7 @@ func (f *FacadeV4TaskWaiter[T]) WaitForTaskCompletion(ctx context.Context) ([]*T
 			// TODO: Uncomment this when we will be sure that the correct amount of entities is returned
 			// STATE: 2025-07-29 - Ilya Alekseyev - On VM creation sometimes returns 2 entities one if which can not be found.
 			// if entity == nil {
-			//  return nil, fmt.Errorf("entity %s not found", uuid)
+			// 	return nil, fmt.Errorf("entity %s not found", uuid)
 			// }
 
 			result = append(result, entity)

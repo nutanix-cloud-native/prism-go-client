@@ -130,7 +130,7 @@ func (f *FacadeV4Client) DeleteAntiAffinityPolicy(ctx context.Context, uuid stri
 	}
 
 	waiter := NewFacadeV4TaskWaiter(*taskRef.ExtId, f.client, func(ctx context.Context, uuid string) (*facade.NoEntity, error) {
-		return facade.NoEntityGetter(uuid)
+		return facade.NoEntityGetter(ctx, uuid)
 	})
 	return waiter, nil
 }

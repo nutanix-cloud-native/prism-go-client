@@ -19,7 +19,6 @@ import (
 var (
 	v4FacadeClient *prismclientv4facade.FacadeV4Client
 	v3Client       *prismclientv3.Client
-	ctx            = context.Background()
 )
 
 func initializeClients(t *testing.T) error {
@@ -41,6 +40,7 @@ func initializeClients(t *testing.T) error {
 }
 
 func TestCreateVmCases(t *testing.T) {
+	ctx := context.Background()
 	err := initializeClients(t)
 	if err != nil {
 		t.Errorf("failed to intialize prism clients, error: %v", err)
@@ -238,6 +238,7 @@ func TestCreateVmCases(t *testing.T) {
 }
 
 func getPeExtIds(t *testing.T) (*string, *string, error) {
+	ctx := context.Background()
 	PEs, err := v4FacadeClient.ListAllClusters(ctx, nil, nil, nil, nil)
 	if err != nil {
 		t.Errorf("unable to list all clusters: %v", err)
@@ -282,6 +283,7 @@ func vendorStringToV4Model(vendor *string) *vmmconfig.GpuVendor {
 }
 
 func newSystemDisk() (*vmmconfig.Disk, error) {
+	ctx := context.Background()
 	images, err := v4FacadeClient.ListAllImages(ctx, nil, nil, nil)
 	if err != nil {
 		return nil, err

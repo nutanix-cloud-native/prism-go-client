@@ -94,7 +94,7 @@ type TaskWaiter[T any] interface {
 // NoEntity is a placeholder for cases where no entity is returned (e.g. delete operations).
 type NoEntity interface{}
 
-func NoEntityGetter(uuid string) (*NoEntity, error) {
+func NoEntityGetter(ctx context.Context, uuid string) (*NoEntity, error) {
 	return nil, nil
 }
 
