@@ -195,3 +195,19 @@ type K8sClusterKubeconfigResponse struct {
 	// The UUID of the task tracking the kubeconfig update.
 	TaskUUID string `json:"task_uuid,omitempty"`
 }
+
+// DeleteK8sRegistrationParams parameters for DeleteK8sRegistration
+type DeleteK8sRegistrationParams struct {
+	Force bool `url:"force,omitempty"`
+}
+
+// DeleteK8sRegistrationKubeconfigParams parameters for DeleteK8sRegistrationKubeconfig
+type DeleteK8sRegistrationKubeconfigParams struct {
+	Force bool `url:"force,omitempty"`
+}
+
+type K8sClusterKubeconfigDeleteResponse struct {
+	// The UUID of the task tracking the Kubernetes cluster kubeconfig deletion.
+	// Required: true
+	TaskUUID *string `json:"task_uuid"`
+}

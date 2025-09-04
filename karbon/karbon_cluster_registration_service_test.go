@@ -183,8 +183,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	if err == nil {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 
 		// Valid k8s cluster registration delete response
@@ -242,8 +241,7 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	if err == nil {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
@@ -363,8 +361,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -407,8 +404,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 		validateK8sClusterRegistrationGetResponseWithClusterInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -443,8 +439,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -504,8 +499,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	validateK8sClusterRegistrationGetResponseWithAddonInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 
 	t.Log("Delete Cluster registration")
-	queryParams := make(map[string]string)
-	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }
@@ -555,8 +549,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		queryParams := make(map[string]string)
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -647,8 +640,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 	validateK8sClusterRegistrationMetricsResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateMetrics)
 
 	t.Log("Delete Cluster registration")
-	queryParams := make(map[string]string)
-	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, queryParams)
+	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }

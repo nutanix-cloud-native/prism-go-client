@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/google/go-querystring/query"
 	"github.com/google/uuid"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 )
@@ -18,7 +19,8 @@ type ClusterRegistrationOperations struct {
 type ClusterRegistrationService interface {
 	// Cluster Registration
 	CreateK8sRegistration(ctx context.Context, createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
-	DeleteK8sRegistration(ctx context.Context, UUID string, queryParams map[string]string) (*K8sClusterRegistrationDeleteResponse, error)
+	DeleteK8sRegistration(ctx context.Context, uuid string, params DeleteK8sRegistrationParams) (*K8sClusterRegistrationDeleteResponse, error)
+	DeleteK8sRegistrationKubeconfig(ctx context.Context, uuid string, params DeleteK8sRegistrationKubeconfigParams) (*K8sClusterKubeconfigDeleteResponse, error)
 	GetK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistration, error)
 	GetK8sRegistrationList(ctx context.Context) (*K8sClusterRegistrationList, error)
 	UpdateK8sRegistrationInfo(ctx context.Context, k8sClusterUUID string, updateInfoRequest *K8sUpdateClusterRegistrationInfoRequest) (*K8sUpdateClusterRegistrationInfoResponse, error)
@@ -41,24 +43,47 @@ func (op ClusterRegistrationOperations) CreateK8sRegistration(ctx context.Contex
 }
 
 // DeleteK8sRegistration deletes the k8s registration with UUID
-func (op ClusterRegistrationOperations) DeleteK8sRegistration(ctx context.Context, k8sClusterUUID string, queryParams map[string]string) (*K8sClusterRegistrationDeleteResponse, error) {
+func (op ClusterRegistrationOperations) DeleteK8sRegistration(ctx context.Context, k8sClusterUUID string, params DeleteK8sRegistrationParams) (*K8sClusterRegistrationDeleteResponse, error) {
 	u, err := url.Parse("/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		q := u.Query()
-		for k, v := range queryParams {
-			q.Set(k, v)
-		}
-		u.RawQuery = q.Encode()
+	// Encode struct into query params
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
 	}
+	u.RawQuery = v.Encode()
 	path := u.String()
 	req, err := op.httpClient.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 	karbonClusterActionResponse := new(K8sClusterRegistrationDeleteResponse)
+	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+		return nil, err
+	}
+	return karbonClusterActionResponse, nil
+}
+
+// DeleteK8sRegistrationKubeconfig deletes the kubeconfig of the cluster
+func (op ClusterRegistrationOperations) DeleteK8sRegistrationKubeconfig(ctx context.Context, k8sClusterUUID string, params DeleteK8sRegistrationKubeconfigParams) (*K8sClusterKubeconfigDeleteResponse, error) {
+	u, err := url.Parse("/v1-alpha.1/k8s/cluster-registrations/" + k8sClusterUUID + "/kubeconfig")
+	if err != nil {
+		return nil, err
+	}
+	// Encode struct into query params
+	v, err := query.Values(params)
+	if err != nil {
+		return nil, err
+	}
+	u.RawQuery = v.Encode()
+	path := u.String()
+	req, err := op.httpClient.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	karbonClusterActionResponse := new(K8sClusterKubeconfigDeleteResponse)
 	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
 		return nil, err
 	}
