@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/stretchr/testify/require"
@@ -99,7 +99,7 @@ func TestNodeImagingOperations_ImageNodes(t *testing.T) {
 		}
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"session_id" : "123456-1234-123456"
 		}`)
 	})
@@ -167,7 +167,7 @@ func TestNodeImagingOperations_ImageNodesProgress(t *testing.T) {
 		testHTTPMethod(t, r, http.MethodGet)
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"session_id": "%v",
 			"imaging_stopped": true,
 			"aggregate_percent_complete": 100.00,
