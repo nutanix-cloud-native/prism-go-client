@@ -159,7 +159,7 @@ func (op ClusterRegistrationOperations) GetK8sClusterRegistrationKubeconfig(ctx 
 
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request for kubeconfig: %w", err)
+		return nil, fmt.Errorf("failed to create request for fetching kubeconfig: %w", err)
 	}
 
 	resp := new(K8sClusterKubeconfigResponse)
