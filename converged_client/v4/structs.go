@@ -17,11 +17,7 @@ import (
 )
 
 type Client struct {
-<<<<<<< HEAD
 	converged.Client[prismModels.Category, vmmModels.Vm]
-=======
-	converged.Client[vmmModels.Vm]
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 
 	client *v4prismGoClient.Client
 }
@@ -32,17 +28,12 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 		return nil, err
 	}
 	client := &Client{
-<<<<<<< HEAD
 		Client: converged.Client[
 			prismModels.Category,
 			vmmModels.Vm,
 		]{
 			Categories: NewCategoriesService(),
 			VMs:        NewVMsService(),
-=======
-		Client: converged.Client[vmmModels.Vm]{
-			VMs: NewVMsService(),
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 		},
 		client: v4Client,
 	}
