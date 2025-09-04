@@ -43,11 +43,13 @@ func TestCreateVmCases(t *testing.T) {
 	err := initializeClients(t)
 	if err != nil {
 		t.Errorf("failed to intialize prism clients, error: %v", err)
+		return
 	}
 
-	peExtId, peGpuExtId, err := getPeExtIds(t)
+	peExtId, peGpuExtId, err := getPeExtIds()
 	if err != nil {
 		t.Errorf("failed to get PEs, error: %v", err)
+		return
 	}
 
 	baseVmConfig := vmmconfig.Vm{
@@ -58,6 +60,7 @@ func TestCreateVmCases(t *testing.T) {
 	systemDisk, err := newSystemDisk()
 	if err != nil {
 		t.Errorf("failed to load system disk, error: %v", err)
+		return
 	}
 	baseVmConfig.Disks = []vmmconfig.Disk{*systemDisk}
 
@@ -236,10 +239,10 @@ func TestCreateVmCases(t *testing.T) {
 	}
 }
 
-func getPeExtIds(t *testing.T) (*string, *string, error) {
+func getPeExtIds() (*string, *string, error) {
 	PEs, err := v4FacadeClient.ListAllClusters(nil, nil, nil, nil)
 	if err != nil {
-		t.Errorf("unable to list all clusters: %v", err)
+		return nil, nil, err
 	}
 
 	var peExtId *string
