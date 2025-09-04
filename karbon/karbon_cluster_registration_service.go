@@ -2,10 +2,9 @@ package karbon
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
-
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"

@@ -185,7 +185,6 @@ type K8sClusterResource struct {
 
 // K8sClusterKubeconfigResponse k8s cluster kubeconfig response
 type K8sClusterKubeconfigResponse struct {
-
 	// SHA-256 hash of the kubernetes cluster's kubeconfig content
 	// Required: true
 	KubeconfigChecksum *string `json:"kubeconfig_checksum"`
