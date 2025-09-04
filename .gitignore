@@ -1,7 +1,12 @@
 /.cache
 /.work
 /_output
+<<<<<<< HEAD
 *.out
+=======
+cover.out
+coverage.out
+>>>>>>> 86f2687 (Converged Client: Clusters interfaces)
 /vendor
 /.vendor-new
 .DS_Store
