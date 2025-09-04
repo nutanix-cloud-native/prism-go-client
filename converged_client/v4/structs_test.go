@@ -102,6 +102,7 @@ func TestNewClient(t *testing.T) {
 				}
 				assert.NoError(t, err)
 				assert.NotNil(t, client)
+				assert.NotNil(t, client.AntiAffinityPolicies)
 				assert.NotNil(t, client.Clusters)
 				assert.NotNil(t, client.Categories)
 				assert.NotNil(t, client.Images)
