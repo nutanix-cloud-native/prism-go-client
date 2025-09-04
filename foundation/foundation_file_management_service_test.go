@@ -19,7 +19,7 @@ func TestFMOperations_ListNOSPackages(t *testing.T) {
 		testHTTPMethod(t, r, http.MethodGet)
 
 		// mock response
-		fmt.Fprintf(w, `[
+		_, _ = fmt.Fprintf(w, `[
 			"package1",
 			"package2"
 		]`)
@@ -52,7 +52,7 @@ func TestFMOperations_ListHypervisorISOs(t *testing.T) {
 		testHTTPMethod(t, r, http.MethodGet)
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"hyperv": [{
 					"filename": "hyperv1.iso",
 					"supported": true
@@ -134,7 +134,7 @@ func TestFMOperations_UploadImage(t *testing.T) {
 		}
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"md5sum": "1234QAA",
 			"name": "/home/foundation/kvm/%v",
 			"in_whitelist": false

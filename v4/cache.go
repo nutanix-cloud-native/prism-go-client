@@ -80,7 +80,7 @@ type CachedClientParams interface {
 // - If the client is found in the cache and the validation hash is the same, it returns the client
 // - If the client is found in the cache and the validation hash is different, it regenerates the client, updates the cache, and returns the client
 // func (c *ClientCache) GetOrCreate(clientName string, endpoint types.ManagementEndpoint, opts ...ClientOption) (*Client, error) {
-func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ...ClientOption) (*Client, error) {
+func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ...types.ClientOption[Client]) (*Client, error) {
 	currentValidationHash, err := validationHashFromEndpoint(cachedClientParams.ManagementEndpoint())
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate validation hash for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
