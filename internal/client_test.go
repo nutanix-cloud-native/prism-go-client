@@ -16,10 +16,9 @@ import (
 
 	"github.com/go-logr/logr/testr"
 	"github.com/keploy/go-sdk/integrations/khttpclient"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/nutanix-cloud-native/prism-go-client"
 )
 
 const (
@@ -456,7 +455,7 @@ func TestDo(t *testing.T) {
 			t.Errorf("Request method = %v, expected %v", r.Method, m)
 		}
 
-		fmt.Fprint(w, `{"A":"a"}`)
+		_, _ = fmt.Fprint(w, `{"A":"a"}`)
 	})
 
 	req, _ := client.NewRequest(http.MethodGet, "/", nil)
@@ -522,7 +521,7 @@ func TestDo_redirectLoop(t *testing.T) {
 // 		if m := http.MethodGet; m != r.Method {
 // 			t.Errorf("Request method = %v, expected %v", r.Method, m)
 // 		}
-// 		fmt.Fprint(w, `{"A":"a"}`)
+// 		_, _ = fmt.Fprint(w, `{"A":"a"}`)
 // 	})
 
 // 	req, _ := httpClient.NewRequest(ctx, http.MethodGet, "/", nil)

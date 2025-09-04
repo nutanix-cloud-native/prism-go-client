@@ -48,7 +48,7 @@ func DebugResponse(res *http.Response) {
 func ConvertMapString(o map[string]interface{}) map[string]string {
 	converted := make(map[string]string)
 	for k, v := range o {
-		converted[k] = fmt.Sprintf(v.(string))
+		converted[k] = v.(string)
 	}
 
 	return converted
@@ -56,7 +56,7 @@ func ConvertMapString(o map[string]interface{}) map[string]string {
 
 func StringLowerCaseValidateFunc(val interface{}, key string) (warns []string, errs []error) {
 	v := val.(string)
-	if !(strings.ToLower(v) == v) {
+	if strings.ToLower(v) != v {
 		errs = append(errs, fmt.Errorf("%q must be in lowercase, got: %s", key, v))
 	}
 	return
