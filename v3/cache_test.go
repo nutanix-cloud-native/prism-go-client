@@ -196,7 +196,6 @@ func TestGetOrCreateValidationsPassed(t *testing.T) {
 
 	// This will pass all defensive validations
 	client, err := cache.GetOrCreate(params)
-
 	// We don't assert on the error/client result since it depends on whether
 	// the credentials work or not. The important thing is that we don't get
 	// any of our defensive programming validation errors
