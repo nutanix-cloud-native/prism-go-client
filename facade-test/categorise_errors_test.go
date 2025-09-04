@@ -33,7 +33,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedApiErrorType: ferrors.ErrUnknownError,
+			expectedApiErrorType: errors.New("TEST_ERROR"),
 		},
 		{
 			name: "ApiErrorResponse : AppMessage : Rate limit error group",
@@ -88,7 +88,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 			if !errors.As(err, &apiError) {
 				t.Errorf("Invalid error type")
 			}
-			if !errors.Is(apiError.Type, tt.expectedApiErrorType) {
+			if !errors.Is(apiError.Type, tt.expectedApiErrorType) && apiError.Type.Error() != tt.expectedApiErrorType.Error() {
 				t.Errorf("Invalid api error type")
 			}
 		})

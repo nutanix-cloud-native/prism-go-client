@@ -76,7 +76,7 @@ func getErrorAndTypeFrom(errResp sampleErrorResponse) (interface{}, string, erro
 }
 
 func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericOpenAPIError, appMessagesIntf interface{}) error {
-	apiErrType := ferrors.ErrUnknownError
+	apiErrType := errors.New("unknown error")
 
 	appMessages, ok := appMessagesIntf.([]interface{})
 	if !ok {
@@ -99,11 +99,7 @@ func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericO
 			return ferrors.NewUnexpectedTypeError("", errorGroupIntf)
 		}
 
-		newErr := getV4ApiErrorSubTypeForErrorGroup(errorGroup)
-		// DOUBT ranking???
-		if newErr != nil {
-			apiErrType = newErr
-		}
+		apiErrType = getV4ApiErrorSubTypeForErrorGroup(errorGroup)
 	}
 
 	return ferrors.NewApiError(apiErrType, openApiError)
@@ -124,5 +120,5 @@ func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) error {
 		}
 	}
 
-	return nil
+	return errors.New(errorGroup)
 }

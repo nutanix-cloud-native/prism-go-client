@@ -7,7 +7,6 @@ import (
 )
 
 var (
-	ErrUnknownError          = errors.New("unknown error")
 	ErrSchemaValidationError = errors.New("schema validation error")
 	ErrAuthorizationError    = errors.New("authorization error")
 	ErrResourceNotFound      = errors.New("resource not found")
