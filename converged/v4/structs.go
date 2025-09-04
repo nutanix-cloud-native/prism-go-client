@@ -28,6 +28,7 @@ type Client struct {
 		clusterModels.PhysicalGpuProfile,
 		prismModels.Category,
 		imageModels.Image,
+		clusterModels.StorageContainer,
 		vmmModels.Vm,
 	]
 
@@ -48,12 +49,14 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			clusterModels.PhysicalGpuProfile,
 			prismModels.Category,
 			imageModels.Image,
+			clusterModels.StorageContainer,
 			vmmModels.Vm,
 		]{
-			Images:     NewImagesService(v4Client),
-			Clusters:   NewClustersService(v4Client),
-			Categories: NewCategoriesService(v4Client),
-			VMs:        NewVMsService(v4Client),
+			Images:            NewImagesService(v4Client),
+			Clusters:          NewClustersService(v4Client),
+			Categories:        NewCategoriesService(v4Client),
+			StorageContainers: NewStorageContainersService(v4Client),
+			VMs:               NewVMsService(v4Client),
 		},
 		client: v4Client,
 	}
