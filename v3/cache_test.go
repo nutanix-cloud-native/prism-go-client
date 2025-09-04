@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
@@ -196,18 +197,8 @@ func TestGetOrCreateValidationsPassed(t *testing.T) {
 
 	// This will pass all defensive validations
 	client, err := cache.GetOrCreate(params)
-	// We don't assert on the error/client result since it depends on whether
-	// the credentials work or not. The important thing is that we don't get
-	// any of our defensive programming validation errors
-	if err != nil {
-		// If there is an error, ensure it's NOT from our defensive programming validations
-		assert.NotContains(t, err.Error(), "management endpoint address is nil")
-		assert.NotContains(t, err.Error(), "address host is empty")
-		assert.NotContains(t, err.Error(), "username is empty")
-		assert.NotContains(t, err.Error(), "password is empty")
-	}
 
-	// The test passes as long as we didn't get validation errors
-	// Whether client creation succeeds or fails depends on the actual credentials
-	_ = client // Suppress unused variable warning if client is returned
+	// Require that there is no error - all validations pass and client creation succeeds
+	require.NoError(t, err)
+	assert.NotNil(t, client)
 }
