@@ -202,3 +202,92 @@ func TestGetOrCreateValidationsPassed(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, client)
 }
+
+// Test validateManagementEndpoint function directly
+func TestValidateManagementEndpoint(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint types.ManagementEndpoint
+		key      string
+		wantErr  bool
+		errMsg   string
+	}{
+		{
+			name: "valid endpoint",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					Username: "testuser",
+					Password: "testpass",
+				},
+				Address:  &url.URL{Host: "test.com"},
+				Insecure: true,
+			},
+			key:     "test-key",
+			wantErr: false,
+		},
+		{
+			name: "nil address",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					Username: "testuser",
+					Password: "testpass",
+				},
+				Address: nil,
+			},
+			key:     "test-key",
+			wantErr: true,
+			errMsg:  "management endpoint address is nil for cachedClientParams with key test-key",
+		},
+		{
+			name: "empty host",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					Username: "testuser",
+					Password: "testpass",
+				},
+				Address: &url.URL{Host: ""},
+			},
+			key:     "test-key",
+			wantErr: true,
+			errMsg:  "management endpoint address host is empty for cachedClientParams with key test-key",
+		},
+		{
+			name: "empty username",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					Username: "",
+					Password: "testpass",
+				},
+				Address: &url.URL{Host: "test.com"},
+			},
+			key:     "test-key",
+			wantErr: true,
+			errMsg:  "API credentials username is empty for cachedClientParams with key test-key",
+		},
+		{
+			name: "empty password",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					Username: "testuser",
+					Password: "",
+				},
+				Address: &url.URL{Host: "test.com"},
+			},
+			key:     "test-key",
+			wantErr: true,
+			errMsg:  "API credentials password is empty for cachedClientParams with key test-key",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateManagementEndpoint(tt.endpoint, tt.key)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errMsg, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

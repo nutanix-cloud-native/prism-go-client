@@ -104,22 +104,8 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 	// Cache the management endpoint to avoid multiple calls and enable defensive checks
 	managementEndpoint := cachedClientParams.ManagementEndpoint()
 
-	// Defensive programming: check for nil Address pointer
-	if managementEndpoint.Address == nil {
-		return nil, fmt.Errorf("management endpoint address is nil for cachedClientParams with key %s", cachedClientParams.Key())
-	}
-
-	// Defensive programming: validate required fields
-	if managementEndpoint.Address.Host == "" {
-		return nil, fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", cachedClientParams.Key())
-	}
-
-	if managementEndpoint.ApiCredentials.Username == "" {
-		return nil, fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", cachedClientParams.Key())
-	}
-
-	if managementEndpoint.ApiCredentials.Password == "" {
-		return nil, fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", cachedClientParams.Key())
+	if err := validateManagementEndpoint(managementEndpoint, cachedClientParams.Key()); err != nil {
+		return nil, err
 	}
 
 	credentials := prismgoclient.Credentials{
@@ -174,6 +160,27 @@ func setDefaultsForCredentials(credentials *prismgoclient.Credentials) {
 	if credentials.URL == "" {
 		credentials.URL = fmt.Sprintf("%s:%s", credentials.Endpoint, credentials.Port)
 	}
+}
+
+func validateManagementEndpoint(endpoint types.ManagementEndpoint, key string) error {
+	if endpoint.Address == nil {
+		return fmt.Errorf("management endpoint address is nil for cachedClientParams with key %s", key)
+	}
+
+	// Defensive programming: validate required fields
+	if endpoint.Address.Host == "" {
+		return fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Username == "" {
+		return fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Password == "" {
+		return fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", key)
+	}
+
+	return nil
 }
 
 func validateCredentials(credentials prismgoclient.Credentials) error {
