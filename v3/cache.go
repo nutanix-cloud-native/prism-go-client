@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
@@ -101,12 +101,33 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 	// validation hash is different, regenerate the client
 	c.Delete(cachedClientParams)
 
+	// Cache the management endpoint to avoid multiple calls and enable defensive checks
+	managementEndpoint := cachedClientParams.ManagementEndpoint()
+
+	// Defensive programming: check for nil Address pointer
+	if managementEndpoint.Address == nil {
+		return nil, fmt.Errorf("management endpoint address is nil for cachedClientParams with key %s", cachedClientParams.Key())
+	}
+
+	// Defensive programming: validate required fields
+	if managementEndpoint.Address.Host == "" {
+		return nil, fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", cachedClientParams.Key())
+	}
+
+	if managementEndpoint.ApiCredentials.Username == "" {
+		return nil, fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", cachedClientParams.Key())
+	}
+
+	if managementEndpoint.ApiCredentials.Password == "" {
+		return nil, fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", cachedClientParams.Key())
+	}
+
 	credentials := prismgoclient.Credentials{
-		URL:         cachedClientParams.ManagementEndpoint().Address.Host,
-		Endpoint:    cachedClientParams.ManagementEndpoint().Address.Host,
-		Insecure:    cachedClientParams.ManagementEndpoint().Insecure,
-		Username:    cachedClientParams.ManagementEndpoint().ApiCredentials.Username,
-		Password:    cachedClientParams.ManagementEndpoint().ApiCredentials.Password,
+		URL:         managementEndpoint.Address.Host,
+		Endpoint:    managementEndpoint.Address.Host,
+		Insecure:    managementEndpoint.Insecure,
+		Username:    managementEndpoint.ApiCredentials.Username,
+		Password:    managementEndpoint.ApiCredentials.Password,
 		SessionAuth: c.useSessionAuth,
 	}
 
@@ -115,8 +136,8 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	if cachedClientParams.ManagementEndpoint().AdditionalTrustBundle != "" {
-		opts = append(opts, WithPEMEncodedCertBundle([]byte(cachedClientParams.ManagementEndpoint().AdditionalTrustBundle)))
+	if managementEndpoint.AdditionalTrustBundle != "" {
+		opts = append(opts, WithPEMEncodedCertBundle([]byte(managementEndpoint.AdditionalTrustBundle)))
 	}
 
 	client, err = NewV3Client(credentials, opts...)
