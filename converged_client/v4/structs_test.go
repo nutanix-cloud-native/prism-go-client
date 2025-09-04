@@ -13,21 +13,13 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	"github.com/stretchr/testify/assert"
-<<<<<<< HEAD
 	"k8s.io/utils/ptr"
-=======
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 )
 
 // Test entity for testing purposes
 type TestEntity struct {
-<<<<<<< HEAD
 	ExtId *string
 	Name  *string
-=======
-	ID   string
-	Name string
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 }
 
 func TestNewClient(t *testing.T) {
@@ -110,6 +102,7 @@ func TestNewClient(t *testing.T) {
 				}
 				assert.NoError(t, err)
 				assert.NotNil(t, client)
+				assert.NotNil(t, client.Categories)
 				assert.NotNil(t, client.VMs)
 				assert.NotNil(t, client.client) // Test that the internal client is set
 			}
@@ -121,11 +114,7 @@ func TestNewOperation(t *testing.T) {
 	taskUUID := "test-task-uuid"
 	mockClient := &v4prismGoClient.Client{}
 	entityGetter := func(ctx context.Context, uuid string) (*TestEntity, error) {
-<<<<<<< HEAD
 		return &TestEntity{ExtId: ptr.To(uuid), Name: ptr.To("test")}, nil
-=======
-		return &TestEntity{ID: uuid, Name: "test"}, nil
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 	}
 
 	operation := NewOperation[TestEntity](taskUUID, mockClient, entityGetter)
@@ -210,15 +199,9 @@ func TestOperation_Results(t *testing.T) {
 		{
 			name:           "task succeeded with results",
 			taskStatus:     converged.TaskStatusSucceeded,
-<<<<<<< HEAD
 			result:         []*TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test")}},
 			expectedError:  nil,
 			expectedResult: []*TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test")}},
-=======
-			result:         []*TestEntity{{ID: "1", Name: "test"}},
-			expectedError:  nil,
-			expectedResult: []*TestEntity{{ID: "1", Name: "test"}},
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 		},
 	}
 
@@ -313,13 +296,8 @@ func TestOperation_setResults(t *testing.T) {
 	operation := NewOperation[TestEntity]("test", nil, nil)
 
 	results := []*TestEntity{
-<<<<<<< HEAD
 		{ExtId: ptr.To("1"), Name: ptr.To("test1")},
 		{ExtId: ptr.To("2"), Name: ptr.To("test2")},
-=======
-		{ID: "1", Name: "test1"},
-		{ID: "2", Name: "test2"},
->>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 	}
 
 	operation.setResults(results)
@@ -375,15 +353,145 @@ func (m *MockAPIResponse) GetData() interface{} {
 	return m.data
 }
 
-// MockResponse for NewIterator tests
-type MockResponse struct {
-	Entities []TestEntity `json:"entities"`
-	Metadata *TestMetadata
-}
+func TestNewIterator(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &v4prismGoClient.Client{}
 
-// Implement APIResponse interface
-func (m MockResponse) GetData() interface{} {
-	return m.Entities
+	// Test with successful API call
+	t.Run("successful iteration", func(t *testing.T) {
+		listFunc := func(ctx context.Context, params *V4ODataParams) (*MockAPIResponse, error) {
+			return &MockAPIResponse{
+				data: []TestEntity{
+					{ExtId: ptr.To("1"), Name: ptr.To("test1")},
+					{ExtId: ptr.To("2"), Name: ptr.To("test2")},
+				},
+				Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
+			}, nil
+		}
+
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		assert.NotNil(t, iterator)
+
+		// Test that we can iterate through the results
+		var results []TestEntity
+		for entity, err := range iterator {
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			results = append(results, entity)
+		}
+
+		assert.Len(t, results, 2)
+		assert.Equal(t, "test1", *results[0].Name)
+		assert.Equal(t, "test2", *results[1].Name)
+	})
+
+	// Test with API error
+	t.Run("API error", func(t *testing.T) {
+		listFunc := func(ctx context.Context, params *V4ODataParams) (*MockAPIResponse, error) {
+			return nil, errors.New("API error")
+		}
+
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		assert.NotNil(t, iterator)
+
+		// Test that we get the error
+		var hasError bool
+		for _, err := range iterator {
+			if err != nil {
+				hasError = true
+				assert.Contains(t, err.Error(), "API error")
+				break
+			}
+		}
+		assert.True(t, hasError)
+	})
+
+	// Test with context cancellation
+	t.Run("context cancellation", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // Cancel immediately
+
+		listFunc := func(ctx context.Context, params *V4ODataParams) (*MockAPIResponse, error) {
+			return &MockAPIResponse{
+				data:     []TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test1")}},
+				Metadata: &TestMetadata{TotalAvailableResults: ptr.To(1)},
+			}, nil
+		}
+
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		assert.NotNil(t, iterator)
+
+		// Should not yield any results due to context cancellation
+		var count int
+		for range iterator {
+			count++
+		}
+		assert.Equal(t, 0, count)
+	})
+
+	// Test with pagination
+	t.Run("pagination", func(t *testing.T) {
+		pageCount := 0
+		listFunc := func(ctx context.Context, params *V4ODataParams) (*MockAPIResponse, error) {
+			pageCount++
+			if pageCount == 1 {
+				return &MockAPIResponse{
+					data:     []TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test1")}},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
+				}, nil
+			} else {
+				return &MockAPIResponse{
+					data:     []TestEntity{{ExtId: ptr.To("2"), Name: ptr.To("test2")}},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
+				}, nil
+			}
+		}
+
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		assert.NotNil(t, iterator)
+
+		var results []TestEntity
+		for entity, err := range iterator {
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			results = append(results, entity)
+		}
+
+		assert.Len(t, results, 2)
+		assert.Equal(t, 2, pageCount) // Should have made 2 API calls
+	})
+
+	// Test with options
+	t.Run("with options", func(t *testing.T) {
+		listFunc := func(ctx context.Context, params *V4ODataParams) (*MockAPIResponse, error) {
+			// Verify that options are passed correctly
+			assert.NotNil(t, params)
+			return &MockAPIResponse{
+				data:     []TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test1")}},
+				Metadata: &TestMetadata{TotalAvailableResults: ptr.To(1)},
+			}, nil
+		}
+
+		options := []converged.ODataOption{
+			converged.WithPage(0),
+			converged.WithLimit(10),
+		}
+
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc, options...)
+		assert.NotNil(t, iterator)
+
+		var results []TestEntity
+		for entity, err := range iterator {
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			results = append(results, entity)
+		}
+
+		assert.Len(t, results, 1)
+	})
 }
 
 // Test helper types and functions
