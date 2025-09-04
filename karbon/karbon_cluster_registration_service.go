@@ -152,7 +152,7 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonMetrics(ctx co
 // GetK8sClusterRegistrationKubeconfig gets the k8s cluster registration kubeconfig
 func (op ClusterRegistrationOperations) GetK8sClusterRegistrationKubeconfig(ctx context.Context, k8sClusterUUID string) (*K8sClusterKubeconfigResponse, error) {
 	if k8sClusterUUID == "" {
-		return nil, fmt.Errorf("k8sClusterUUID must not be empty")
+		return nil, fmt.Errorf("UUID must not be empty")
 	}
 
 	path := fmt.Sprintf("/v1-alpha.1/k8s/cluster-registrations/%s/kubeconfig", k8sClusterUUID)
