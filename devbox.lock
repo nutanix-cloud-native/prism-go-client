@@ -581,6 +581,54 @@
         }
       }
     },
+    "mockgen@latest": {
+      "last_modified": "2025-08-11T16:06:55Z",
+      "resolved": "github:NixOS/nixpkgs/4e942f9ef5b35526597c354d1ded817d1c285ef1#mockgen",
+      "source": "devbox-search",
+      "version": "0.5.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/d1fdrkaksgjc8f1ynrnjlv34rhgb44ma-mockgen-0.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/d1fdrkaksgjc8f1ynrnjlv34rhgb44ma-mockgen-0.5.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0qzg86196r5zs60izwz7gmcj9pfps1pm-mockgen-0.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0qzg86196r5zs60izwz7gmcj9pfps1pm-mockgen-0.5.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hvggqi06mlh6xp1i2nr52frqlxx1xclp-mockgen-0.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hvggqi06mlh6xp1i2nr52frqlxx1xclp-mockgen-0.5.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2l40whxyslw01mw2j4zgs8x50d6klfmk-mockgen-0.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2l40whxyslw01mw2j4zgs8x50d6klfmk-mockgen-0.5.2"
+        }
+      }
+    },
     "yamllint@latest": {
       "last_modified": "2024-07-31T08:48:38Z",
       "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#yamllint",
