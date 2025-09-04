@@ -1,6 +1,9 @@
 package facade
 
-import "iter"
+import (
+	"context"
+	"iter"
+)
 
 type FacadeClientV4 interface {
 	AntiAffinityPolicyFacadeV4
@@ -82,7 +85,7 @@ const (
 )
 
 type TaskWaiter[T any] interface {
-	WaitForTaskCompletion() ([]*T, error)
+	WaitForTaskCompletion(ctx context.Context) ([]*T, error)
 	GetTaskUUID() string
 	GetTaskStatus() TaskStatus
 	GetTaskErrors() []error
@@ -91,7 +94,7 @@ type TaskWaiter[T any] interface {
 // NoEntity is a placeholder for cases where no entity is returned (e.g. delete operations).
 type NoEntity interface{}
 
-func NoEntityGetter(uuid string) (*NoEntity, error) {
+func NoEntityGetter(ctx context.Context, uuid string) (*NoEntity, error) {
 	return nil, nil
 }
 
