@@ -1,8 +1,7 @@
 /.cache
 /.work
 /_output
-cover.out
-coverage.out
+*.out
 /vendor
 /.vendor-new
 .DS_Store

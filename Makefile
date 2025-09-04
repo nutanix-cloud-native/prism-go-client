@@ -2,6 +2,9 @@ SHELL := /bin/bash
 BINARY_NAME=nutanixclient
 EXPORT_RESULT?=false # for CI please set EXPORT_RESULT to true
 
+# Ensure GOROOT is set
+export GOROOT=$(shell go env GOROOT)
+
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 WHITE  := $(shell tput -Txterm setaf 7)
@@ -30,6 +33,14 @@ stop-keploy:
 
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
+
+generate-mocks: ## Generate mocks
+	@echo "Generating mocks..."
+	@mkdir -p converged/mocks
+	@mockgen -source=converged/vms.go -destination=converged/mocks/vms_mock.go -package=mocks
+	@mockgen -source=converged/converged.go -destination=converged/mocks/converged_mock.go -package=mocks
+	@echo "Mocks generated successfully"
+
 
 generate-v3-models: ## Generate V3 models using go-swagger
 	swagger generate model \
