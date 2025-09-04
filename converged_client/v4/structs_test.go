@@ -13,13 +13,21 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	"github.com/stretchr/testify/assert"
+<<<<<<< HEAD
 	"k8s.io/utils/ptr"
+=======
+>>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 )
 
 // Test entity for testing purposes
 type TestEntity struct {
+<<<<<<< HEAD
 	ExtId *string
 	Name  *string
+=======
+	ID   string
+	Name string
+>>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 }
 
 func TestNewClient(t *testing.T) {
@@ -113,7 +121,11 @@ func TestNewOperation(t *testing.T) {
 	taskUUID := "test-task-uuid"
 	mockClient := &v4prismGoClient.Client{}
 	entityGetter := func(ctx context.Context, uuid string) (*TestEntity, error) {
+<<<<<<< HEAD
 		return &TestEntity{ExtId: ptr.To(uuid), Name: ptr.To("test")}, nil
+=======
+		return &TestEntity{ID: uuid, Name: "test"}, nil
+>>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 	}
 
 	operation := NewOperation[TestEntity](taskUUID, mockClient, entityGetter)
@@ -198,9 +210,15 @@ func TestOperation_Results(t *testing.T) {
 		{
 			name:           "task succeeded with results",
 			taskStatus:     converged.TaskStatusSucceeded,
+<<<<<<< HEAD
 			result:         []*TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test")}},
 			expectedError:  nil,
 			expectedResult: []*TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("test")}},
+=======
+			result:         []*TestEntity{{ID: "1", Name: "test"}},
+			expectedError:  nil,
+			expectedResult: []*TestEntity{{ID: "1", Name: "test"}},
+>>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 		},
 	}
 
@@ -295,8 +313,13 @@ func TestOperation_setResults(t *testing.T) {
 	operation := NewOperation[TestEntity]("test", nil, nil)
 
 	results := []*TestEntity{
+<<<<<<< HEAD
 		{ExtId: ptr.To("1"), Name: ptr.To("test1")},
 		{ExtId: ptr.To("2"), Name: ptr.To("test2")},
+=======
+		{ID: "1", Name: "test1"},
+		{ID: "2", Name: "test2"},
+>>>>>>> 2c5bf3c (Base structures and VM interfaces for Converged Client)
 	}
 
 	operation.setResults(results)
