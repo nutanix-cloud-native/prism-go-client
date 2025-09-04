@@ -31,6 +31,14 @@ stop-keploy:
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
 
+generate-mocks: ## Generate mocks using uber/mock mockgen
+	@echo "Generating mocks with uber/mock mockgen..."
+	@mkdir -p converged_client/mocks
+	@devbox run mockgen -source=converged_client/vms.go -destination=converged_client/mocks/vms_mock.go -package=mocks
+	@devbox run mockgen -source=converged_client/converged.go -destination=converged_client/mocks/converged_mock.go -package=mocks
+	@devbox run mockgen -source=converged_client/categories.go -destination=converged_client/mocks/categories_mock.go -package=mocks
+	@echo "Mocks generated successfully"
+
 generate-v3-models: ## Generate V3 models using go-swagger
 	swagger generate model \
 		--spec=v3/swagger.json \
