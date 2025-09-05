@@ -215,7 +215,6 @@ type K8sClusterKubeconfigDeleteResponse struct {
 }
 
 type PatchK8sClusterRegistrationParams struct {
-
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
@@ -232,14 +231,12 @@ type PatchK8sClusterRegistrationParams struct {
 }
 
 type K8sClusterKubeconfigUpdateRequest struct {
-
 	// Base64 encoded kubeconfig YAML content
 	// Required: true
 	Kubeconfig *string `json:"kubeconfig"`
 }
 
 type K8sClusterKubeconfigUpdateResponse struct {
-
 	// task uuid
 	// Required: true
 	TaskUUID *string `json:"task_uuid"`
