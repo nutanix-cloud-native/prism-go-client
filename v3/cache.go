@@ -112,8 +112,8 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 		URL:         managementEndpoint.Address.Host,
 		Endpoint:    managementEndpoint.Address.Host,
 		Insecure:    managementEndpoint.Insecure,
-		Username:    managementEndpoint.ApiCredentials.Username,
-		Password:    managementEndpoint.ApiCredentials.Password,
+		Username:    managementEndpoint.Username,
+		Password:    managementEndpoint.Password,
 		SessionAuth: c.useSessionAuth,
 	}
 
@@ -172,11 +172,11 @@ func validateManagementEndpoint(endpoint types.ManagementEndpoint, key string) e
 		return fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", key)
 	}
 
-	if endpoint.ApiCredentials.Username == "" {
+	if endpoint.Username == "" {
 		return fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", key)
 	}
 
-	if endpoint.ApiCredentials.Password == "" {
+	if endpoint.Password == "" {
 		return fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", key)
 	}
 
