@@ -1,5 +1,7 @@
 package karbon
 
+import "net/http"
+
 type K8sCreateClusterRegistrationResponse struct {
 	// cluster name
 	// Required: true
@@ -208,6 +210,37 @@ type DeleteK8sRegistrationKubeconfigParams struct {
 
 type K8sClusterKubeconfigDeleteResponse struct {
 	// The UUID of the task tracking the Kubernetes cluster kubeconfig deletion.
+	// Required: true
+	TaskUUID *string `json:"task_uuid"`
+}
+
+type PatchK8sClusterRegistrationParams struct {
+
+	// HTTP Request Object
+	HTTPRequest *http.Request `json:"-"`
+
+	/*Update the cluster registration parameters
+	  Required: true
+	  In: body
+	*/
+	Body *K8sClusterKubeconfigUpdateRequest
+	/*Kubernetes cluster registration UUID.
+	  Required: true
+	  In: path
+	*/
+	ID string
+}
+
+type K8sClusterKubeconfigUpdateRequest struct {
+
+	// Base64 encoded kubeconfig YAML content
+	// Required: true
+	Kubeconfig *string `json:"kubeconfig"`
+}
+
+type K8sClusterKubeconfigUpdateResponse struct {
+
+	// task uuid
 	// Required: true
 	TaskUUID *string `json:"task_uuid"`
 }

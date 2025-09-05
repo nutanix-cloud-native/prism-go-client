@@ -19,6 +19,7 @@ type ClusterRegistrationOperations struct {
 type ClusterRegistrationService interface {
 	// Cluster Registration
 	CreateK8sRegistration(ctx context.Context, createRequest *K8sCreateClusterRegistrationRequest) (*K8sCreateClusterRegistrationResponse, error)
+	UpdateK8sRegistration(ctx context.Context, updaetRequest *PatchK8sClusterRegistrationParams) (*K8sClusterKubeconfigUpdateResponse, error)
 	DeleteK8sRegistration(ctx context.Context, uuid string, params DeleteK8sRegistrationParams) (*K8sClusterRegistrationDeleteResponse, error)
 	DeleteK8sRegistrationKubeconfig(ctx context.Context, uuid string, params DeleteK8sRegistrationKubeconfigParams) (*K8sClusterKubeconfigDeleteResponse, error)
 	GetK8sRegistration(ctx context.Context, UUID string) (*K8sClusterRegistration, error)
@@ -40,6 +41,19 @@ func (op ClusterRegistrationOperations) CreateK8sRegistration(ctx context.Contex
 		return nil, err
 	}
 	return k8sCreateClusterRegistrationResponse, nil
+}
+
+func (op ClusterRegistrationOperations) UpdateK8sRegistration(ctx context.Context, updaetRequest *PatchK8sClusterRegistrationParams) (*K8sClusterKubeconfigUpdateResponse, error) {
+	path := "/v1-alpha.1/k8s/cluster-registrations/"
+	req, err := op.httpClient.NewRequest(http.MethodPatch, path, updaetRequest)
+	if err != nil {
+		return nil, err
+	}
+	k8sClusterKubeconfigUpdateResponse := new(K8sClusterKubeconfigUpdateResponse)
+	if err := op.httpClient.Do(ctx, req, k8sClusterKubeconfigUpdateResponse); err != nil {
+		return nil, err
+	}
+	return k8sClusterKubeconfigUpdateResponse, nil
 }
 
 // DeleteK8sRegistration deletes the k8s registration with UUID

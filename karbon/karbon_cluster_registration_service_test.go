@@ -214,6 +214,90 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseCreateReg.TaskUUID, creds)
 }
 
+func TestKarbonUpdateClusterRegistration(t *testing.T) {
+	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
+	creds := testhelpers.CredentialsFromEnvironment(t)
+
+	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, nkeClient)
+
+	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
+	require.NoError(t, err)
+	require.NotNil(t, v3Client)
+
+	kctx := mock.NewContext(mock.Config{
+		Mode: keploy.MODE_TEST,
+		Name: t.Name(),
+	})
+
+	test_cluster_name := strings.ToLower("cluster1")
+	test_cluster_uuid := strings.ToLower("634F5852-CE1B-465C-A95A-9B8DFFBDDE42")
+	test_category_mapping := map[string]string{
+		fmt.Sprintf("kubernetes-io-cluster-%s", test_cluster_name): "owned",
+		"KubernetesClusterName": test_cluster_name,
+		"KubernetesClusterUUID": test_cluster_uuid,
+	}
+	test_metadata_apiversion := "v1.1.0"
+	test_k8s_distribution := "Openshift"
+	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
+	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	if err == nil {
+		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
+		// Registration exists. delete it so that we can create it
+		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		assert.NoError(t, err)
+
+		// Valid k8s cluster registration delete response
+		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
+
+		// Get task uuid status and to check if the task complete successfully before timeout
+		require.NotNil(t, responseDelReg.TaskUUID)
+		validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseDelReg.TaskUUID, creds)
+	}
+
+	createRequest := &K8sCreateClusterRegistrationRequest{
+		Name:              &test_cluster_name,
+		UUID:              &test_cluster_uuid,
+		CategoriesMapping: test_category_mapping,
+		Metadata:          test_metadata,
+		K8sDistribution:   &test_k8s_distribution,
+	}
+
+	// returns type K8sCreateClusterRegistrationResponse
+	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	assert.NoError(t, err)
+
+	// Valid k8s cluster registration create response
+	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
+
+	// Get task uuid status and to check if the task complete successfully before timeout
+	require.NotNil(t, responseCreateReg.TaskUUID)
+	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseCreateReg.TaskUUID, creds)
+
+	// Construct patch request to update kubeconfig or metadata
+	base64EncodedKubeconfig := "c2FtcGxla3ViZWNvbmZpZw=="
+	kubeConfig := &K8sClusterKubeconfigUpdateRequest{
+		Kubeconfig: &base64EncodedKubeconfig,
+	}
+
+	updateReq := &PatchK8sClusterRegistrationParams{
+		ID:   test_cluster_uuid,
+		Body: kubeConfig,
+	}
+
+	// Call the Update (PATCH) operation
+	responseUpdate, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistration(kctx, updateReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, *responseUpdate.TaskUUID)
+	require.NotNil(t, responseUpdate.TaskUUID)
+	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseUpdate.TaskUUID, creds)
+	// Get the kubeconfig of the registered cluster
+	kubeconfigResponse, err := nkeClient.ClusterRegistrationOperations.GetK8sClusterRegistrationKubeconfig(kctx, test_cluster_uuid)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, *kubeconfigResponse.KubeconfigChecksum)
+}
+
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
