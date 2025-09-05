@@ -2,12 +2,17 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func (m *ManagementEndpoint) MarshalJSON() ([]byte, error) {
+	return nil, fmt.Errorf("test error")
+}
 
 func TestApiCredentials(t *testing.T) {
 	t.Run("JSON serialization", func(t *testing.T) {
