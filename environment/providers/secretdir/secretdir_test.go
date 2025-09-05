@@ -34,11 +34,11 @@ func TestBasicAuth(t *testing.T) {
 	g.Expect(err).To(Succeed())
 	defer func() {
 		if !t.Failed() {
-			os.RemoveAll(path)
+			_ = os.RemoveAll(path)
 		}
 	}()
 	t.Logf("Temporary directory %s", path)
-	os.Setenv(envSecretDir, path)
+	_ = os.Setenv(envSecretDir, path)
 	ip := rand.String(10)
 	user := rand.String(10)
 	passwd := rand.String(10)
@@ -61,13 +61,13 @@ func TestTLSAuth(t *testing.T) {
 	g.Expect(err).To(Succeed())
 	defer func() {
 		if !t.Failed() {
-			os.RemoveAll(path)
+			_ = os.RemoveAll(path)
 		}
 	}()
 	ip := rand.String(10)
 	cert := rand.String(512)
 	t.Logf("Temporary directory %s", path)
-	os.Setenv(envSecretDir, path)
+	_ = os.Setenv(envSecretDir, path)
 	g.Expect(writeParam(t, path, secretKeyCertName, cert)).To(Succeed())
 	g.Expect(writeParam(t, path, secretKeyEndpoint,
 		fmt.Sprintf("%s:9440", ip))).To(Succeed())
@@ -87,7 +87,7 @@ func TestNutanixAuth(t *testing.T) {
 	g.Expect(err).To(Succeed())
 	defer func() {
 		if !t.Failed() {
-			os.RemoveAll(path)
+			_ = os.RemoveAll(path)
 		}
 	}()
 	ip := rand.String(10)
@@ -109,7 +109,7 @@ func TestNutanixAuth(t *testing.T) {
 	`, user, passwd)
 	endpoint := fmt.Sprintf("%s:9440", ip)
 	t.Logf("Temporary directory %s", path)
-	os.Setenv(envSecretDir, path)
+	_ = os.Setenv(envSecretDir, path)
 
 	// Write three keys
 	g.Expect(writeParam(t, path, secretKeyCredentials, creds)).To(Succeed())
