@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
@@ -101,18 +101,25 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 	// validation hash is different, regenerate the client
 	c.Delete(cachedClientParams)
 
+	// Cache the management endpoint to avoid multiple calls and enable defensive checks
+	managementEndpoint := cachedClientParams.ManagementEndpoint()
+
+	if err := validateManagementEndpoint(managementEndpoint, cachedClientParams.Key()); err != nil {
+		return nil, err
+	}
+
 	credentials := prismgoclient.Credentials{
-		URL:         cachedClientParams.ManagementEndpoint().Address.Host,
-		Endpoint:    cachedClientParams.ManagementEndpoint().Address.Host,
-		Insecure:    cachedClientParams.ManagementEndpoint().Insecure,
-		Username:    cachedClientParams.ManagementEndpoint().ApiCredentials.Username,
-		Password:    cachedClientParams.ManagementEndpoint().ApiCredentials.Password,
+		URL:         managementEndpoint.Address.Host,
+		Endpoint:    managementEndpoint.Address.Host,
+		Insecure:    managementEndpoint.Insecure,
+		Username:    managementEndpoint.ApiCredentials.Username,
+		Password:    managementEndpoint.ApiCredentials.Password,
 		SessionAuth: c.useSessionAuth,
 	}
 
 	// TODO(sid): v4 SDK doesn't have trust bundle as an input. Until we have a better solution, we will
 	// set Insecure to true if trust bundle is provided to avoid breaking existing consumers of v3 SDK.
-	if cachedClientParams.ManagementEndpoint().AdditionalTrustBundle != "" {
+	if managementEndpoint.AdditionalTrustBundle != "" {
 		credentials.Insecure = true
 	}
 
@@ -155,6 +162,26 @@ func setDefaultsForCredentials(credentials *prismgoclient.Credentials) {
 	if credentials.URL == "" {
 		credentials.URL = fmt.Sprintf("%s:%s", credentials.Endpoint, credentials.Port)
 	}
+}
+
+func validateManagementEndpoint(endpoint types.ManagementEndpoint, key string) error {
+	if endpoint.Address == nil {
+		return fmt.Errorf("management endpoint address is nil for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.Address.Host == "" {
+		return fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Username == "" {
+		return fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Password == "" {
+		return fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", key)
+	}
+
+	return nil
 }
 
 func validateCredentials(credentials prismgoclient.Credentials) error {

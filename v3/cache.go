@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 )
 
@@ -101,12 +101,19 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 	// validation hash is different, regenerate the client
 	c.Delete(cachedClientParams)
 
+	// Cache the management endpoint to avoid multiple calls and enable defensive checks
+	managementEndpoint := cachedClientParams.ManagementEndpoint()
+
+	if err := validateManagementEndpoint(managementEndpoint, cachedClientParams.Key()); err != nil {
+		return nil, err
+	}
+
 	credentials := prismgoclient.Credentials{
-		URL:         cachedClientParams.ManagementEndpoint().Address.Host,
-		Endpoint:    cachedClientParams.ManagementEndpoint().Address.Host,
-		Insecure:    cachedClientParams.ManagementEndpoint().Insecure,
-		Username:    cachedClientParams.ManagementEndpoint().ApiCredentials.Username,
-		Password:    cachedClientParams.ManagementEndpoint().ApiCredentials.Password,
+		URL:         managementEndpoint.Address.Host,
+		Endpoint:    managementEndpoint.Address.Host,
+		Insecure:    managementEndpoint.Insecure,
+		Username:    managementEndpoint.ApiCredentials.Username,
+		Password:    managementEndpoint.ApiCredentials.Password,
 		SessionAuth: c.useSessionAuth,
 	}
 
@@ -115,8 +122,8 @@ func (c *ClientCache) GetOrCreate(cachedClientParams CachedClientParams, opts ..
 		return nil, fmt.Errorf("failed to validate credentials for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	if cachedClientParams.ManagementEndpoint().AdditionalTrustBundle != "" {
-		opts = append(opts, WithPEMEncodedCertBundle([]byte(cachedClientParams.ManagementEndpoint().AdditionalTrustBundle)))
+	if managementEndpoint.AdditionalTrustBundle != "" {
+		opts = append(opts, WithPEMEncodedCertBundle([]byte(managementEndpoint.AdditionalTrustBundle)))
 	}
 
 	client, err = NewV3Client(credentials, opts...)
@@ -153,6 +160,27 @@ func setDefaultsForCredentials(credentials *prismgoclient.Credentials) {
 	if credentials.URL == "" {
 		credentials.URL = fmt.Sprintf("%s:%s", credentials.Endpoint, credentials.Port)
 	}
+}
+
+func validateManagementEndpoint(endpoint types.ManagementEndpoint, key string) error {
+	if endpoint.Address == nil {
+		return fmt.Errorf("management endpoint address is nil for cachedClientParams with key %s", key)
+	}
+
+	// Defensive programming: validate required fields
+	if endpoint.Address.Host == "" {
+		return fmt.Errorf("management endpoint address host is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Username == "" {
+		return fmt.Errorf("API credentials username is empty for cachedClientParams with key %s", key)
+	}
+
+	if endpoint.ApiCredentials.Password == "" {
+		return fmt.Errorf("API credentials password is empty for cachedClientParams with key %s", key)
+	}
+
+	return nil
 }
 
 func validateCredentials(credentials prismgoclient.Credentials) error {
