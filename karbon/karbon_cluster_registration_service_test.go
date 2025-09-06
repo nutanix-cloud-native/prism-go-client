@@ -577,14 +577,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	validateK8sClusterRegistrationAddonInfoResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateAddonInfo)
 
 	t.Log("Get Cluster registration")
-	for i := 0; i < 5; i++ {
-		responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
-		if err == nil && responseGetReg != nil {
-			break
-		}
-		t.Logf("retrying GetK8sRegistration (attempt %d): %v", i+1, err)
-		time.Sleep(2 * time.Second)
-	}
+	responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationGetResponseWithAddonInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 
