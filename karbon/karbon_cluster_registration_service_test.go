@@ -296,6 +296,12 @@ func TestKarbonUpdateClusterRegistration(t *testing.T) {
 	kubeconfigResponse, err := nkeClient.ClusterRegistrationOperations.GetK8sClusterRegistrationKubeconfig(kctx, test_cluster_uuid)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, *kubeconfigResponse.KubeconfigChecksum)
+
+	// Delete the kubeconfig of the registered cluster
+	deleteKubeconfigResponse, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistrationKubeconfig(kctx, test_cluster_uuid, DeleteK8sRegistrationKubeconfigParams{Force: false})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, *deleteKubeconfigResponse.TaskUUID)
+	require.NotNil(t, deleteKubeconfigResponse.TaskUUID)
 }
 
 func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
