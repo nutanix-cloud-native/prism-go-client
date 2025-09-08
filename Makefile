@@ -2,6 +2,11 @@ SHELL := /bin/bash
 BINARY_NAME=nutanixclient
 EXPORT_RESULT?=false # for CI please set EXPORT_RESULT to true
 
+# Add Go bin to PATH
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
+MOCKGEN := $(shell go env GOPATH)/bin/mockgen
+
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 WHITE  := $(shell tput -Txterm setaf 7)
@@ -30,6 +35,14 @@ stop-keploy:
 
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
+
+generate-mocks: $(MOCKGEN) ## Generate mocks using uber/mock mockgen
+	@echo "Generating mocks with uber/mock mockgen..."
+	@mkdir -p converged_client/mocks
+	@$(MOCKGEN) -source=converged_client/vms.go -destination=converged_client/mocks/vms_mock.go -package=mocks
+	@$(MOCKGEN) -source=converged_client/converged.go -destination=converged_client/mocks/converged_mock.go -package=mocks
+	@echo "Mocks generated successfully"
+
 
 generate-v3-models: ## Generate V3 models using go-swagger
 	swagger generate model \
