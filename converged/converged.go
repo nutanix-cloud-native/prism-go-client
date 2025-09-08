@@ -14,8 +14,9 @@ var (
 )
 
 // Client is the main struct for the converged client.
-type Client[VM any] struct {
-	VMs VMs[VM]
+type Client[Category, VM any] struct {
+	VMs        VMs[VM]
+	Categories Categories[Category]
 	// Additional service interfaces can be added here as needed.
 }
 
