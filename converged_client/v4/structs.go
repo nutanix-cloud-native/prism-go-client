@@ -35,18 +35,18 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 		return nil, err
 	}
 	client := &Client{
-		Client: converged.Client[
-			clusterModels.Cluster,
-			clusterModels.VirtualGpuProfile,
-			clusterModels.PhysicalGpuProfile,
-			prismModels.Category,
-			vmmModels.Vm,
-		]{
-			Clusters:   NewClustersService(),
-			Categories: NewCategoriesService(),
-			VMs:        NewVMsService(),
-		},
 		client: v4Client,
+	}
+	client.Client = converged.Client[
+		clusterModels.Cluster,
+		clusterModels.VirtualGpuProfile,
+		clusterModels.PhysicalGpuProfile,
+		prismModels.Category,
+		vmmModels.Vm,
+	]{
+		Clusters:   NewClustersServiceWithClient(client),
+		Categories: NewCategoriesService(),
+		VMs:        NewVMsService(),
 	}
 	return client, nil
 }
