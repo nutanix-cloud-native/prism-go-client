@@ -219,7 +219,7 @@ spec:
     objects:
         - type: error
           data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
----         
+---
 version: api.keploy.io/v1beta2
 kind: Http
 name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
@@ -273,7 +273,7 @@ spec:
     objects:
         - type: error
           data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
----          
+---
 version: api.keploy.io/v1beta2
 kind: Http
 name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
@@ -380,4 +380,4 @@ spec:
         proto_minor: 0
     objects:
         - type: error
-          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=             
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
