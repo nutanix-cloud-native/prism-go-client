@@ -12,6 +12,7 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
+	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	"k8s.io/utils/ptr"
@@ -20,7 +21,13 @@ import (
 // Client struct for converged client
 // It contains implementation for all required API operations grouped by service
 type Client struct {
-	converged.Client[prismModels.Category, vmmModels.Vm]
+	converged.Client[
+		clusterModels.Cluster,
+		clusterModels.VirtualGpuProfile,
+		clusterModels.PhysicalGpuProfile,
+		prismModels.Category,
+		vmmModels.Vm,
+	]
 
 	client *v4prismGoClient.Client
 }
@@ -33,9 +40,16 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 		return nil, err
 	}
 	client := &Client{
-		Client: converged.Client[prismModels.Category, vmmModels.Vm]{
-			VMs:        NewVMsService(v4Client),
+		Client: converged.Client[
+			clusterModels.Cluster,
+			clusterModels.VirtualGpuProfile,
+			clusterModels.PhysicalGpuProfile,
+			prismModels.Category,
+			vmmModels.Vm,
+		]{
+			Clusters:   NewClustersService(v4Client),
 			Categories: NewCategoriesService(v4Client),
+			VMs:        NewVMsService(v4Client),
 		},
 		client: v4Client,
 	}
