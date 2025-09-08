@@ -11,7 +11,7 @@ import (
 
 func TestVMsService(t *testing.T) {
 	ctx := context.Background()
-	service := NewVMsService()
+	service := NewVMsService(nil)
 	assert.NotNil(t, service)
 
 	// Test that all methods return "not implemented" errors
@@ -77,7 +77,7 @@ func TestVMsService(t *testing.T) {
 }
 
 func TestVMsServiceInterfaceCompliance(t *testing.T) {
-	service := NewVMsService()
+	service := NewVMsService(nil)
 
 	// Test that VMs service implements all required interfaces
 	var getter converged.Getter[vmmModels.Vm] = service
@@ -107,7 +107,7 @@ func TestVMsServiceInterfaceCompliance(t *testing.T) {
 
 func TestVMsServiceWithODataOptions(t *testing.T) {
 	ctx := context.Background()
-	service := NewVMsService()
+	service := NewVMsService(nil)
 
 	// Test List with OData options
 	vms, err := service.List(ctx, converged.WithPage(1), converged.WithLimit(10))
@@ -128,7 +128,7 @@ func TestVMsServiceWithODataOptions(t *testing.T) {
 
 func TestVMsServiceErrorMessages(t *testing.T) {
 	ctx := context.Background()
-	service := NewVMsService()
+	service := NewVMsService(nil)
 
 	// Test that error messages are consistent
 	_, err := service.Get(ctx, "test-uuid")
@@ -167,7 +167,7 @@ func TestVMsServiceErrorMessages(t *testing.T) {
 
 func TestVMsServiceWithNilInputs(t *testing.T) {
 	ctx := context.Background()
-	service := NewVMsService()
+	service := NewVMsService(nil)
 
 	// Test with empty UUID
 	_, err := service.Get(ctx, "")
@@ -193,7 +193,7 @@ func TestVMsServiceWithNilInputs(t *testing.T) {
 }
 
 func TestVMsServicePowerOperations(t *testing.T) {
-	service := NewVMsService()
+	service := NewVMsService(nil)
 
 	// Test PowerOnVM with different UUIDs
 	_, err := service.PowerOnVM("")
@@ -216,8 +216,8 @@ func TestVMsServicePowerOperations(t *testing.T) {
 
 func TestVMsServiceConsistency(t *testing.T) {
 	ctx := context.Background()
-	service1 := NewVMsService()
-	service2 := NewVMsService()
+	service1 := NewVMsService(nil)
+	service2 := NewVMsService(nil)
 
 	// Test that multiple instances behave consistently
 	_, err1 := service1.Get(ctx, "test-uuid")

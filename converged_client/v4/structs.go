@@ -29,7 +29,7 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 	}
 	client := &Client{
 		Client: converged.Client[vmmModels.Vm]{
-			VMs: NewVMsService(),
+			VMs: NewVMsService(v4Client),
 		},
 		client: v4Client,
 	}

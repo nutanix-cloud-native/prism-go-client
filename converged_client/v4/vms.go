@@ -5,15 +5,18 @@ import (
 	"fmt"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged_client"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
 // VMsService provides default "not implemented" implementation for all VMs interface methods.
-type VMsService struct{}
+type VMsService struct {
+	client *v4prismGoClient.Client
+}
 
 // NewVMsService creates a new VMsService instance.
-func NewVMsService() *VMsService {
-	return &VMsService{}
+func NewVMsService(client *v4prismGoClient.Client) *VMsService {
+	return &VMsService{client: client}
 }
 
 // Get returns the VM for the given UUID.
