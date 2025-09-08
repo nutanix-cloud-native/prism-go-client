@@ -1,5 +1,7 @@
 package karbon
 
+import "net/http"
+
 type K8sCreateClusterRegistrationResponse struct {
 	// cluster name
 	// Required: true
@@ -181,4 +183,61 @@ type K8sClusterResource struct {
 	Name string `json:"Name,omitempty"`
 	// UUID
 	UUID string `json:"UUID,omitempty"`
+}
+
+// K8sClusterKubeconfigResponse k8s cluster kubeconfig response
+type K8sClusterKubeconfigResponse struct {
+	// SHA-256 hash of the kubernetes cluster's kubeconfig content
+	// Required: true
+	KubeconfigChecksum *string `json:"kubeconfig_checksum"`
+
+	// Kubernetes cluster kubeconfig update status.
+	TaskStatus string `json:"task_status,omitempty"`
+
+	// The UUID of the task tracking the kubeconfig update.
+	TaskUUID string `json:"task_uuid,omitempty"`
+}
+
+// DeleteK8sRegistrationParams parameters for DeleteK8sRegistration
+type DeleteK8sRegistrationParams struct {
+	Force bool `url:"force,omitempty"`
+}
+
+// DeleteK8sRegistrationKubeconfigParams parameters for DeleteK8sRegistrationKubeconfig
+type DeleteK8sRegistrationKubeconfigParams struct {
+	Force bool `url:"force,omitempty"`
+}
+
+type K8sClusterKubeconfigDeleteResponse struct {
+	// The UUID of the task tracking the Kubernetes cluster kubeconfig deletion.
+	// Required: true
+	TaskUUID *string `json:"task_uuid"`
+}
+
+type PatchK8sClusterRegistrationParams struct {
+	// HTTP Request Object
+	HTTPRequest *http.Request `json:"-"`
+
+	/*Update the cluster registration parameters
+	  Required: true
+	  In: body
+	*/
+	Body *K8sClusterKubeconfigUpdateRequest
+	/*Kubernetes cluster registration UUID.
+	  Required: true
+	  In: path
+	*/
+	ID string
+}
+
+type K8sClusterKubeconfigUpdateRequest struct {
+	// Base64 encoded kubeconfig YAML content
+	// Required: true
+	Kubeconfig *string `json:"kubeconfig"`
+}
+
+type K8sClusterKubeconfigUpdateResponse struct {
+	// task uuid
+	// Required: true
+	TaskUUID *string `json:"task_uuid"`
 }
