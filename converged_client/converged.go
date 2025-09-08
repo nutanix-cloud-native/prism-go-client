@@ -14,9 +14,16 @@ var (
 )
 
 // Client is the main struct for the converged client.
-type Client[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Category, VM any] struct {
+type Client[
+	Cluster,
+	VirtualGpuProfile,
+	PhysicalGpuProfile,
+	Category,
+	Image,
+	VM any] struct {
 	Clusters   Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
 	Categories Categories[Category]
+	Images     Images[Image]
 	VMs        VMs[VM]
 	// Additional service interfaces can be added here as needed.
 }

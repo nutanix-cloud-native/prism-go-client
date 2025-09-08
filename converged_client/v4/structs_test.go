@@ -104,6 +104,7 @@ func TestNewClient(t *testing.T) {
 				assert.NotNil(t, client)
 				assert.NotNil(t, client.Clusters)
 				assert.NotNil(t, client.Categories)
+				assert.NotNil(t, client.Images)
 				assert.NotNil(t, client.VMs)
 				assert.NotNil(t, client.client) // Test that the internal client is set
 			}

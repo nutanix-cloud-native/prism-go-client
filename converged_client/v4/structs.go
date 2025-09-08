@@ -14,6 +14,7 @@ import (
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 	"k8s.io/utils/ptr"
 )
 
@@ -23,6 +24,7 @@ type Client struct {
 		clusterModels.VirtualGpuProfile,
 		clusterModels.PhysicalGpuProfile,
 		prismModels.Category,
+		imageModels.Image,
 		vmmModels.Vm,
 	]
 
@@ -40,8 +42,10 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			clusterModels.VirtualGpuProfile,
 			clusterModels.PhysicalGpuProfile,
 			prismModels.Category,
+			imageModels.Image,
 			vmmModels.Vm,
 		]{
+			Images:     NewImagesService(v4Client),
 			Clusters:   NewClustersService(v4Client),
 			Categories: NewCategoriesService(v4Client),
 			VMs:        NewVMsService(v4Client),
