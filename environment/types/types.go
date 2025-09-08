@@ -96,12 +96,3 @@ func GetManagementEndpointHash(endpoint ManagementEndpoint) (string, error) {
 
 	return currentValidationHash, nil
 }
-
-func IsManagementEndpointHashEqual(endpoint ManagementEndpoint, validationHash string) (bool, string, error) {
-	currentValidationHash, err := GetManagementEndpointHash(endpoint)
-	if err != nil {
-		return false, "", fmt.Errorf("failed to calculate validation hash for endpoint: %w", err)
-	}
-
-	return currentValidationHash == validationHash, currentValidationHash, nil
-}
