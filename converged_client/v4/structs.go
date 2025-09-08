@@ -32,7 +32,7 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			prismModels.Category,
 			vmmModels.Vm,
 		]{
-			Categories: NewCategoriesService(),
+			Categories: NewCategoriesService(v4Client),
 			VMs:        NewVMsService(),
 		},
 		client: v4Client,
