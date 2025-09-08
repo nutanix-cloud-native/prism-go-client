@@ -11,23 +11,23 @@ import (
 )
 
 func TestNewCategoriesService(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	assert.NotNil(t, service)
 	assert.IsType(t, &CategoriesService{}, service)
 }
 
 func TestCategoriesService_Get(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	result, err := service.Get(ctx, "test-uuid")
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "client is not initialized")
+	assert.Contains(t, err.Error(), "not implemented")
 }
 
 func TestCategoriesService_List(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -82,13 +82,13 @@ func TestCategoriesService_List(t *testing.T) {
 			result, err := service.List(ctx, tt.opts...)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
 
 func TestCategoriesService_ListAll(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -143,13 +143,13 @@ func TestCategoriesService_ListAll(t *testing.T) {
 			result, err := service.ListAll(ctx, tt.opts...)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
 
 func TestCategoriesService_NewIterator(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 
 	tests := []struct {
 		name string
@@ -207,7 +207,7 @@ func TestCategoriesService_NewIterator(t *testing.T) {
 }
 
 func TestCategoriesService_Create(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -242,13 +242,13 @@ func TestCategoriesService_Create(t *testing.T) {
 			result, err := service.Create(ctx, tt.category)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
 
 func TestCategoriesService_Update(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -293,13 +293,13 @@ func TestCategoriesService_Update(t *testing.T) {
 			result, err := service.Update(ctx, tt.uuid, tt.category)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
 
 func TestCategoriesService_Delete(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -329,13 +329,13 @@ func TestCategoriesService_Delete(t *testing.T) {
 			result, err := service.Delete(ctx, tt.uuid)
 			assert.Error(t, err)
 			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
 
 func TestCategoriesService_ContextHandling(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 
 	t.Run("context cancellation", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -344,7 +344,7 @@ func TestCategoriesService_ContextHandling(t *testing.T) {
 		result, err := service.Get(ctx, "test-uuid")
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "client is not initialized")
+		assert.Contains(t, err.Error(), "not implemented")
 	})
 
 	t.Run("context timeout", func(t *testing.T) {
@@ -354,12 +354,12 @@ func TestCategoriesService_ContextHandling(t *testing.T) {
 		result, err := service.Get(ctx, "test-uuid")
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "client is not initialized")
+		assert.Contains(t, err.Error(), "not implemented")
 	})
 }
 
 func TestCategoriesService_InterfaceCompliance(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 
 	// Test that CategoriesService implements the Categories interface
 	var _ converged.Categories[prismModels.Category] = service
@@ -381,7 +381,7 @@ func TestCategoriesService_InterfaceCompliance(t *testing.T) {
 }
 
 func TestCategoriesService_ErrorConsistency(t *testing.T) {
-	service := NewCategoriesService(nil)
+	service := NewCategoriesService()
 	ctx := context.Background()
 
 	// Test that all methods return consistent error messages
@@ -437,7 +437,7 @@ func TestCategoriesService_ErrorConsistency(t *testing.T) {
 		t.Run(method.name, func(t *testing.T) {
 			err := method.fn()
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "client is not initialized")
+			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
 }
