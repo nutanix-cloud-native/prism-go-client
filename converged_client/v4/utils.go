@@ -299,10 +299,9 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 	return result, nil
 }
 
-func GenericNewIterator[R APIResponse, T any](ctx context.Context, f *Client, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
+func GenericNewIterator[R APIResponse, T any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
 	return NewIterator[R, T](
 		ctx,
-		f.client,
 		func(ctx context.Context, reqParams *V4ODataParams) (R, error) {
 			return apiCall(ctx, reqParams)
 		},
