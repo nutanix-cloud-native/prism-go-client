@@ -18,7 +18,7 @@ func TestNtwOperations_DiscoverNodes(t *testing.T) {
 		testHTTPMethod(t, r, http.MethodGet)
 
 		// mock response
-		fmt.Fprintf(w, `[{
+		_, _ = fmt.Fprintf(w, `[{
 			"model": "XCV10",
 			"nodes": [{
 				"node_position": "A",
@@ -112,7 +112,7 @@ func TestNtwOperations_NodeNetworkDetails(t *testing.T) {
 		}
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"nodes" : [
 				{	
 					"cvm_ip" : "0.0.0.0",
@@ -205,7 +205,7 @@ func TestNtwOperations_ConfigureIPMI(t *testing.T) {
 		}
 
 		// mock response
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"blocks": [
 				{
 					"nodes":[ 

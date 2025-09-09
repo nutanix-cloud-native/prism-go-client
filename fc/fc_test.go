@@ -3,7 +3,7 @@ package foundationcentral
 import (
 	"testing"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 func TestNewFoundationCentralClient(t *testing.T) {
@@ -21,7 +21,7 @@ func TestNewFoundationCentralClient(t *testing.T) {
 	}
 	_, err := NewFoundationCentralClient(cred)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	}
 
 	// verify missing client scenario
@@ -35,7 +35,7 @@ func TestNewFoundationCentralClient(t *testing.T) {
 	}
 	FcClient2, err2 := NewFoundationCentralClient(cred2)
 	if err2 != nil {
-		t.Errorf(err2.Error())
+		t.Error(err2)
 	}
 
 	if FcClient2.client.ErrorMsg == "" {

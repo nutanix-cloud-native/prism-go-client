@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 )
@@ -51,7 +51,7 @@ func TestOperations_ListImagedNodes(t *testing.T) {
 
 	mux.HandleFunc("/api/fc/v1/imaged_nodes/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"imaged_nodes":[{"node_state": "STATE_AVAILABLE"}]}`)
+		_, _ = fmt.Fprint(w, `{"imaged_nodes":[{"node_state": "STATE_AVAILABLE"}]}`)
 	})
 
 	list := &ImagedNodesListResponse{}
@@ -110,7 +110,7 @@ func TestOperations_ListImagedClusters(t *testing.T) {
 
 	mux.HandleFunc("/api/fc/v1/imaged_clusters/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"imaged_clusters":[{"cluster_name": "Test-Cluster"}]}`)
+		_, _ = fmt.Fprint(w, `{"imaged_clusters":[{"cluster_name": "Test-Cluster"}]}`)
 	})
 
 	list := &ImagedClustersListResponse{}
@@ -171,7 +171,7 @@ func TestOperations_ListAPIKeys(t *testing.T) {
 
 	mux.HandleFunc("/api/fc/v1/api_keys/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"api_keys":[{"api_key": "00a9-23h9", "alias":"test-1"}]}`)
+		_, _ = fmt.Fprint(w, `{"api_keys":[{"api_key": "00a9-23h9", "alias":"test-1"}]}`)
 	})
 
 	list := &ListAPIKeysResponse{}
@@ -233,7 +233,7 @@ func TestOperations_GetImagedNode(t *testing.T) {
 
 	mux.HandleFunc("/api/fc/v1/imaged_nodes/0a8x-23d8", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"api_key_uuid": "234d-876f", "available": true, "cvm_ip": "10.0.0.0"}`)
+		_, _ = fmt.Fprint(w, `{"api_key_uuid": "234d-876f", "available": true, "cvm_ip": "10.0.0.0"}`)
 	})
 
 	node := &ImagedNodeDetails{}
@@ -290,7 +290,7 @@ func TestOperations_GetImagedCluster(t *testing.T) {
 
 	mux.HandleFunc("/api/fc/v1/imaged_clusters/0a8x-23d8", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"cluster_name": "test-cluster", "archived": true, "cluster_external_ip": "10.0.0.0"}`)
+		_, _ = fmt.Fprint(w, `{"cluster_name": "test-cluster", "archived": true, "cluster_external_ip": "10.0.0.0"}`)
 	})
 
 	cluster := &ImagedClusterDetails{}
@@ -348,7 +348,7 @@ func TestOperations_GetAPIKey(t *testing.T) {
 	mux.HandleFunc("/api/fc/v1/api_keys/20ca-4d4c-61fd", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
 
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"api_key": "1243-7645", 
 			"alias": "test-key",
 			"created_timestamp": "2022-04-27T05:15:59.000-07:00",
@@ -414,7 +414,7 @@ func TestOperations_CreateAPIKey(t *testing.T) {
 	mux.HandleFunc("/api/fc/v1/api_keys", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
 
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"api_key": "1243-7645", 
 			"alias": "test-key",
 			"created_timestamp": "2022-04-27T05:15:59.000-07:00",
@@ -485,7 +485,7 @@ func TestOperations_CreateCluster(t *testing.T) {
 	mux.HandleFunc("/api/fc/v1/imaged_clusters", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
 
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"imaged_cluster_uuid": "123-654-678"
 		}`)
 	})

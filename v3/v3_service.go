@@ -357,7 +357,7 @@ func (op Operations) UploadImage(ctx context.Context, uuid, filepath string) err
 	if err != nil {
 		return fmt.Errorf("error: cannot open file: %s", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	req, err := op.client.NewUploadRequest(http.MethodPut, path, file)
 	if err != nil {

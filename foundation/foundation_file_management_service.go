@@ -53,7 +53,7 @@ func (fmo FileManagementOperations) UploadImage(ctx context.Context, installerTy
 	if err != nil {
 		return nil, fmt.Errorf("error while opening file: %s", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	req, err := fmo.client.NewUnAuthUploadRequest(http.MethodPost, path, file)
 	if err != nil {
