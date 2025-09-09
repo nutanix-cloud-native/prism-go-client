@@ -29,11 +29,6 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all subnets without pagination.
-func (s *SubnetsService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]subnetModels.Subnet, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing subnets.
 func (s *SubnetsService) NewIterator(opts ...converged.ODataOption) converged.Iterator[subnetModels.Subnet] {
 	return nil
