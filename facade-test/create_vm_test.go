@@ -240,7 +240,7 @@ func TestCreateVmCases(t *testing.T) {
 	}
 }
 
-func getPeExtIds(t *testing.T) (*string, *string, error) {
+func getPeExtIds() (*string, *string, error) {
 	ctx := context.Background()
 	PEs, err := v4FacadeClient.ListAllClusters(ctx, nil, nil, nil, nil)
 	if err != nil {
