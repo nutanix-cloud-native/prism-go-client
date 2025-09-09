@@ -30,6 +30,6 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 }
 
 // NewIterator returns an iterator for listing storage containers.
-func (s *StorageContainersService) NewIterator(opts ...converged.ODataOption) converged.Iterator[scModels.StorageContainer] {
+func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[scModels.StorageContainer] {
 	return nil
 }
