@@ -30,6 +30,6 @@ func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption)
 }
 
 // NewIterator returns an iterator for listing images.
-func (s *ImagesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[imageModels.Image] {
+func (s *ImagesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[imageModels.Image] {
 	return nil
 }
