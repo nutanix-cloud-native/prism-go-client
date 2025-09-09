@@ -355,7 +355,6 @@ func (m *MockAPIResponse) GetData() interface{} {
 
 func TestNewIterator(t *testing.T) {
 	ctx := context.Background()
-	mockClient := &v4prismGoClient.Client{}
 
 	// Test with successful API call
 	t.Run("successful iteration", func(t *testing.T) {
@@ -369,7 +368,7 @@ func TestNewIterator(t *testing.T) {
 			}, nil
 		}
 
-		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, listFunc)
 		assert.NotNil(t, iterator)
 
 		// Test that we can iterate through the results
@@ -392,7 +391,7 @@ func TestNewIterator(t *testing.T) {
 			return nil, errors.New("API error")
 		}
 
-		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, listFunc)
 		assert.NotNil(t, iterator)
 
 		// Test that we get the error
@@ -419,7 +418,7 @@ func TestNewIterator(t *testing.T) {
 			}, nil
 		}
 
-		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, listFunc)
 		assert.NotNil(t, iterator)
 
 		// Should not yield any results due to context cancellation
@@ -448,7 +447,7 @@ func TestNewIterator(t *testing.T) {
 			}
 		}
 
-		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc)
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, listFunc)
 		assert.NotNil(t, iterator)
 
 		var results []TestEntity
@@ -479,7 +478,7 @@ func TestNewIterator(t *testing.T) {
 			converged.WithLimit(10),
 		}
 
-		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, mockClient, listFunc, options...)
+		iterator := NewIterator[*MockAPIResponse, TestEntity](ctx, listFunc, options...)
 		assert.NotNil(t, iterator)
 
 		var results []TestEntity

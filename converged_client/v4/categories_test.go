@@ -139,7 +139,8 @@ func TestCategoriesService_NewIterator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			iterator := service.NewIterator(tt.opts...)
+			ctx := context.Background()
+			iterator := service.NewIterator(ctx, tt.opts...)
 			assert.Nil(t, iterator)
 		})
 	}
@@ -265,9 +266,8 @@ func TestCategoriesService_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.Delete(ctx, tt.uuid)
+			err := service.Delete(ctx, tt.uuid)
 			assert.Error(t, err)
-			assert.Nil(t, result)
 			assert.Contains(t, err.Error(), "not implemented")
 		})
 	}
@@ -359,7 +359,7 @@ func TestCategoriesService_ErrorConsistency(t *testing.T) {
 		{
 			name: "Delete",
 			fn: func() error {
-				_, err := service.Delete(ctx, "test")
+				err := service.Delete(ctx, "test")
 				return err
 			},
 		},
