@@ -25,12 +25,8 @@ func (s *VMsService) Get(ctx context.Context, uuid string) (*vmmModels.Vm, error
 }
 
 // List returns a list of VMs.
+// If no page and limit are provided, the API will return all VMs.
 func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([]vmmModels.Vm, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-// ListAll returns all VMs without pagination.
-func (s *VMsService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]vmmModels.Vm, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 

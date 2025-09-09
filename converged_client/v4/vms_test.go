@@ -25,11 +25,6 @@ func TestVMsService(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 	assert.Nil(t, vms)
 
-	allVMs, err := service.ListAll(ctx)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
-	assert.Nil(t, allVMs)
-
 	iterator := service.NewIterator()
 	assert.Nil(t, iterator) // Should return nil
 
@@ -115,12 +110,6 @@ func TestVMsServiceWithODataOptions(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 	assert.Nil(t, vms)
 
-	// Test ListAll with OData options
-	allVMs, err := service.ListAll(ctx, converged.WithFilter("name eq 'test'"))
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
-	assert.Nil(t, allVMs)
-
 	// Test NewIterator with OData options
 	iterator := service.NewIterator(converged.WithOrderBy("name"))
 	assert.Nil(t, iterator)
@@ -135,9 +124,6 @@ func TestVMsServiceErrorMessages(t *testing.T) {
 	assert.Equal(t, "not implemented", err.Error())
 
 	_, err = service.List(ctx)
-	assert.Equal(t, "not implemented", err.Error())
-
-	_, err = service.ListAll(ctx)
 	assert.Equal(t, "not implemented", err.Error())
 
 	_, err = service.Create(ctx, &vmmModels.Vm{})

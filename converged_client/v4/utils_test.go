@@ -817,18 +817,22 @@ func TestOptsToV4ODataParams(t *testing.T) {
 func TestGenericListEntities(t *testing.T) {
 	tests := []struct {
 		name           string
-		apiCallResult  *TestAPIResponse
-		apiCallError   error
+		apiCallResults []*TestAPIResponse
+		apiCallErrors  []error
 		options        []converged.ODataOption
 		expectedResult []TestEntity
 		expectedError  string
+		callCount      int // Expected number of API calls
 	}{
 		{
-			name: "successful list with options",
-			apiCallResult: &TestAPIResponse{
-				data: []TestEntity{
-					{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
-					{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
+			name: "successful list with specific page",
+			apiCallResults: []*TestAPIResponse{
+				{
+					data: []TestEntity{
+						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+						{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
+					},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
 				},
 			},
 			options: []converged.ODataOption{
@@ -839,75 +843,11 @@ func TestGenericListEntities(t *testing.T) {
 				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 			},
+			callCount: 1,
 		},
 		{
-			name: "successful list without options",
-			apiCallResult: &TestAPIResponse{
-				data: []TestEntity{
-					{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
-				},
-			},
-			options: []converged.ODataOption{},
-			expectedResult: []TestEntity{
-				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
-			},
-		},
-		{
-			name:          "api call error",
-			apiCallError:  errors.New("API call failed"),
-			options:       []converged.ODataOption{},
-			expectedError: "failed to list test entities: API call failed",
-		},
-		{
-			name: "invalid options error",
-			options: []converged.ODataOption{
-				func(params converged.ODataOptions) error {
-					return errors.New("invalid option")
-				},
-			},
-			expectedError: "failed to convert options to V4ODataParams: failed to apply OData option: invalid option",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Mock API call function
-			apiCall := func(reqParams *V4ODataParams) (*TestAPIResponse, error) {
-				if tt.apiCallError != nil {
-					return nil, tt.apiCallError
-				}
-				return tt.apiCallResult, nil
-			}
-
-			// Call GenericListEntities
-			result, err := GenericListEntities[*TestAPIResponse, TestEntity](apiCall, tt.options, "test entities")
-
-			// Verify results
-			if tt.expectedError != "" {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedResult, result)
-			}
-		})
-	}
-}
-
-func TestGenericListAllEntities(t *testing.T) {
-	tests := []struct {
-		name           string
-		reqParams      *V4ODataParams
-		apiResponses   []*TestAPIResponse
-		apiErrors      []error
-		expectedResult []TestEntity
-		expectedError  string
-	}{
-		{
-			name:      "single page success",
-			reqParams: nil,
-			apiResponses: []*TestAPIResponse{
+			name: "successful list without page - returns all entities (single page)",
+			apiCallResults: []*TestAPIResponse{
 				{
 					data: []TestEntity{
 						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
@@ -916,17 +856,18 @@ func TestGenericListAllEntities(t *testing.T) {
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
 				},
 			},
+			options: []converged.ODataOption{
+				converged.WithLimit(10),
+			},
 			expectedResult: []TestEntity{
 				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 			},
+			callCount: 1,
 		},
 		{
-			name: "multiple pages success",
-			reqParams: &V4ODataParams{
-				Filter: ptr.To("name eq 'test'"),
-			},
-			apiResponses: []*TestAPIResponse{
+			name: "successful list without page - returns all entities (multiple pages)",
+			apiCallResults: []*TestAPIResponse{
 				{
 					data: []TestEntity{
 						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
@@ -946,34 +887,86 @@ func TestGenericListAllEntities(t *testing.T) {
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 			},
+			options: []converged.ODataOption{
+				converged.WithFilter("name eq 'test'"),
+			},
 			expectedResult: []TestEntity{
 				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 				{ExtId: ptr.To("3"), Name: ptr.To("Entity 3")},
 			},
+			callCount: 3,
 		},
 		{
-			name:      "first page error",
-			reqParams: nil,
-			apiErrors: []error{
-				errors.New("API call failed"),
-			},
-			expectedError: "failed to list all test entities: API call failed",
-		},
-		{
-			name:      "second page error",
-			reqParams: nil,
-			apiResponses: []*TestAPIResponse{
+			name: "successful list without any options - returns all entities (3 pages)",
+			apiCallResults: []*TestAPIResponse{
 				{
-					data:     []TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")}},
+					data: []TestEntity{
+						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+						{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
+					},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(6)},
+				},
+				{
+					data: []TestEntity{
+						{ExtId: ptr.To("3"), Name: ptr.To("Entity 3")},
+						{ExtId: ptr.To("4"), Name: ptr.To("Entity 4")},
+					},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(6)},
+				},
+				{
+					data: []TestEntity{
+						{ExtId: ptr.To("5"), Name: ptr.To("Entity 5")},
+						{ExtId: ptr.To("6"), Name: ptr.To("Entity 6")},
+					},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(6)},
+				},
+			},
+			options: []converged.ODataOption{},
+			expectedResult: []TestEntity{
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
+				{ExtId: ptr.To("3"), Name: ptr.To("Entity 3")},
+				{ExtId: ptr.To("4"), Name: ptr.To("Entity 4")},
+				{ExtId: ptr.To("5"), Name: ptr.To("Entity 5")},
+				{ExtId: ptr.To("6"), Name: ptr.To("Entity 6")},
+			},
+			callCount: 3,
+		},
+		{
+			name:          "api call error on first page",
+			apiCallErrors: []error{errors.New("API call failed")},
+			options:       []converged.ODataOption{},
+			expectedError: "failed to list all test entities: API call failed",
+			callCount:     1,
+		},
+		{
+			name: "api call error on subsequent page",
+			apiCallResults: []*TestAPIResponse{
+				{
+					data: []TestEntity{
+						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+					},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 			},
-			apiErrors: []error{
+			apiCallErrors: []error{
 				nil, // First call succeeds
 				errors.New("Second page failed"),
 			},
-			expectedError: "failed to list all test entities on page 1:",
+			options:       []converged.ODataOption{},
+			expectedError: "failed to list all test entities on page 1: API call failed: Second page failed",
+			callCount:     2,
+		},
+		{
+			name: "invalid options error",
+			options: []converged.ODataOption{
+				func(params converged.ODataOptions) error {
+					return errors.New("invalid option")
+				},
+			},
+			expectedError: "failed to convert options to V4ODataParams: failed to apply OData option: invalid option",
+			callCount:     0,
 		},
 	}
 
@@ -983,34 +976,38 @@ func TestGenericListAllEntities(t *testing.T) {
 
 			// Mock API call function
 			apiCall := func(reqParams *V4ODataParams) (*TestAPIResponse, error) {
-				// Verify that pagination parameters are set correctly
-				assert.NotNil(t, reqParams)
-				assert.NotNil(t, reqParams.Page)
-				assert.Equal(t, callCount, *reqParams.Page)
-				assert.Nil(t, reqParams.Limit) // Should be nil to let API use default
+				callCount++
 
-				// If original reqParams had filter, it should be preserved
-				if tt.reqParams != nil && tt.reqParams.Filter != nil {
-					assert.Equal(t, *tt.reqParams.Filter, *reqParams.Filter)
+				// Verify pagination parameters are set correctly
+				if len(tt.options) == 0 || !hasPageOption(tt.options) {
+					// When no page is specified, it should start from page 0
+					assert.NotNil(t, reqParams.Page)
+					assert.Equal(t, callCount-1, *reqParams.Page)
+					assert.Nil(t, reqParams.Limit) // Should be nil to let API use default
+				} else {
+					// When page is specified, it should use that page
+					assert.NotNil(t, reqParams.Page)
 				}
 
-				if callCount < len(tt.apiErrors) && tt.apiErrors[callCount] != nil {
-					callCount++
-					return nil, tt.apiErrors[callCount-1]
+				// Check for errors
+				if callCount <= len(tt.apiCallErrors) && tt.apiCallErrors[callCount-1] != nil {
+					return nil, tt.apiCallErrors[callCount-1]
 				}
 
-				if callCount < len(tt.apiResponses) {
-					response := tt.apiResponses[callCount]
-					callCount++
-					return response, nil
+				// Return results
+				if callCount <= len(tt.apiCallResults) {
+					return tt.apiCallResults[callCount-1], nil
 				}
 
 				t.Fatalf("Unexpected API call %d", callCount)
 				return nil, nil
 			}
 
-			// Call GenericListAllEntities
-			result, err := GenericListAllEntities[*TestAPIResponse, TestEntity](apiCall, tt.reqParams, "test entities")
+			// Call GenericListEntities
+			result, err := GenericListEntities[*TestAPIResponse, TestEntity](apiCall, tt.options, "test entities")
+
+			// Verify call count
+			assert.Equal(t, tt.callCount, callCount, "Expected %d API calls, got %d", tt.callCount, callCount)
 
 			// Verify results
 			if tt.expectedError != "" {
@@ -1023,6 +1020,21 @@ func TestGenericListAllEntities(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Helper function to check if options contain a page option
+func hasPageOption(options []converged.ODataOption) bool {
+	for _, opt := range options {
+		if opt != nil {
+			// Create a test params to see if this option sets a page
+			testParams := &V4ODataParams{}
+			_ = opt(testParams)
+			if testParams.Page != nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func TestGenericGetListIterator(t *testing.T) {
