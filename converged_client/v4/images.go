@@ -29,11 +29,6 @@ func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption)
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all images without pagination.
-func (s *ImagesService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]imageModels.Image, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing images.
 func (s *ImagesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[imageModels.Image] {
 	return nil
