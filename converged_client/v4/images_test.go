@@ -124,7 +124,8 @@ func TestImagesService_NewIterator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			iterator := service.NewIterator(tt.opts...)
+			ctx := context.Background()
+			iterator := service.NewIterator(ctx, tt.opts...)
 			assert.Nil(t, iterator)
 		})
 	}
@@ -148,7 +149,7 @@ func TestImagesInterface(t *testing.T) {
 	assert.Error(t, err)
 
 	// Test NewIterator method
-	iterator := service.NewIterator()
+	iterator := service.NewIterator(ctx)
 	assert.Nil(t, iterator)
 }
 
@@ -190,7 +191,7 @@ func TestImagesService_ClientDependency(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
-	iterator := service.NewIterator()
+	iterator := service.NewIterator(ctx)
 	assert.Nil(t, iterator)
 }
 
