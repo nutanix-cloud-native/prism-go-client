@@ -72,12 +72,11 @@ func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) CreateAsync(
 }
 
 // Delete mocks base method.
-func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) Delete(ctx context.Context, uuid string) (*AntiAffinityPolicy, error) {
+func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) Delete(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
-	ret0, _ := ret[0].(*AntiAffinityPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Delete indicates an expected call of Delete.
@@ -87,10 +86,10 @@ func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) Delete(ctx, 
 }
 
 // DeleteAsync mocks base method.
-func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) DeleteAsync(ctx context.Context, uuid string) (convergedclient.Operation[AntiAffinityPolicy], error) {
+func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) DeleteAsync(ctx context.Context, uuid string) (convergedclient.Operation[convergedclient.NoEntity], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAsync", ctx, uuid)
-	ret0, _ := ret[0].(convergedclient.Operation[AntiAffinityPolicy])
+	ret0, _ := ret[0].(convergedclient.Operation[convergedclient.NoEntity])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -136,30 +135,10 @@ func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) List(ctx any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAntiAffinityPolicies[AntiAffinityPolicy])(nil).List), varargs...)
 }
 
-// ListAll mocks base method.
-func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) ListAll(ctx context.Context, opts ...convergedclient.ODataOption) ([]AntiAffinityPolicy, error) {
+// NewIterator mocks base method.
+func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[AntiAffinityPolicy] {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ListAll", varargs...)
-	ret0, _ := ret[0].([]AntiAffinityPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAll indicates an expected call of ListAll.
-func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) ListAll(ctx any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockAntiAffinityPolicies[AntiAffinityPolicy])(nil).ListAll), varargs...)
-}
-
-// NewIterator mocks base method.
-func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[AntiAffinityPolicy] {
-	m.ctrl.T.Helper()
-	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -169,9 +148,10 @@ func (m *MockAntiAffinityPolicies[AntiAffinityPolicy]) NewIterator(opts ...conve
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockAntiAffinityPoliciesMockRecorder[AntiAffinityPolicy]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockAntiAffinityPolicies[AntiAffinityPolicy])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockAntiAffinityPolicies[AntiAffinityPolicy])(nil).NewIterator), varargs...)
 }
 
 // Update mocks base method.

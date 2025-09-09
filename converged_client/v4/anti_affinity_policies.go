@@ -30,7 +30,7 @@ func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converge
 }
 
 // NewIterator returns an iterator for listing anti-affinity policies.
-func (s *AntiAffinityPoliciesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
+func (s *AntiAffinityPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
 	return nil
 }
 
@@ -45,8 +45,8 @@ func (s *AntiAffinityPoliciesService) Update(ctx context.Context, uuid string, e
 }
 
 // Delete deletes an existing anti-affinity policy.
-func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) (*policyModels.VmAntiAffinityPolicy, error) {
-	return nil, fmt.Errorf("not implemented")
+func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) error {
+	return fmt.Errorf("not implemented")
 }
 
 // CreateAsync creates a new anti-affinity policy asynchronously.
@@ -60,6 +60,6 @@ func (s *AntiAffinityPoliciesService) UpdateAsync(ctx context.Context, uuid stri
 }
 
 // DeleteAsync deletes an existing anti-affinity policy asynchronously.
-func (s *AntiAffinityPoliciesService) DeleteAsync(ctx context.Context, uuid string) (converged.Operation[policyModels.VmAntiAffinityPolicy], error) {
+func (s *AntiAffinityPoliciesService) DeleteAsync(ctx context.Context, uuid string) (converged.Operation[converged.NoEntity], error) {
 	return nil, fmt.Errorf("not implemented")
 }
