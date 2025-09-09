@@ -1,0 +1,335 @@
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 404
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 16:59:19 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"message_info":{"Cluster Get":"Failed to determine the cluster status"}}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: POST
+        type: HTTP_CLIENT
+    req:
+        method: POST
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: |
+            {"categories_mapping":{"KubernetesClusterName":"cluster1","KubernetesClusterUUID":"634f5852-ce1b-465c-a95a-9b8dffbdde42","kubernetes-io-cluster-cluster1":"owned"},"k8s_distribution":"Openshift","metadata":{"api_version":"v1.1.0"},"name":"cluster1","uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        body_type: utf-8
+    resp:
+        status_code: 202
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 16:59:19 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"cluster_name":"cluster1","cluster_uuid":"634f5852-ce1b-465c-a95a-9b8dffbdde42","task_uuid":"21c8260e-991d-47e3-6203-4578311c5a5e"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/api/nutanix/v3/tasks/21c8260e-991d-47e3-6203-4578311c5a5e
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 16:59:22 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"api_version": "3.1", "uuid": "21c8260e-991d-47e3-6203-4578311c5a5e", "logical_timestamp": 3, "progress_message": "Register Kubernetes cluster cluster1", "operation_type": "RegisterK8s", "percentage_complete": 100, "status": "SUCCEEDED", "subtask_reference_list": [], "cluster_reference": {"kind": "cluster", "uuid": "ad024811-7f44-43e6-8176-31bdccf16dc9"}, "creation_time": "2025-09-05T16:59:19Z", "creation_time_usecs": 1757091559801260, "last_update_time": "2025-09-05T16:59:19Z", "start_time": "2025-09-05T16:59:19Z", "start_time_usecs": 1757091559811085, "completion_time": "2025-09-05T16:59:19Z", "completion_time_usecs": 1757091559838419, "entity_reference_list": [{"kind": "container_cluster", "uuid": "634f5852-ce1b-465c-a95a-9b8dffbdde42"}], "error_code": "0"}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: PATCH
+        type: HTTP_CLIENT
+    req:
+        method: PATCH
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: |
+            {"Body":{"kubeconfig":"c2FtcGxla3ViZWNvbmZpZw=="},"ID":"634f5852-ce1b-465c-a95a-9b8dffbdde42"}
+        body_type: utf-8
+    resp:
+        status_code: 202
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 16:59:19 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"task_uuid":"21c8260e-991d-47e3-6203-4578311c5a5e"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/api/nutanix/v3/tasks/21c8260e-991d-47e3-6203-4578311c5a5e
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix/v3
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 16:59:22 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: '{"api_version": "3.1", "uuid": "21c8260e-991d-47e3-6203-4578311c5a5e", "logical_timestamp": 3, "progress_message": "Register Kubernetes cluster cluster1", "operation_type": "RegisterK8s", "percentage_complete": 100, "status": "SUCCEEDED", "subtask_reference_list": [], "cluster_reference": {"kind": "cluster", "uuid": "ad024811-7f44-43e6-8176-31bdccf16dc9"}, "creation_time": "2025-09-05T16:59:19Z", "creation_time_usecs": 1757091559801260, "last_update_time": "2025-09-05T16:59:19Z", "start_time": "2025-09-05T16:59:19Z", "start_time_usecs": 1757091559811085, "completion_time": "2025-09-05T16:59:19Z", "completion_time_usecs": 1757091559838419, "entity_reference_list": [{"kind": "container_cluster", "uuid": "634f5852-ce1b-465c-a95a-9b8dffbdde42"}], "error_code": "0"}'
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: GET
+        type: HTTP_CLIENT
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/kubeconfig
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 200
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Fri, 05 Sep 2025 17:27:52 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"kubeconfig_checksum":"7b71001ea67cfdac55899d0671bfd1743860c29d7c63145e17ab377d675ea764"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=
+---
+version: api.keploy.io/v1beta2
+kind: Http
+name: TestKarbonUpdateClusterRegistration
+spec:
+    metadata:
+        name: Http
+        operation: DELETE
+        type: HTTP_CLIENT
+    req:
+        method: DELETE
+        proto_major: 1
+        proto_minor: 1
+        url: https://prism.nutanix.local:9440/karbon/v1-alpha.1/k8s/cluster-registrations/634f5852-ce1b-465c-a95a-9b8dffbdde42/kubeconfig
+        header:
+            Accept: application/json
+            Authorization: Basic YWRtaW46TnV0YW5peC4xMjM=
+            Content-Type: application/json
+            User-Agent: nutanix
+        body: ""
+        body_type: utf-8
+    resp:
+        status_code: 202
+        header:
+            Cache-Control: no-cache, no-store
+            Content-Security-Policy: 'connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; default-src ''self'' https://*.nutanix.com; frame-ancestors ''self'' https://*.nutanix.com; frame-src ''self'' https://*.nutanix.com blob: data:; img-src ''self'' blob: data:; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline'''
+            Content-Type: application/json
+            Date: Sat, 06 Sep 2025 05:35:05 GMT
+            Expires: "0"
+            Pragma: no-cache
+            Strict-Transport-Security: max-age=63072000; includeSubdomains; preload
+            Vary: Origin, Accept-Encoding
+            X-Content-Type-Options: nosniff
+            X-Dns-Prefetch-Control: "off"
+            X-Frame-Options: SAMEORIGIN
+            X-Ntnx-Env: pc
+            X-Ntnx-Product: pc.7.3.1
+            X-Permitted-Cross-Domain-Policies: master-only
+            X-Xss-Protection: 1; mode=block
+        body: |
+            {"task_uuid":"7999b2e1-f92f-4d8b-40ac-8e1d26889ff0"}
+        body_type: utf-8
+        status_message: ""
+        proto_major: 0
+        proto_minor: 0
+    objects:
+        - type: error
+          data: H4sIAAAAAAAA/wEAAP//AAAAAAAAAAA=

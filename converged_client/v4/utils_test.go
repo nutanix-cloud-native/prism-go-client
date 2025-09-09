@@ -827,8 +827,8 @@ func TestGenericListEntities(t *testing.T) {
 			name: "successful list with options",
 			apiCallResult: &TestAPIResponse{
 				data: []TestEntity{
-					{ID: "1", Name: "Entity 1"},
-					{ID: "2", Name: "Entity 2"},
+					{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+					{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 				},
 			},
 			options: []converged.ODataOption{
@@ -836,20 +836,20 @@ func TestGenericListEntities(t *testing.T) {
 				converged.WithLimit(10),
 			},
 			expectedResult: []TestEntity{
-				{ID: "1", Name: "Entity 1"},
-				{ID: "2", Name: "Entity 2"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 			},
 		},
 		{
 			name: "successful list without options",
 			apiCallResult: &TestAPIResponse{
 				data: []TestEntity{
-					{ID: "1", Name: "Entity 1"},
+					{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 				},
 			},
 			options: []converged.ODataOption{},
 			expectedResult: []TestEntity{
-				{ID: "1", Name: "Entity 1"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 			},
 		},
 		{
@@ -910,15 +910,15 @@ func TestGenericListAllEntities(t *testing.T) {
 			apiResponses: []*TestAPIResponse{
 				{
 					data: []TestEntity{
-						{ID: "1", Name: "Entity 1"},
-						{ID: "2", Name: "Entity 2"},
+						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+						{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 					},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(2)},
 				},
 			},
 			expectedResult: []TestEntity{
-				{ID: "1", Name: "Entity 1"},
-				{ID: "2", Name: "Entity 2"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 			},
 		},
 		{
@@ -929,27 +929,27 @@ func TestGenericListAllEntities(t *testing.T) {
 			apiResponses: []*TestAPIResponse{
 				{
 					data: []TestEntity{
-						{ID: "1", Name: "Entity 1"},
+						{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 					},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 				{
 					data: []TestEntity{
-						{ID: "2", Name: "Entity 2"},
+						{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
 					},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 				{
 					data: []TestEntity{
-						{ID: "3", Name: "Entity 3"},
+						{ExtId: ptr.To("3"), Name: ptr.To("Entity 3")},
 					},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 			},
 			expectedResult: []TestEntity{
-				{ID: "1", Name: "Entity 1"},
-				{ID: "2", Name: "Entity 2"},
-				{ID: "3", Name: "Entity 3"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
+				{ExtId: ptr.To("2"), Name: ptr.To("Entity 2")},
+				{ExtId: ptr.To("3"), Name: ptr.To("Entity 3")},
 			},
 		},
 		{
@@ -965,7 +965,7 @@ func TestGenericListAllEntities(t *testing.T) {
 			reqParams: nil,
 			apiResponses: []*TestAPIResponse{
 				{
-					data:     []TestEntity{{ID: "1", Name: "Entity 1"}},
+					data:     []TestEntity{{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")}},
 					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(3)},
 				},
 			},
@@ -1036,7 +1036,7 @@ func TestGenericGetListIterator(t *testing.T) {
 	apiCall := func(ctx context.Context, reqParams *V4ODataParams) (*TestAPIResponse, error) {
 		return &TestAPIResponse{
 			data: []TestEntity{
-				{ID: "1", Name: "Entity 1"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 			},
 			Metadata: &TestMetadata{TotalAvailableResults: ptr.To(1)},
 		}, nil
@@ -1065,7 +1065,8 @@ func TestGenericGetListIterator(t *testing.T) {
 
 	// Test with different entity type
 	type DifferentEntity struct {
-		ID string
+		ExtId *string
+		Name  *string
 	}
 	iterator4 := GenericNewIterator[*TestAPIResponse, DifferentEntity](ctx, client, apiCall, options, "different entities")
 	assert.NotNil(t, iterator4)
@@ -1077,7 +1078,7 @@ func TestGenericGetListIterator(t *testing.T) {
 	differentApiCall := func(ctx context.Context, reqParams *V4ODataParams) (*TestAPIResponse, error) {
 		return &TestAPIResponse{
 			data: []DifferentEntity{
-				{ID: "1"},
+				{ExtId: ptr.To("1"), Name: ptr.To("Entity 1")},
 			},
 			Metadata: &TestMetadata{TotalAvailableResults: ptr.To(1)},
 		}, nil
@@ -1098,12 +1099,12 @@ func TestGenericGetEntity(t *testing.T) {
 			name: "successful get entity",
 			apiCall: func() (*TestAPIResponse, error) {
 				return &TestAPIResponse{
-					data: TestEntity{ID: "1", Name: "Test Entity"},
+					data: TestEntity{ExtId: ptr.To("1"), Name: ptr.To("Test Entity")},
 				}, nil
 			},
 			entityName:     "test entity",
 			expectedError:  "",
-			expectedResult: &TestEntity{ID: "1", Name: "Test Entity"},
+			expectedResult: &TestEntity{ExtId: ptr.To("1"), Name: ptr.To("Test Entity")},
 		},
 		{
 			name: "API call error",

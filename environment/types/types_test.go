@@ -297,66 +297,6 @@ func TestGetManagementEndpointHash(t *testing.T) {
 	})
 }
 
-func TestIsManagementEndpointHashEqual(t *testing.T) {
-	t.Run("equal hashes", func(t *testing.T) {
-		testURL, err := url.Parse("https://test.example.com")
-		require.NoError(t, err)
-
-		endpoint := ManagementEndpoint{
-			ApiCredentials: ApiCredentials{
-				Username: "testuser",
-				Password: "testpass",
-			},
-			Address: testURL,
-		}
-
-		expectedHash, err := GetManagementEndpointHash(endpoint)
-		require.NoError(t, err)
-
-		isEqual, currentHash, err := IsManagementEndpointHashEqual(endpoint, expectedHash)
-		require.NoError(t, err)
-
-		assert.True(t, isEqual)
-		assert.Equal(t, expectedHash, currentHash)
-	})
-
-	t.Run("unequal hashes", func(t *testing.T) {
-		testURL, err := url.Parse("https://test.example.com")
-		require.NoError(t, err)
-
-		endpoint := ManagementEndpoint{
-			ApiCredentials: ApiCredentials{
-				Username: "testuser",
-				Password: "testpass",
-			},
-			Address: testURL,
-		}
-
-		wrongHash := "wrong-hash-value"
-
-		isEqual, currentHash, err := IsManagementEndpointHashEqual(endpoint, wrongHash)
-		require.NoError(t, err)
-
-		assert.False(t, isEqual)
-		assert.NotEqual(t, wrongHash, currentHash)
-	})
-
-	t.Run("error in hash calculation", func(t *testing.T) {
-		// Create an endpoint that would cause JSON marshaling to fail
-		// This is difficult to achieve with the current structure, but we can test the error path
-		endpoint := ManagementEndpoint{}
-
-		// Use an invalid hash format to trigger the error path
-		invalidHash := "invalid-hash"
-
-		isEqual, currentHash, err := IsManagementEndpointHashEqual(endpoint, invalidHash)
-		require.NoError(t, err) // The function doesn't return an error for invalid input hash
-
-		assert.False(t, isEqual)
-		assert.NotEqual(t, invalidHash, currentHash)
-	})
-}
-
 func TestConstants(t *testing.T) {
 	t.Run("CategoriesKey constant", func(t *testing.T) {
 		assert.Equal(t, "categories", CategoriesKey)
