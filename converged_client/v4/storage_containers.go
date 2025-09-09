@@ -29,11 +29,6 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all storage containers without pagination.
-func (s *StorageContainersService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]scModels.StorageContainer, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing storage containers.
 func (s *StorageContainersService) NewIterator(opts ...converged.ODataOption) converged.Iterator[scModels.StorageContainer] {
 	return nil
