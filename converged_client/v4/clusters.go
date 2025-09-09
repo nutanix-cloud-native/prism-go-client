@@ -29,11 +29,6 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all clusters without pagination.
-func (s *ClustersService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]clusterModels.Cluster, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing clusters.
 func (s *ClustersService) NewIterator(opts ...converged.ODataOption) converged.Iterator[clusterModels.Cluster] {
 	return nil
