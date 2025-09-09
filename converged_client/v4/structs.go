@@ -49,7 +49,10 @@ type Operation[T any] struct {
 }
 
 // NewOperation creates a new Operation for the given task UUID and client.
-func NewOperation[T any](taskUUID string, client *v4prismGoClient.Client, entityGetter func(ctx context.Context, uuid string) (*T, error)) *Operation[T] {
+func NewOperation[T any](
+	taskUUID string,
+	client *v4prismGoClient.Client,
+	entityGetter func(ctx context.Context, uuid string) (*T, error)) *Operation[T] {
 	return &Operation[T]{
 		lock:         &sync.Mutex{},
 		entityUUIDs:  make([]string, 0),
@@ -214,6 +217,21 @@ func (o *Operation[T]) setResults(results []*T) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 	o.result = results
+}
+
+func (o *Operation[T]) IsDone() bool {
+	return o.taskStatus == converged.TaskStatusSucceeded ||
+		o.taskStatus == converged.TaskStatusFailed ||
+		o.taskStatus == converged.TaskStatusCanceled ||
+		o.taskStatus == converged.TaskStatusCanceling
+}
+
+func (o *Operation[T]) IsSuccess() bool {
+	return o.taskStatus == converged.TaskStatusSucceeded
+}
+
+func (o *Operation[T]) IsFailed() bool {
+	return o.taskStatus == converged.TaskStatusFailed
 }
 
 type Iterator[R APIResponse, T any] struct {

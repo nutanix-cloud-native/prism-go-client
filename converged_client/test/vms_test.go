@@ -25,6 +25,7 @@ func TestVMsInterface(t *testing.T) {
 
 	mockVMs := mocks.NewMockVMs[TestVM](ctrl)
 	mockOperation := mocks.NewMockOperation[TestVM](ctrl)
+	mockOperationDelete := mocks.NewMockOperation[convergedclient.NoEntity](ctrl)
 	ctx := context.Background()
 	uuid := "test-uuid"
 	expectedVM := &TestVM{ExtId: ptr.To(uuid), Name: ptr.To("test-vm")}
@@ -42,18 +43,12 @@ func TestVMsInterface(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedVMs, resultList)
 
-	// Test ListAll
-	mockVMs.EXPECT().ListAll(ctx, gomock.Any()).Return(expectedVMs, nil)
-	resultListAll, err := mockVMs.ListAll(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedVMs, resultListAll)
-
 	// Test NewIterator
 	iterator := func(yield func(TestVM, error) bool) {
 		yield(*expectedVM, nil)
 	}
 	mockVMs.EXPECT().NewIterator(gomock.Any()).Return(iterator)
-	resultIterator := mockVMs.NewIterator()
+	resultIterator := mockVMs.NewIterator(ctx)
 	count := 0
 	for entity, err := range resultIterator {
 		assert.NoError(t, err)
@@ -75,10 +70,9 @@ func TestVMsInterface(t *testing.T) {
 	assert.Equal(t, expectedVM, resultUpdate)
 
 	// Test Delete
-	mockVMs.EXPECT().Delete(ctx, uuid).Return(expectedVM, nil)
-	resultDelete, err := mockVMs.Delete(ctx, uuid)
+	mockVMs.EXPECT().Delete(ctx, uuid).Return(nil)
+	err = mockVMs.Delete(ctx, uuid)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedVM, resultDelete)
 
 	// Test CreateAsync
 	mockVMs.EXPECT().CreateAsync(ctx, expectedVM).Return(mockOperation, nil)
@@ -93,10 +87,10 @@ func TestVMsInterface(t *testing.T) {
 	assert.Equal(t, mockOperation, operation)
 
 	// Test DeleteAsync
-	mockVMs.EXPECT().DeleteAsync(ctx, uuid).Return(mockOperation, nil)
-	operation, err = mockVMs.DeleteAsync(ctx, uuid)
+	mockVMs.EXPECT().DeleteAsync(ctx, uuid).Return(mockOperationDelete, nil)
+	operationDelete, err := mockVMs.DeleteAsync(ctx, uuid)
 	assert.NoError(t, err)
-	assert.Equal(t, mockOperation, operation)
+	assert.Equal(t, mockOperationDelete, operationDelete)
 
 	// Test PowerOnVM
 	mockVMs.EXPECT().PowerOnVM(uuid).Return(mockOperation, nil)
@@ -118,6 +112,7 @@ func TestVMsInterfaceComposition(t *testing.T) {
 
 	mockVMs := mocks.NewMockVMs[TestVM](ctrl)
 	mockOperation := mocks.NewMockOperation[TestVM](ctrl)
+	mockOperationDelete := mocks.NewMockOperation[convergedclient.NoEntity](ctrl)
 	ctx := context.Background()
 	expectedVM := &TestVM{ExtId: ptr.To("test-1"), Name: ptr.To("Test VM 1")}
 
@@ -155,10 +150,9 @@ func TestVMsInterfaceComposition(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, updatedVM, updated)
 
-	mockVMs.EXPECT().Delete(ctx, "test-1").Return(expectedVM, nil)
-	deleted, err := deleter.Delete(ctx, "test-1")
+	mockVMs.EXPECT().Delete(ctx, "test-1").Return(nil)
+	err = deleter.Delete(ctx, "test-1")
 	assert.NoError(t, err)
-	assert.Equal(t, expectedVM, deleted)
 
 	// Test async operations
 	mockVMs.EXPECT().CreateAsync(ctx, gomock.Any()).Return(mockOperation, nil)
@@ -169,7 +163,7 @@ func TestVMsInterfaceComposition(t *testing.T) {
 	_, err = asyncUpdater.UpdateAsync(ctx, "test-id", &TestVM{})
 	assert.NoError(t, err)
 
-	mockVMs.EXPECT().DeleteAsync(ctx, "test-id").Return(mockOperation, nil)
+	mockVMs.EXPECT().DeleteAsync(ctx, "test-id").Return(mockOperationDelete, nil)
 	_, err = asyncDeleter.DeleteAsync(ctx, "test-id")
 	assert.NoError(t, err)
 }
@@ -221,8 +215,8 @@ func TestVMsErrorHandling(t *testing.T) {
 	assert.Equal(t, testError, err)
 
 	// Test error handling in Delete
-	mockVMs.EXPECT().Delete(ctx, "test").Return(nil, testError)
-	_, err = mockVMs.Delete(ctx, "test")
+	mockVMs.EXPECT().Delete(ctx, "test").Return(testError)
+	err = mockVMs.Delete(ctx, "test")
 	assert.Error(t, err)
 	assert.Equal(t, testError, err)
 
@@ -263,12 +257,6 @@ func TestVMsWithODataOptions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, entities, 2)
 
-	// Test ListAll with OData options
-	mockVMs.EXPECT().ListAll(ctx, gomock.Any()).Return(expectedVMs, nil)
-	allEntities, err := mockVMs.ListAll(ctx, convergedclient.WithFilter("name eq 'Test VM 1'"))
-	assert.NoError(t, err)
-	assert.Len(t, allEntities, 2)
-
 	// Test NewIterator with OData options
 	iterator := func(yield func(TestVM, error) bool) {
 		for _, vm := range expectedVMs {
@@ -276,7 +264,7 @@ func TestVMsWithODataOptions(t *testing.T) {
 		}
 	}
 	mockVMs.EXPECT().NewIterator(gomock.Any()).Return(iterator)
-	resultIterator := mockVMs.NewIterator(convergedclient.WithOrderBy("name"))
+	resultIterator := mockVMs.NewIterator(ctx, convergedclient.WithOrderBy("name"))
 	count := 0
 	for _, err := range resultIterator {
 		assert.NoError(t, err)

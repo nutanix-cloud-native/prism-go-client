@@ -32,7 +32,7 @@ type Lister[T any] interface {
 	List(ctx context.Context, opts ...ODataOption) ([]T, error)
 
 	// NewIterator returns an iterator for listing entities.
-	NewIterator(opts ...ODataOption) Iterator[T]
+	NewIterator(ctx context.Context, opts ...ODataOption) Iterator[T]
 }
 
 // Creator is the interface for Create operations.
@@ -62,13 +62,13 @@ type AsyncUpdater[T any] interface {
 // Deleter is the interface for Delete operations.
 type Deleter[T any] interface {
 	// Delete deletes an existing entity.
-	Delete(ctx context.Context, uuid string) (*T, error)
+	Delete(ctx context.Context, uuid string) error
 }
 
 // AsyncDeleter is the interface for Async Delete operations.
 type AsyncDeleter[T any] interface {
 	// Delete deletes an existing entity.
-	DeleteAsync(ctx context.Context, uuid string) (Operation[T], error)
+	DeleteAsync(ctx context.Context, uuid string) (Operation[NoEntity], error)
 }
 
 // ODataOption is a functional option for the ODataOptions.

@@ -100,30 +100,10 @@ func (mr *MockListerMockRecorder[T]) List(ctx any, opts ...any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLister[T])(nil).List), varargs...)
 }
 
-// ListAll mocks base method.
-func (m *MockLister[T]) ListAll(ctx context.Context, opts ...convergedclient.ODataOption) ([]T, error) {
+// NewIterator mocks base method.
+func (m *MockLister[T]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[T] {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ListAll", varargs...)
-	ret0, _ := ret[0].([]T)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAll indicates an expected call of ListAll.
-func (mr *MockListerMockRecorder[T]) ListAll(ctx any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockLister[T])(nil).ListAll), varargs...)
-}
-
-// NewIterator mocks base method.
-func (m *MockLister[T]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[T] {
-	m.ctrl.T.Helper()
-	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -133,9 +113,10 @@ func (m *MockLister[T]) NewIterator(opts ...convergedclient.ODataOption) converg
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockListerMockRecorder[T]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockListerMockRecorder[T]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockLister[T])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockLister[T])(nil).NewIterator), varargs...)
 }
 
 // MockCreator is a mock of Creator interface.
@@ -319,12 +300,11 @@ func (m *MockDeleter[T]) EXPECT() *MockDeleterMockRecorder[T] {
 }
 
 // Delete mocks base method.
-func (m *MockDeleter[T]) Delete(ctx context.Context, uuid string) (*T, error) {
+func (m *MockDeleter[T]) Delete(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
-	ret0, _ := ret[0].(*T)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Delete indicates an expected call of Delete.
@@ -358,10 +338,10 @@ func (m *MockAsyncDeleter[T]) EXPECT() *MockAsyncDeleterMockRecorder[T] {
 }
 
 // DeleteAsync mocks base method.
-func (m *MockAsyncDeleter[T]) DeleteAsync(ctx context.Context, uuid string) (convergedclient.Operation[T], error) {
+func (m *MockAsyncDeleter[T]) DeleteAsync(ctx context.Context, uuid string) (convergedclient.Operation[convergedclient.NoEntity], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAsync", ctx, uuid)
-	ret0, _ := ret[0].(convergedclient.Operation[T])
+	ret0, _ := ret[0].(convergedclient.Operation[convergedclient.NoEntity])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

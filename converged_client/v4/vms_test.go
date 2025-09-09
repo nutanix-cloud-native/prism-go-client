@@ -25,7 +25,7 @@ func TestVMsService(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 	assert.Nil(t, vms)
 
-	iterator := service.NewIterator()
+	iterator := service.NewIterator(ctx)
 	assert.Nil(t, iterator) // Should return nil
 
 	created, err := service.Create(ctx, &vmmModels.Vm{})
@@ -38,10 +38,9 @@ func TestVMsService(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 	assert.Nil(t, updated)
 
-	deleted, err := service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
-	assert.Nil(t, deleted)
 
 	// Test async operations
 	operation, err := service.CreateAsync(ctx, &vmmModels.Vm{})
@@ -54,10 +53,10 @@ func TestVMsService(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 	assert.Nil(t, operation)
 
-	operation, err = service.DeleteAsync(ctx, "test-uuid")
+	operationDelete, err := service.DeleteAsync(ctx, "test-uuid")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
-	assert.Nil(t, operation)
+	assert.Nil(t, operationDelete)
 
 	// Test power operations
 	operation, err = service.PowerOnVM("test-uuid")
@@ -111,7 +110,7 @@ func TestVMsServiceWithODataOptions(t *testing.T) {
 	assert.Nil(t, vms)
 
 	// Test NewIterator with OData options
-	iterator := service.NewIterator(converged.WithOrderBy("name"))
+	iterator := service.NewIterator(ctx, converged.WithOrderBy("name"))
 	assert.Nil(t, iterator)
 }
 
@@ -132,7 +131,7 @@ func TestVMsServiceErrorMessages(t *testing.T) {
 	_, err = service.Update(ctx, "test-uuid", &vmmModels.Vm{})
 	assert.Equal(t, "not implemented", err.Error())
 
-	_, err = service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Equal(t, "not implemented", err.Error())
 
 	_, err = service.CreateAsync(ctx, &vmmModels.Vm{})
@@ -141,8 +140,9 @@ func TestVMsServiceErrorMessages(t *testing.T) {
 	_, err = service.UpdateAsync(ctx, "test-uuid", &vmmModels.Vm{})
 	assert.Equal(t, "not implemented", err.Error())
 
-	_, err = service.DeleteAsync(ctx, "test-uuid")
+	operation, err := service.DeleteAsync(ctx, "test-uuid")
 	assert.Equal(t, "not implemented", err.Error())
+	assert.Nil(t, operation)
 
 	_, err = service.PowerOnVM("test-uuid")
 	assert.Equal(t, "PowerOnVM not implemented", err.Error())

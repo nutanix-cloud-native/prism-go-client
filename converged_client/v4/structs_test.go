@@ -386,7 +386,6 @@ func TestOperation_IsDone(t *testing.T) {
 		converged.TaskStatusFailed,
 		converged.TaskStatusCanceled,
 		converged.TaskStatusCanceling,
-		converged.TaskStatusRedacted,
 	}
 
 	for _, status := range doneStates {
@@ -413,23 +412,6 @@ func TestOperation_IsFailed(t *testing.T) {
 
 	operation.setTaskStatus(converged.TaskStatusSucceeded)
 	assert.False(t, operation.IsFailed())
-}
-
-// Implement the missing methods for Operation to satisfy the converged.Operation interface
-func (o *Operation[T]) IsDone() bool {
-	return o.taskStatus == converged.TaskStatusSucceeded ||
-		o.taskStatus == converged.TaskStatusFailed ||
-		o.taskStatus == converged.TaskStatusCanceled ||
-		o.taskStatus == converged.TaskStatusCanceling ||
-		o.taskStatus == converged.TaskStatusRedacted
-}
-
-func (o *Operation[T]) IsSuccess() bool {
-	return o.taskStatus == converged.TaskStatusSucceeded
-}
-
-func (o *Operation[T]) IsFailed() bool {
-	return o.taskStatus == converged.TaskStatusFailed
 }
 
 func TestOperation_Wait(t *testing.T) {
