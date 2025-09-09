@@ -85,54 +85,6 @@ func TestImagesService_List(t *testing.T) {
 	}
 }
 
-func TestImagesService_ListAll(t *testing.T) {
-	service := NewImagesService(nil)
-	ctx := context.Background()
-
-	tests := []struct {
-		name string
-		opts []converged.ODataOption
-	}{
-		{
-			name: "no options",
-			opts: []converged.ODataOption{},
-		},
-		{
-			name: "with filter option",
-			opts: []converged.ODataOption{converged.WithFilter("name eq 'test'")},
-		},
-		{
-			name: "with order by option",
-			opts: []converged.ODataOption{converged.WithOrderBy("name")},
-		},
-		{
-			name: "with expand option",
-			opts: []converged.ODataOption{converged.WithExpand("resources")},
-		},
-		{
-			name: "with select option",
-			opts: []converged.ODataOption{converged.WithSelect("name,uuid")},
-		},
-		{
-			name: "with multiple options",
-			opts: []converged.ODataOption{
-				converged.WithFilter("name eq 'test'"),
-				converged.WithOrderBy("name"),
-				converged.WithExpand("resources"),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.ListAll(ctx, tt.opts...)
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "not implemented")
-		})
-	}
-}
-
 func TestImagesService_NewIterator(t *testing.T) {
 	service := NewImagesService(nil)
 
@@ -195,10 +147,6 @@ func TestImagesInterface(t *testing.T) {
 	_, err = service.List(ctx)
 	assert.Error(t, err)
 
-	// Test ListAll method
-	_, err = service.ListAll(ctx)
-	assert.Error(t, err)
-
 	// Test NewIterator method
 	iterator := service.NewIterator()
 	assert.Nil(t, iterator)
@@ -242,10 +190,6 @@ func TestImagesService_ClientDependency(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
-	_, err = service.ListAll(ctx)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
-
 	iterator := service.NewIterator()
 	assert.Nil(t, iterator)
 }
@@ -271,13 +215,6 @@ func TestImagesService_Consistency(t *testing.T) {
 			name: "List",
 			fn: func() error {
 				_, err := service.List(ctx)
-				return err
-			},
-		},
-		{
-			name: "ListAll",
-			fn: func() error {
-				_, err := service.ListAll(ctx)
 				return err
 			},
 		},
