@@ -3,10 +3,10 @@ package v4
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged_client"
-	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/utils/ptr"
@@ -1040,10 +1040,6 @@ func hasPageOption(options []converged.ODataOption) bool {
 func TestGenericGetListIterator(t *testing.T) {
 	ctx := context.Background()
 
-	// Create a mock client
-	mockV4Client := &v4prismGoClient.Client{}
-	client := &Client{client: mockV4Client}
-
 	// Mock API call function
 	apiCall := func(ctx context.Context, reqParams *V4ODataParams) (*TestAPIResponse, error) {
 		return &TestAPIResponse{
@@ -1061,18 +1057,13 @@ func TestGenericGetListIterator(t *testing.T) {
 	}
 
 	// Call GenericNewIterator
-	iterator := GenericNewIterator[*TestAPIResponse, TestEntity](ctx, client, apiCall, options, "test entities")
+	iterator := GenericNewIterator[*TestAPIResponse, TestEntity](ctx, apiCall, options, "test entities")
 
 	// Verify that iterator is created (not nil)
 	assert.NotNil(t, iterator)
 
-	// Test with nil client
-	nilClient := &Client{client: nil}
-	iterator2 := GenericNewIterator[*TestAPIResponse, TestEntity](ctx, nilClient, apiCall, options, "test entities")
-	assert.NotNil(t, iterator2) // Should still create iterator even with nil client
-
 	// Test with empty options
-	iterator3 := GenericNewIterator[*TestAPIResponse, TestEntity](ctx, client, apiCall, nil, "test entities")
+	iterator3 := GenericNewIterator[*TestAPIResponse, TestEntity](ctx, apiCall, nil, "test entities")
 	assert.NotNil(t, iterator3)
 
 	// Test with different entity type
@@ -1080,7 +1071,7 @@ func TestGenericGetListIterator(t *testing.T) {
 		ExtId *string
 		Name  *string
 	}
-	iterator4 := GenericNewIterator[*TestAPIResponse, DifferentEntity](ctx, client, apiCall, options, "different entities")
+	iterator4 := GenericNewIterator[*TestAPIResponse, DifferentEntity](ctx, apiCall, options, "different entities")
 	assert.NotNil(t, iterator4)
 
 	// Test that the iterator is created successfully
@@ -1095,8 +1086,254 @@ func TestGenericGetListIterator(t *testing.T) {
 			Metadata: &TestMetadata{TotalAvailableResults: ptr.To(1)},
 		}, nil
 	}
-	iterator5 := GenericNewIterator[*TestAPIResponse, DifferentEntity](ctx, client, differentApiCall, options, "different entities")
+	iterator5 := GenericNewIterator[*TestAPIResponse, DifferentEntity](ctx, differentApiCall, options, "different entities")
 	assert.NotNil(t, iterator5)
+}
+
+func TestGenericListEntitiesRealIteration(t *testing.T) {
+	tests := []struct {
+		name                string
+		pagesData           [][]TestEntity // Slice of slices - each inner slice is a page of data
+		totalEntities       int
+		options             []converged.ODataOption
+		expectedTotalCalls  int
+		expectedFinalResult []TestEntity
+		simulateError       bool
+		errorOnPage         int
+		expectedError       string
+	}{
+		{
+			name: "multiple pages - 3 pages with 2 entities each",
+			pagesData: [][]TestEntity{
+				generateTestEntities(1, 2), // Page 0: entities 1-2
+				generateTestEntities(3, 4), // Page 1: entities 3-4
+				generateTestEntities(5, 6), // Page 2: entities 5-6
+			},
+			totalEntities:       6,
+			options:             []converged.ODataOption{},
+			expectedTotalCalls:  3,
+			expectedFinalResult: generateTestEntities(1, 6),
+		},
+		{
+			name: "single page - all entities in one response",
+			pagesData: [][]TestEntity{
+				generateTestEntities(1, 5), // Page 0: entities 1-5
+			},
+			totalEntities:       5,
+			options:             []converged.ODataOption{},
+			expectedTotalCalls:  1,
+			expectedFinalResult: generateTestEntities(1, 5),
+		},
+		{
+			name: "with filter - multiple pages",
+			pagesData: [][]TestEntity{
+				generateTestEntities(1, 3), // Page 0: entities 1-3
+				generateTestEntities(4, 6), // Page 1: entities 4-6
+				generateTestEntities(7, 9), // Page 2: entities 7-9
+			},
+			totalEntities: 9,
+			options: []converged.ODataOption{
+				converged.WithFilter("name eq 'test'"),
+			},
+			expectedTotalCalls:  3,
+			expectedFinalResult: generateTestEntities(1, 9),
+		},
+		{
+			name: "large dataset - 5 pages with 3 entities each",
+			pagesData: [][]TestEntity{
+				generateTestEntities(1, 3),   // Page 0: entities 1-3
+				generateTestEntities(4, 6),   // Page 1: entities 4-6
+				generateTestEntities(7, 9),   // Page 2: entities 7-9
+				generateTestEntities(10, 12), // Page 3: entities 10-12
+				generateTestEntities(13, 15), // Page 4: entities 13-15
+			},
+			totalEntities:       15,
+			options:             []converged.ODataOption{},
+			expectedTotalCalls:  5,
+			expectedFinalResult: generateTestEntities(1, 15),
+		},
+		{
+			name: "error on second page",
+			pagesData: [][]TestEntity{
+				generateTestEntities(1, 2), // Page 0: entities 1-2
+			},
+			totalEntities:      6,
+			options:            []converged.ODataOption{},
+			expectedTotalCalls: 2,
+			simulateError:      true,
+			errorOnPage:        2,
+			expectedError:      "failed to list all test entities on page 1:",
+		},
+		{
+			name:               "error on first page",
+			pagesData:          [][]TestEntity{},
+			totalEntities:      10,
+			options:            []converged.ODataOption{},
+			expectedTotalCalls: 1,
+			simulateError:      true,
+			errorOnPage:        1,
+			expectedError:      "failed to list all test entities:",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			callCount := 0
+			var allCallsReqParams []*V4ODataParams
+
+			// Mock API call function that simulates real pagination
+			apiCall := func(reqParams *V4ODataParams) (*TestAPIResponse, error) {
+				callCount++
+				allCallsReqParams = append(allCallsReqParams, reqParams)
+
+				// Verify pagination parameters
+				assert.NotNil(t, reqParams.Page, "Page should not be nil on call %d", callCount)
+				expectedPage := callCount - 1
+				assert.Equal(t, expectedPage, *reqParams.Page, "Expected page %d on call %d", expectedPage, callCount)
+
+				// Simulate error if configured
+				if tt.simulateError && callCount == tt.errorOnPage {
+					return nil, errors.New("simulated API error")
+				}
+
+				// Return the appropriate page data for this call
+				if callCount <= len(tt.pagesData) {
+					return &TestAPIResponse{
+						data:     tt.pagesData[callCount-1],
+						Metadata: &TestMetadata{TotalAvailableResults: ptr.To(tt.totalEntities)},
+					}, nil
+				}
+
+				// If we've exhausted all pages, return empty
+				return &TestAPIResponse{
+					data:     []TestEntity{},
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(tt.totalEntities)},
+				}, nil
+			}
+
+			// Call GenericListEntities
+			result, err := GenericListEntities[*TestAPIResponse, TestEntity](apiCall, tt.options, "test entities")
+
+			// Verify call count
+			assert.Equal(t, tt.expectedTotalCalls, callCount, "Expected %d API calls, got %d", tt.expectedTotalCalls, callCount)
+
+			// Verify pagination sequence
+			for i, call := range allCallsReqParams {
+				assert.NotNil(t, call.Page, "Page should not be nil on call %d", i+1)
+				// Note: We don't verify the exact page number since the function may stop early
+				// when it has collected all entities
+
+				// When no page is specified, limit should be nil to let API use default
+				if len(tt.options) == 0 || !hasPageOption(tt.options) {
+					assert.Nil(t, call.Limit, "Limit should be nil on call %d when no page specified", i+1)
+				}
+			}
+
+			// Verify results
+			if tt.expectedError != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedFinalResult, result)
+				assert.Equal(t, tt.totalEntities, len(result), "Expected %d entities, got %d", tt.totalEntities, len(result))
+			}
+		})
+	}
+}
+
+func TestGenericListEntitiesPaginationBoundaries(t *testing.T) {
+	tests := []struct {
+		name           string
+		totalEntities  int
+		apiPageSize    int // The page size that the API actually returns
+		expectedCalls  int
+		expectedResult []TestEntity
+	}{
+		{
+			name:           "single entity",
+			totalEntities:  1,
+			apiPageSize:    10,
+			expectedCalls:  1,
+			expectedResult: generateTestEntities(1, 1),
+		},
+		{
+			name:           "exactly one page",
+			totalEntities:  5,
+			apiPageSize:    5,
+			expectedCalls:  1,
+			expectedResult: generateTestEntities(1, 5),
+		},
+		{
+			name:           "one page plus one entity",
+			totalEntities:  6,
+			apiPageSize:    5,
+			expectedCalls:  2,
+			expectedResult: generateTestEntities(1, 6),
+		},
+		{
+			name:           "large page size",
+			totalEntities:  50,
+			apiPageSize:    100,
+			expectedCalls:  1,
+			expectedResult: generateTestEntities(1, 50),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			callCount := 0
+
+			apiCall := func(reqParams *V4ODataParams) (*TestAPIResponse, error) {
+				callCount++
+
+				// Calculate which entities to return for this page based on API's page size
+				startEntity := (*reqParams.Page * tt.apiPageSize) + 1
+				endEntity := startEntity + tt.apiPageSize - 1
+				if endEntity > tt.totalEntities {
+					endEntity = tt.totalEntities
+				}
+
+				// Return empty page if we're beyond the total entities
+				if startEntity > tt.totalEntities {
+					return &TestAPIResponse{
+						data:     []TestEntity{},
+						Metadata: &TestMetadata{TotalAvailableResults: ptr.To(tt.totalEntities)},
+					}, nil
+				}
+
+				// Generate entities for this page
+				pageEntities := generateTestEntities(startEntity, endEntity)
+
+				return &TestAPIResponse{
+					data:     pageEntities,
+					Metadata: &TestMetadata{TotalAvailableResults: ptr.To(tt.totalEntities)},
+				}, nil
+			}
+
+			// Call GenericListEntities
+			result, err := GenericListEntities[*TestAPIResponse, TestEntity](apiCall, []converged.ODataOption{}, "test entities")
+
+			// Verify results
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedCalls, callCount, "Expected %d API calls, got %d", tt.expectedCalls, callCount)
+			assert.Equal(t, tt.expectedResult, result)
+			assert.Equal(t, tt.totalEntities, len(result), "Expected %d entities, got %d", tt.totalEntities, len(result))
+		})
+	}
+}
+
+// Helper function to generate test entities
+func generateTestEntities(start, end int) []TestEntity {
+	entities := make([]TestEntity, 0, end-start+1)
+	for i := start; i <= end; i++ {
+		entities = append(entities, TestEntity{
+			ExtId: ptr.To(fmt.Sprintf("%d", i)),
+			Name:  ptr.To(fmt.Sprintf("Entity %d", i)),
+		})
+	}
+	return entities
 }
 
 func TestGenericGetEntity(t *testing.T) {

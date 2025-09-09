@@ -222,7 +222,6 @@ type Iterator[R APIResponse, T any] struct {
 
 func NewIterator[R APIResponse, T any](
 	ctx context.Context,
-	client *v4prismGoClient.Client,
 	listFunc func(context.Context, *V4ODataParams) (R, error),
 	opts ...converged.ODataOption,
 ) converged.Iterator[T] {
