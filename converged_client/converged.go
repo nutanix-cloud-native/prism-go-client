@@ -28,10 +28,8 @@ type Getter[T any] interface {
 // Lister is the interface for List operations.
 type Lister[T any] interface {
 	// List returns a list of entities.
+	// If no page and limit are provided, the API will return all entities.
 	List(ctx context.Context, opts ...ODataOption) ([]T, error)
-
-	// ListAll returns all entities without pagination.
-	ListAll(ctx context.Context, opts ...ODataOption) ([]T, error)
 
 	// NewIterator returns an iterator for listing entities.
 	NewIterator(opts ...ODataOption) Iterator[T]

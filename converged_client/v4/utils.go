@@ -8,6 +8,7 @@ import (
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged_client"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	"k8s.io/utils/ptr"
 )
 
 type V4ODataParams struct {
@@ -262,31 +263,21 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 	return &result, nil
 }
 
-// Generic implementation of the Lister interface
 func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
-	reqParams, err := OptsToV4ODataParams(options...)
+	returnAll := false
 
+	reqParams, err := OptsToV4ODataParams(options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
 	}
 
-	result, err := CallAPI[R, []T](apiCall(reqParams))
-	if err != nil {
-		return nil, fmt.Errorf("failed to list %s: %w", entitiesName, err)
+	if reqParams.Page == nil {
+		returnAll = true
+		reqParams.Page = ptr.To(0)
+		reqParams.Limit = nil // Let API use the default limit
 	}
-	return result, nil
-}
 
-func GenericListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams, entitiesName string) ([]T, error) {
 	result := []T{}
-	page := 0
-
-	if reqParams == nil {
-		reqParams = &V4ODataParams{}
-	}
-
-	reqParams.Page = &page
-	reqParams.Limit = nil // Let API use the default limit
 
 	items, totalCount, err := CallListAPI[R, T](apiCall(reqParams))
 	if err != nil {
@@ -294,14 +285,15 @@ func GenericListAllEntities[R APIResponse, T any](apiCall func(reqParams *V4ODat
 	}
 	result = append(result, items...)
 
-	for len(result) < totalCount {
-		page++
-		reqParams.Page = &page
-		moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
-		if err != nil {
-			return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, page, err)
+	if returnAll {
+		for len(result) < totalCount {
+			reqParams.Page = ptr.To(*reqParams.Page + 1)
+			moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
+			if err != nil {
+				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
+			}
+			result = append(result, moreItems...)
 		}
-		result = append(result, moreItems...)
 	}
 
 	return result, nil
