@@ -30,7 +30,7 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 }
 
 // NewIterator returns an iterator for listing clusters.
-func (s *ClustersService) NewIterator(opts ...converged.ODataOption) converged.Iterator[clusterModels.Cluster] {
+func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[clusterModels.Cluster] {
 	return nil
 }
 
