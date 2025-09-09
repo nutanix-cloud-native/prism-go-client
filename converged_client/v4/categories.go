@@ -30,7 +30,7 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 }
 
 // NewIterator returns an iterator for listing categories.
-func (s *CategoriesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[prismModels.Category] {
+func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[prismModels.Category] {
 	return nil
 }
 
@@ -45,6 +45,6 @@ func (s *CategoriesService) Update(ctx context.Context, uuid string, entity *pri
 }
 
 // Delete deletes an existing category.
-func (s *CategoriesService) Delete(ctx context.Context, uuid string) (*prismModels.Category, error) {
-	return nil, fmt.Errorf("not implemented")
+func (s *CategoriesService) Delete(ctx context.Context, uuid string) error {
+	return fmt.Errorf("not implemented")
 }

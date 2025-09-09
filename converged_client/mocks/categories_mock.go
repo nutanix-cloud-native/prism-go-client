@@ -57,12 +57,11 @@ func (mr *MockCategoriesMockRecorder[Category]) Create(ctx, entity any) *gomock.
 }
 
 // Delete mocks base method.
-func (m *MockCategories[Category]) Delete(ctx context.Context, uuid string) (*Category, error) {
+func (m *MockCategories[Category]) Delete(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
-	ret0, _ := ret[0].(*Category)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Delete indicates an expected call of Delete.
@@ -106,30 +105,10 @@ func (mr *MockCategoriesMockRecorder[Category]) List(ctx any, opts ...any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockCategories[Category])(nil).List), varargs...)
 }
 
-// ListAll mocks base method.
-func (m *MockCategories[Category]) ListAll(ctx context.Context, opts ...convergedclient.ODataOption) ([]Category, error) {
+// NewIterator mocks base method.
+func (m *MockCategories[Category]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[Category] {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ListAll", varargs...)
-	ret0, _ := ret[0].([]Category)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAll indicates an expected call of ListAll.
-func (mr *MockCategoriesMockRecorder[Category]) ListAll(ctx any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockCategories[Category])(nil).ListAll), varargs...)
-}
-
-// NewIterator mocks base method.
-func (m *MockCategories[Category]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[Category] {
-	m.ctrl.T.Helper()
-	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -139,9 +118,10 @@ func (m *MockCategories[Category]) NewIterator(opts ...convergedclient.ODataOpti
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockCategoriesMockRecorder[Category]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockCategoriesMockRecorder[Category]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockCategories[Category])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockCategories[Category])(nil).NewIterator), varargs...)
 }
 
 // Update mocks base method.

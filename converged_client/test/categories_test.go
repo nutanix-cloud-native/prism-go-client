@@ -97,10 +97,10 @@ func TestCategoriesInterface(t *testing.T) {
 		}
 
 		mockCategories.EXPECT().
-			ListAll(ctx, gomock.Any()).
+			List(ctx, gomock.Any()).
 			Return(expectedCategories, nil)
 
-		result, err := mockCategories.ListAll(ctx, convergedclient.WithFilter("name eq 'test'"))
+		result, err := mockCategories.List(ctx, convergedclient.WithFilter("name eq 'test'"))
 		assert.NoError(t, err)
 		assert.Equal(t, expectedCategories, result)
 	})
@@ -110,10 +110,10 @@ func TestCategoriesInterface(t *testing.T) {
 		expectedError := errors.New("failed to list all categories")
 
 		mockCategories.EXPECT().
-			ListAll(ctx, gomock.Any()).
+			List(ctx, gomock.Any()).
 			Return(nil, expectedError)
 
-		result, err := mockCategories.ListAll(ctx)
+		result, err := mockCategories.List(ctx)
 		assert.Error(t, err)
 		assert.Equal(t, expectedError, err)
 		assert.Nil(t, result)
@@ -135,10 +135,10 @@ func TestCategoriesInterface(t *testing.T) {
 		}
 
 		mockCategories.EXPECT().
-			NewIterator(gomock.Any()).
+			NewIterator(gomock.Any(), gomock.Any()).
 			Return(convergedclient.Iterator[TestCategory](mockIterator))
 
-		iterator := mockCategories.NewIterator(convergedclient.WithPage(1))
+		iterator := mockCategories.NewIterator(ctx, convergedclient.WithPage(1))
 		assert.NotNil(t, iterator)
 
 		// Test iteration
@@ -228,19 +228,12 @@ func TestCategoriesInterface(t *testing.T) {
 
 	// Test Delete method
 	t.Run("Delete", func(t *testing.T) {
-		deletedCategory := &TestCategory{
-			ExtId: ptr.To("category-to-delete"),
-			Key:   ptr.To("Category to Delete"),
-			Value: ptr.To("This category will be deleted"),
-		}
-
 		mockCategories.EXPECT().
 			Delete(ctx, "category-to-delete").
-			Return(deletedCategory, nil)
+			Return(nil)
 
-		result, err := mockCategories.Delete(ctx, "category-to-delete")
+		err := mockCategories.Delete(ctx, "category-to-delete")
 		assert.NoError(t, err)
-		assert.Equal(t, deletedCategory, result)
 	})
 
 	// Test Delete with error
@@ -249,12 +242,11 @@ func TestCategoriesInterface(t *testing.T) {
 
 		mockCategories.EXPECT().
 			Delete(ctx, "non-existent-category").
-			Return(nil, expectedError)
+			Return(expectedError)
 
-		result, err := mockCategories.Delete(ctx, "non-existent-category")
+		err := mockCategories.Delete(ctx, "non-existent-category")
 		assert.Error(t, err)
 		assert.Equal(t, expectedError, err)
-		assert.Nil(t, result)
 	})
 }
 
@@ -319,12 +311,10 @@ func TestCategoriesInterfaceComposition(t *testing.T) {
 	t.Run("as Deleter", func(t *testing.T) {
 		var deleter convergedclient.Deleter[TestCategory] = mockCategories
 
-		deletedCategory := &TestCategory{ExtId: ptr.To("1"), Key: ptr.To("Deleted")}
-		mockCategories.EXPECT().Delete(ctx, "1").Return(deletedCategory, nil)
+		mockCategories.EXPECT().Delete(ctx, "1").Return(nil)
 
-		result, err := deleter.Delete(ctx, "1")
+		err := deleter.Delete(ctx, "1")
 		assert.NoError(t, err)
-		assert.Equal(t, deletedCategory, result)
 	})
 }
 
