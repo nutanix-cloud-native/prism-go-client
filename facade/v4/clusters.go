@@ -1,12 +1,14 @@
 package v4
 
 import (
+	"context"
+
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	clustersModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
 // GetCluster returns the cluster for the given UUID.
-func (f *FacadeV4Client) GetCluster(uuid string) (*clustersModels.Cluster, error) {
+func (f *FacadeV4Client) GetCluster(ctx context.Context, uuid string) (*clustersModels.Cluster, error) {
 	return CommonGetEntity[*clustersModels.GetClusterApiResponse, clustersModels.Cluster](
 		func() (*clustersModels.GetClusterApiResponse, error) {
 			return f.client.ClustersApiInstance.GetClusterById(&uuid, nil)
@@ -16,7 +18,7 @@ func (f *FacadeV4Client) GetCluster(uuid string) (*clustersModels.Cluster, error
 }
 
 // ListClusters returns a list of clusters.
-func (f *FacadeV4Client) ListClusters(opts ...facade.ODataOption) ([]clustersModels.Cluster, error) {
+func (f *FacadeV4Client) ListClusters(ctx context.Context, opts ...facade.ODataOption) ([]clustersModels.Cluster, error) {
 	return CommonListEntities[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
 			return f.client.ClustersApiInstance.ListClusters(
@@ -35,7 +37,7 @@ func (f *FacadeV4Client) ListClusters(opts ...facade.ODataOption) ([]clustersMod
 }
 
 // ListAllClusters returns all clusters without pagination.
-func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]clustersModels.Cluster, error) {
+func (f *FacadeV4Client) ListAllClusters(ctx context.Context, filterParam *string, orderbyParam *string, expandParam *string, selectParam *string) ([]clustersModels.Cluster, error) {
 	reqParams := &V4ODataParams{
 		Filter:  filterParam,
 		OrderBy: orderbyParam,
@@ -61,8 +63,9 @@ func (f *FacadeV4Client) ListAllClusters(filterParam *string, orderbyParam *stri
 }
 
 // GetListIteratorClusters returns an iterator for listing clusters.
-func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) facade.ODataListIterator[clustersModels.Cluster] {
+func (f *FacadeV4Client) GetListIteratorClusters(ctx context.Context, opts ...facade.ODataOption) facade.ODataListIterator[clustersModels.Cluster] {
 	return CommonGetListIterator[*clustersModels.ListClustersApiResponse, clustersModels.Cluster](
+		ctx,
 		f,
 		func(reqParams *V4ODataParams) (*clustersModels.ListClustersApiResponse, error) {
 			return f.client.ClustersApiInstance.ListClusters(
@@ -81,7 +84,7 @@ func (f *FacadeV4Client) GetListIteratorClusters(opts ...facade.ODataOption) fac
 }
 
 // ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
-func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.VirtualGpuProfile, error) {
+func (f *FacadeV4Client) ListClusterVirtualGPUs(ctx context.Context, clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.VirtualGpuProfile, error) {
 	return CommonListEntities[*clustersModels.ListVirtualGpuProfilesApiResponse, clustersModels.VirtualGpuProfile](
 		func(reqParams *V4ODataParams) (*clustersModels.ListVirtualGpuProfilesApiResponse, error) {
 			return f.client.ClustersApiInstance.ListVirtualGpuProfiles(
@@ -98,7 +101,7 @@ func (f *FacadeV4Client) ListClusterVirtualGPUs(clusterUuid string, opts ...faca
 }
 
 // ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
-func (f *FacadeV4Client) ListClusterPhysicalGPUs(clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.PhysicalGpuProfile, error) {
+func (f *FacadeV4Client) ListClusterPhysicalGPUs(ctx context.Context, clusterUuid string, opts ...facade.ODataOption) ([]clustersModels.PhysicalGpuProfile, error) {
 	return CommonListEntities[*clustersModels.ListPhysicalGpuProfilesApiResponse, clustersModels.PhysicalGpuProfile](
 		func(reqParams *V4ODataParams) (*clustersModels.ListPhysicalGpuProfilesApiResponse, error) {
 			return f.client.ClustersApiInstance.ListPhysicalGpuProfiles(
