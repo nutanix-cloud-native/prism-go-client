@@ -29,11 +29,6 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all categories without pagination.
-func (s *CategoriesService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]prismModels.Category, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing categories.
 func (s *CategoriesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[prismModels.Category] {
 	return nil

@@ -87,67 +87,6 @@ func TestCategoriesService_List(t *testing.T) {
 	}
 }
 
-func TestCategoriesService_ListAll(t *testing.T) {
-	service := NewCategoriesService(nil)
-	ctx := context.Background()
-
-	tests := []struct {
-		name string
-		opts []converged.ODataOption
-	}{
-		{
-			name: "no options",
-			opts: []converged.ODataOption{},
-		},
-		{
-			name: "with page option",
-			opts: []converged.ODataOption{converged.WithPage(1)},
-		},
-		{
-			name: "with limit option",
-			opts: []converged.ODataOption{converged.WithLimit(10)},
-		},
-		{
-			name: "with filter option",
-			opts: []converged.ODataOption{converged.WithFilter("name eq 'test'")},
-		},
-		{
-			name: "with order by option",
-			opts: []converged.ODataOption{converged.WithOrderBy("name asc")},
-		},
-		{
-			name: "with expand option",
-			opts: []converged.ODataOption{converged.WithExpand("metadata")},
-		},
-		{
-			name: "with select option",
-			opts: []converged.ODataOption{converged.WithSelect("id,name")},
-		},
-		{
-			name: "with apply option",
-			opts: []converged.ODataOption{converged.WithApply("groupby((name))")},
-		},
-		{
-			name: "with multiple options",
-			opts: []converged.ODataOption{
-				converged.WithPage(1),
-				converged.WithLimit(10),
-				converged.WithFilter("name eq 'test'"),
-				converged.WithOrderBy("name asc"),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.ListAll(ctx, tt.opts...)
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "not implemented")
-		})
-	}
-}
-
 func TestCategoriesService_NewIterator(t *testing.T) {
 	service := NewCategoriesService(nil)
 
@@ -400,13 +339,6 @@ func TestCategoriesService_ErrorConsistency(t *testing.T) {
 			name: "List",
 			fn: func() error {
 				_, err := service.List(ctx)
-				return err
-			},
-		},
-		{
-			name: "ListAll",
-			fn: func() error {
-				_, err := service.ListAll(ctx)
 				return err
 			},
 		},
