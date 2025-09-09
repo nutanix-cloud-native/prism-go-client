@@ -31,7 +31,7 @@ func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([
 }
 
 // NewIterator returns an iterator for listing VMs.
-func (s *VMsService) NewIterator(opts ...converged.ODataOption) converged.Iterator[vmmModels.Vm] {
+func (s *VMsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[vmmModels.Vm] {
 	return nil
 }
 
@@ -46,8 +46,8 @@ func (s *VMsService) Update(ctx context.Context, uuid string, entity *vmmModels.
 }
 
 // Delete deletes an existing VM.
-func (s *VMsService) Delete(ctx context.Context, uuid string) (*vmmModels.Vm, error) {
-	return nil, fmt.Errorf("not implemented")
+func (s *VMsService) Delete(ctx context.Context, uuid string) error {
+	return fmt.Errorf("not implemented")
 }
 
 // CreateAsync creates a new VM asynchronously.
@@ -61,7 +61,7 @@ func (s *VMsService) UpdateAsync(ctx context.Context, uuid string, entity *vmmMo
 }
 
 // DeleteAsync deletes an existing VM asynchronously.
-func (s *VMsService) DeleteAsync(ctx context.Context, uuid string) (converged.Operation[vmmModels.Vm], error) {
+func (s *VMsService) DeleteAsync(ctx context.Context, uuid string) (converged.Operation[converged.NoEntity], error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
