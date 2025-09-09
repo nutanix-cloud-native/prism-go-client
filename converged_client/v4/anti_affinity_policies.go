@@ -29,11 +29,6 @@ func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converge
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ListAll returns all anti-affinity policies without pagination.
-func (s *AntiAffinityPoliciesService) ListAll(ctx context.Context, opts ...converged.ODataOption) ([]policyModels.VmAntiAffinityPolicy, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 // NewIterator returns an iterator for listing anti-affinity policies.
 func (s *AntiAffinityPoliciesService) NewIterator(opts ...converged.ODataOption) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
 	return nil

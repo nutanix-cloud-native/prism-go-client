@@ -85,54 +85,6 @@ func TestAntiAffinityPoliciesService_List(t *testing.T) {
 	}
 }
 
-func TestAntiAffinityPoliciesService_ListAll(t *testing.T) {
-	service := NewAntiAffinityPoliciesService(nil)
-	ctx := context.Background()
-
-	tests := []struct {
-		name string
-		opts []converged.ODataOption
-	}{
-		{
-			name: "no options",
-			opts: []converged.ODataOption{},
-		},
-		{
-			name: "with filter option",
-			opts: []converged.ODataOption{converged.WithFilter("name eq 'test'")},
-		},
-		{
-			name: "with order by option",
-			opts: []converged.ODataOption{converged.WithOrderBy("name")},
-		},
-		{
-			name: "with expand option",
-			opts: []converged.ODataOption{converged.WithExpand("resources")},
-		},
-		{
-			name: "with select option",
-			opts: []converged.ODataOption{converged.WithSelect("name,uuid")},
-		},
-		{
-			name: "with multiple options",
-			opts: []converged.ODataOption{
-				converged.WithFilter("name eq 'test'"),
-				converged.WithOrderBy("name"),
-				converged.WithExpand("resources"),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.ListAll(ctx, tt.opts...)
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "not implemented")
-		})
-	}
-}
-
 func TestAntiAffinityPoliciesService_NewIterator(t *testing.T) {
 	service := NewAntiAffinityPoliciesService(nil)
 
@@ -313,10 +265,6 @@ func TestAntiAffinityPoliciesInterface(t *testing.T) {
 	_, err = service.List(ctx)
 	assert.Error(t, err)
 
-	// Test ListAll method
-	_, err = service.ListAll(ctx)
-	assert.Error(t, err)
-
 	// Test NewIterator method
 	iterator := service.NewIterator()
 	assert.Nil(t, iterator)
@@ -356,48 +304,6 @@ func TestAntiAffinityPoliciesService_EdgeCases(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
-
-	t.Run("nil context for Get", func(t *testing.T) {
-		result, err := service.Get(nil, "test-uuid")
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for Create", func(t *testing.T) {
-		result, err := service.Create(nil, &policyModels.VmAntiAffinityPolicy{})
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for Update", func(t *testing.T) {
-		result, err := service.Update(nil, "test-uuid", &policyModels.VmAntiAffinityPolicy{})
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for Delete", func(t *testing.T) {
-		result, err := service.Delete(nil, "test-uuid")
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for CreateAsync", func(t *testing.T) {
-		result, err := service.CreateAsync(nil, &policyModels.VmAntiAffinityPolicy{})
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for UpdateAsync", func(t *testing.T) {
-		result, err := service.UpdateAsync(nil, "test-uuid", &policyModels.VmAntiAffinityPolicy{})
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("nil context for DeleteAsync", func(t *testing.T) {
-		result, err := service.DeleteAsync(nil, "test-uuid")
-		assert.Error(t, err)
-		assert.Nil(t, result)
-	})
 }
 
 // TestAntiAffinityPoliciesService_ClientDependency tests that the service properly handles client dependency
@@ -415,10 +321,6 @@ func TestAntiAffinityPoliciesService_ClientDependency(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 
 	_, err = service.List(ctx)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
-
-	_, err = service.ListAll(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
@@ -471,13 +373,6 @@ func TestAntiAffinityPoliciesService_Consistency(t *testing.T) {
 			name: "List",
 			fn: func() error {
 				_, err := service.List(ctx)
-				return err
-			},
-		},
-		{
-			name: "ListAll",
-			fn: func() error {
-				_, err := service.ListAll(ctx)
 				return err
 			},
 		},
@@ -572,13 +467,6 @@ func TestAntiAffinityPoliciesService_ODataOptions(t *testing.T) {
 		assert.Contains(t, err.Error(), "not implemented")
 	})
 
-	t.Run("complex options for ListAll", func(t *testing.T) {
-		result, err := service.ListAll(ctx, complexOptions...)
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "not implemented")
-	})
-
 	t.Run("complex options for NewIterator", func(t *testing.T) {
 		iterator := service.NewIterator(complexOptions...)
 		assert.Nil(t, iterator)
@@ -598,10 +486,6 @@ func TestAntiAffinityPoliciesService_ErrorMessages(t *testing.T) {
 	assert.Contains(t, err.Error(), expectedError)
 
 	_, err = service.List(ctx)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), expectedError)
-
-	_, err = service.ListAll(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), expectedError)
 
@@ -646,13 +530,6 @@ func TestAntiAffinityPoliciesService_PolicySpecificOptions(t *testing.T) {
 
 	t.Run("policy-specific options for List", func(t *testing.T) {
 		result, err := service.List(ctx, policyOptions...)
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "not implemented")
-	})
-
-	t.Run("policy-specific options for ListAll", func(t *testing.T) {
-		result, err := service.ListAll(ctx, policyOptions...)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "not implemented")
