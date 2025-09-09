@@ -13,5 +13,10 @@
     "yamllint@latest",
     "path:./hack/flakes#yamllint-checkstyle",
     "path:./hack/flakes#keploy"
-  ]
+  ],
+  "go": {
+    "install": [
+      "go.uber.org/mock/mockgen@latest"
+    ]
+  }
 }
