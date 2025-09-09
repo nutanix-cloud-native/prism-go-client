@@ -47,7 +47,7 @@ func TestVMsInterface(t *testing.T) {
 	iterator := func(yield func(TestVM, error) bool) {
 		yield(*expectedVM, nil)
 	}
-	mockVMs.EXPECT().NewIterator(gomock.Any()).Return(iterator)
+	mockVMs.EXPECT().NewIterator(gomock.Any(), gomock.Any()).Return(iterator)
 	resultIterator := mockVMs.NewIterator(ctx)
 	count := 0
 	for entity, err := range resultIterator {
@@ -263,7 +263,7 @@ func TestVMsWithODataOptions(t *testing.T) {
 			yield(vm, nil)
 		}
 	}
-	mockVMs.EXPECT().NewIterator(gomock.Any()).Return(iterator)
+	mockVMs.EXPECT().NewIterator(gomock.Any(), gomock.Any()).Return(iterator)
 	resultIterator := mockVMs.NewIterator(ctx, convergedclient.WithOrderBy("name"))
 	count := 0
 	for _, err := range resultIterator {
