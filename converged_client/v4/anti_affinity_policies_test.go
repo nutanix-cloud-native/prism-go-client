@@ -124,7 +124,8 @@ func TestAntiAffinityPoliciesService_NewIterator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			iterator := service.NewIterator(tt.opts...)
+			ctx := context.Background()
+			iterator := service.NewIterator(ctx, tt.opts...)
 			assert.Nil(t, iterator)
 		})
 	}
@@ -177,15 +178,13 @@ func TestAntiAffinityPoliciesService_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	// Test with empty UUID
-	result, err := service.Delete(ctx, "")
+	err := service.Delete(ctx, "")
 	assert.Error(t, err)
-	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "not implemented")
 
 	// Test with valid UUID
-	result, err = service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Error(t, err)
-	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "not implemented")
 }
 
@@ -266,7 +265,7 @@ func TestAntiAffinityPoliciesInterface(t *testing.T) {
 	assert.Error(t, err)
 
 	// Test NewIterator method
-	iterator := service.NewIterator()
+	iterator := service.NewIterator(ctx)
 	assert.Nil(t, iterator)
 
 	// Test Create method
@@ -278,7 +277,7 @@ func TestAntiAffinityPoliciesInterface(t *testing.T) {
 	assert.Error(t, err)
 
 	// Test Delete method
-	_, err = service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Error(t, err)
 
 	// Test CreateAsync method
@@ -324,7 +323,7 @@ func TestAntiAffinityPoliciesService_ClientDependency(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
-	iterator := service.NewIterator()
+	iterator := service.NewIterator(ctx)
 	assert.Nil(t, iterator)
 
 	_, err = service.Create(ctx, &policyModels.VmAntiAffinityPolicy{})
@@ -335,7 +334,7 @@ func TestAntiAffinityPoliciesService_ClientDependency(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
-	_, err = service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 
@@ -393,7 +392,7 @@ func TestAntiAffinityPoliciesService_Consistency(t *testing.T) {
 		{
 			name: "Delete",
 			fn: func() error {
-				_, err := service.Delete(ctx, "test-uuid")
+				err := service.Delete(ctx, "test-uuid")
 				return err
 			},
 		},
@@ -468,7 +467,7 @@ func TestAntiAffinityPoliciesService_ODataOptions(t *testing.T) {
 	})
 
 	t.Run("complex options for NewIterator", func(t *testing.T) {
-		iterator := service.NewIterator(complexOptions...)
+		iterator := service.NewIterator(ctx, complexOptions...)
 		assert.Nil(t, iterator)
 	})
 }
@@ -497,7 +496,7 @@ func TestAntiAffinityPoliciesService_ErrorMessages(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), expectedError)
 
-	_, err = service.Delete(ctx, "test-uuid")
+	err = service.Delete(ctx, "test-uuid")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), expectedError)
 
@@ -536,7 +535,7 @@ func TestAntiAffinityPoliciesService_PolicySpecificOptions(t *testing.T) {
 	})
 
 	t.Run("policy-specific options for NewIterator", func(t *testing.T) {
-		iterator := service.NewIterator(policyOptions...)
+		iterator := service.NewIterator(ctx, policyOptions...)
 		assert.Nil(t, iterator)
 	})
 }
