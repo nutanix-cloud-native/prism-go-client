@@ -85,45 +85,6 @@ func TestClustersService_List(t *testing.T) {
 	}
 }
 
-func TestClustersService_ListAll(t *testing.T) {
-	service := NewClustersService(nil)
-	ctx := context.Background()
-
-	tests := []struct {
-		name string
-		opts []converged.ODataOption
-	}{
-		{
-			name: "no options",
-			opts: []converged.ODataOption{},
-		},
-		{
-			name: "with filter option",
-			opts: []converged.ODataOption{converged.WithFilter("name eq 'test'")},
-		},
-		{
-			name: "with order by option",
-			opts: []converged.ODataOption{converged.WithOrderBy("name")},
-		},
-		{
-			name: "with multiple options",
-			opts: []converged.ODataOption{
-				converged.WithFilter("name eq 'test'"),
-				converged.WithOrderBy("name"),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.ListAll(ctx, tt.opts...)
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), "not implemented")
-		})
-	}
-}
-
 func TestClustersService_NewIterator(t *testing.T) {
 	service := NewClustersService(nil)
 
@@ -297,10 +258,6 @@ func TestClustersInterface(t *testing.T) {
 
 	// Test List method
 	_, err = service.List(ctx)
-	assert.Error(t, err)
-
-	// Test ListAll method
-	_, err = service.ListAll(ctx)
 	assert.Error(t, err)
 
 	// Test NewIterator method
