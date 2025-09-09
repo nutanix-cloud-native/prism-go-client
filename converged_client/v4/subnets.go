@@ -30,6 +30,6 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 }
 
 // NewIterator returns an iterator for listing subnets.
-func (s *SubnetsService) NewIterator(opts ...converged.ODataOption) converged.Iterator[subnetModels.Subnet] {
+func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[subnetModels.Subnet] {
 	return nil
 }
