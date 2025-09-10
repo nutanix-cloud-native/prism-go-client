@@ -87,8 +87,10 @@ func TestStorageContainersService_List(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		_, err := client.StorageContainers.List(ctx, tt.opts...)
-		assert.Nil(t, err)
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := client.StorageContainers.List(ctx, tt.opts...)
+			assert.Nil(t, err)
+		})
 	}
 }
 
@@ -131,10 +133,12 @@ func TestStorageContainersService_NewIterator(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		iterator := client.StorageContainers.NewIterator(ctx, tt.opts...)
-		assert.NotNil(t, iterator)
-		for _, err := range iterator {
-			assert.Nil(t, err)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			iterator := client.StorageContainers.NewIterator(ctx, tt.opts...)
+			assert.NotNil(t, iterator)
+			for _, err := range iterator {
+				assert.Nil(t, err)
+			}
+		})
 	}
 }
