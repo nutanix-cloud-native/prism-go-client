@@ -2769,7 +2769,6 @@ type AvailabilityZoneStatus struct {
 //
 // swagger:model vm_vtpm_config
 type VMVtpmConfig struct {
-
 	// data source reference
 	DataSourceReference *Reference `json:"data_source_reference,omitempty" mapstructure:"data_source_reference,omitempty"`
 
@@ -2787,7 +2786,6 @@ type VMVtpmConfig struct {
 //
 // swagger:model vm_vtpm_status
 type VMVtpmStatus struct {
-
 	// data source reference
 	DataSourceReference *Reference `json:"data_source_reference,omitempty" mapstructure:"data_source_reference,omitempty"`
 
