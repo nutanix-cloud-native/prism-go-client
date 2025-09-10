@@ -1,0 +1,140 @@
+package test
+
+import (
+	"context"
+	"testing"
+
+	models "github.com/nutanix-cloud-native/prism-go-client/converged_client"
+	v4ConvergedClient "github.com/nutanix-cloud-native/prism-go-client/converged_client/v4"
+	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	"github.com/stretchr/testify/assert"
+)
+
+var client *v4ConvergedClient.Client
+
+func initializeConvergedClient(t *testing.T) {
+	if client != nil {
+		return
+	}
+
+	var err error
+	creds := testhelpers.CredentialsFromEnvironment(t)
+
+	client, err = v4ConvergedClient.NewClient(creds)
+	assert.Nil(t, err)
+}
+
+func TestStorageContainersService_Get(t *testing.T) {
+	initializeConvergedClient(t)
+	ctx := context.Background()
+
+	scs, err := client.StorageContainers.List(ctx, models.WithPage(0))
+	assert.Nil(t, err)
+	assert.True(t, len(scs) > 0)
+
+	_, err = client.StorageContainers.Get(ctx, *scs[1].ContainerExtId)
+	assert.Nil(t, err)
+}
+
+func TestStorageContainersService_List(t *testing.T) {
+	initializeConvergedClient(t)
+	ctx := context.Background()
+
+	testCases := []struct {
+		name string
+		opts []models.ODataOption
+	}{
+		{
+			name: "no options",
+			opts: []models.ODataOption{},
+		},
+		{
+			name: "with page option",
+			opts: []models.ODataOption{models.WithPage(1)},
+		},
+		{
+			name: "with limit option",
+			opts: []models.ODataOption{models.WithLimit(10)},
+		},
+		{
+			name: "with filter option",
+			opts: []models.ODataOption{models.WithFilter("name eq 'test'")},
+		},
+		{
+			name: "with order by option",
+			opts: []models.ODataOption{models.WithOrderBy("name")},
+		},
+		{
+			name: "with expand option",
+			opts: []models.ODataOption{models.WithExpand("resources")},
+		},
+		{
+			name: "with select option",
+			opts: []models.ODataOption{models.WithSelect("name")},
+		},
+		{
+			name: "with apply option",
+			opts: []models.ODataOption{models.WithApply("groupby((name))")},
+		},
+		{
+			name: "with multiple options",
+			opts: []models.ODataOption{
+				models.WithPage(1),
+				models.WithLimit(10),
+				models.WithFilter("name eq 'test'"),
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		_, err := client.StorageContainers.List(ctx, tt.opts...)
+		assert.Nil(t, err)
+	}
+}
+
+func TestStorageContainersService_NewIterator(t *testing.T) {
+	initializeConvergedClient(t)
+	ctx := context.Background()
+
+	testCases := []struct {
+		name string
+		opts []models.ODataOption
+	}{
+		{
+			name: "no options",
+			opts: []models.ODataOption{},
+		},
+		{
+			name: "with filter option",
+			opts: []models.ODataOption{models.WithFilter("name eq 'test'")},
+		},
+		{
+			name: "with order by option",
+			opts: []models.ODataOption{models.WithOrderBy("name")},
+		},
+		{
+			name: "with expand option",
+			opts: []models.ODataOption{models.WithExpand("resources")},
+		},
+		{
+			name: "with select option",
+			opts: []models.ODataOption{models.WithSelect("name")},
+		},
+		{
+			name: "with multiple options",
+			opts: []models.ODataOption{
+				models.WithFilter("name eq 'test'"),
+				models.WithOrderBy("name"),
+				models.WithExpand("resources"),
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		iterator := client.StorageContainers.NewIterator(ctx, tt.opts...)
+		assert.NotNil(t, iterator)
+		for _, err := range iterator {
+			assert.Nil(t, err)
+		}
+	}
+}

@@ -97,7 +97,7 @@ func (mr *MockStorageContainersMockRecorder[StorageContainer]) ListAll(ctx any, 
 }
 
 // NewIterator mocks base method.
-func (m *MockStorageContainers[StorageContainer]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[StorageContainer] {
+func (m *MockStorageContainers[StorageContainer]) NewIterator(ctx any, opts ...convergedclient.ODataOption) convergedclient.Iterator[StorageContainer] {
 	m.ctrl.T.Helper()
 	varargs := []any{}
 	for _, a := range opts {
