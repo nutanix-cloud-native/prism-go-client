@@ -137,9 +137,9 @@ func (mr *MockClustersMockRecorder[Cluster, VirtualGpuProfile, PhysicalGpuProfil
 }
 
 // NewIterator mocks base method.
-func (m *MockClusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[Cluster] {
+func (m *MockClusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[Cluster] {
 	m.ctrl.T.Helper()
-	varargs := []any{}
+	varargs := []any{ctx}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -149,7 +149,8 @@ func (m *MockClusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]) NewIterat
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockClustersMockRecorder[Cluster, VirtualGpuProfile, PhysicalGpuProfile]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockClustersMockRecorder[Cluster, VirtualGpuProfile, PhysicalGpuProfile]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockClusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockClusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile])(nil).NewIterator), varargs...)
 }
