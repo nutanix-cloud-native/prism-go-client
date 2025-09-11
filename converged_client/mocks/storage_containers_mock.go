@@ -97,9 +97,9 @@ func (mr *MockStorageContainersMockRecorder[StorageContainer]) ListAll(ctx any, 
 }
 
 // NewIterator mocks base method.
-func (m *MockStorageContainers[StorageContainer]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[StorageContainer] {
+func (m *MockStorageContainers[StorageContainer]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[StorageContainer] {
 	m.ctrl.T.Helper()
-	varargs := []any{}
+	varargs := []any{ctx}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -109,7 +109,8 @@ func (m *MockStorageContainers[StorageContainer]) NewIterator(opts ...convergedc
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockStorageContainersMockRecorder[StorageContainer]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockStorageContainersMockRecorder[StorageContainer]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockStorageContainers[StorageContainer])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockStorageContainers[StorageContainer])(nil).NewIterator), varargs...)
 }
