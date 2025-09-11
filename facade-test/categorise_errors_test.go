@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
+	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	v4 "github.com/nutanix-cloud-native/prism-go-client/facade/v4"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	vmmConfigModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
@@ -50,7 +50,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedApiErrorType: ferrors.ErrRateLimitExceeded,
+			expectedApiErrorType: facade.ErrRateLimitExceeded,
 		},
 		{
 			name: "ApiErrorResponse : SchemaValidationError",
@@ -64,7 +64,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				resp.SetData(*errorResp)
 				return resp
 			},
-			expectedApiErrorType: ferrors.ErrSchemaValidationError,
+			expectedApiErrorType: facade.ErrSchemaValidationError,
 		},
 	}
 
@@ -84,7 +84,7 @@ func TestCategoriseV4APICallErrorForVM(t *testing.T) {
 				t.Errorf("Expected error, got nil")
 			}
 
-			var apiError *ferrors.ApiError
+			var apiError *facade.ApiError
 			if !errors.As(err, &apiError) {
 				t.Errorf("Invalid error type")
 			}

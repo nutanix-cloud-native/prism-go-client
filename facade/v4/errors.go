@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
+	"github.com/nutanix-cloud-native/prism-go-client/facade"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 )
 
@@ -43,7 +43,7 @@ func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIE
 	}
 
 	if strings.Contains(errorType, "SchemaValidationError") {
-		return ferrors.NewApiError(ferrors.ErrSchemaValidationError, openApiError)
+		return facade.NewApiError(facade.ErrSchemaValidationError, openApiError)
 	}
 	if strings.Contains(errorType, "AppMessage") {
 		return getCategorisedV4ApiErrorFromAppMessages(openApiError, oneOfError)
@@ -55,7 +55,7 @@ func getCategorisedV4ApiResponseError(openApiError clusterClient.GenericOpenAPIE
 func getErrorAndTypeFrom(errResp sampleErrorResponse) (interface{}, string, error) {
 	errorDataMap, ok := errResp.Data.(map[string]interface{})
 	if !ok {
-		return nil, "", ferrors.NewUnexpectedTypeError(map[string]interface{}{}, errResp.Data)
+		return nil, "", facade.NewUnexpectedTypeError(map[string]interface{}{}, errResp.Data)
 	}
 
 	errorTypeIntf, ok := errorDataMap["$errorItemDiscriminator"]
@@ -64,7 +64,7 @@ func getErrorAndTypeFrom(errResp sampleErrorResponse) (interface{}, string, erro
 	}
 	errorType, ok := errorTypeIntf.(string)
 	if !ok {
-		return nil, "", ferrors.NewUnexpectedTypeError("", errorDataMap["$errorItemDiscriminator"])
+		return nil, "", facade.NewUnexpectedTypeError("", errorDataMap["$errorItemDiscriminator"])
 	}
 
 	oneOfError, ok := errorDataMap["error"]
@@ -80,13 +80,13 @@ func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericO
 
 	appMessages, ok := appMessagesIntf.([]interface{})
 	if !ok {
-		return ferrors.NewUnexpectedTypeError([]interface{}{}, appMessagesIntf)
+		return facade.NewUnexpectedTypeError([]interface{}{}, appMessagesIntf)
 	}
 
 	for _, appMessageIntf := range appMessages {
 		appMessage, ok := appMessageIntf.(map[string]interface{})
 		if !ok {
-			return ferrors.NewUnexpectedTypeError(map[string]interface{}{}, appMessageIntf)
+			return facade.NewUnexpectedTypeError(map[string]interface{}{}, appMessageIntf)
 		}
 
 		errorGroupIntf, ok := appMessage["errorGroup"]
@@ -96,22 +96,22 @@ func getCategorisedV4ApiErrorFromAppMessages(openApiError clusterClient.GenericO
 
 		errorGroup, ok := errorGroupIntf.(string)
 		if !ok {
-			return ferrors.NewUnexpectedTypeError("", errorGroupIntf)
+			return facade.NewUnexpectedTypeError("", errorGroupIntf)
 		}
 
 		apiErrType = getV4ApiErrorSubTypeForErrorGroup(errorGroup)
 	}
 
-	return ferrors.NewApiError(apiErrType, openApiError)
+	return facade.NewApiError(apiErrType, openApiError)
 }
 
 func getV4ApiErrorSubTypeForErrorGroup(errorGroup string) error {
 	searchKeyToSubTypeMap := map[string]error{
-		"AUTHORIZATION": ferrors.ErrAuthorizationError,
-		"NOT_FOUND":     ferrors.ErrResourceNotFound,
-		"RATE_LIMIT":    ferrors.ErrRateLimitExceeded,
-		"SERVICE_ERROR": ferrors.ErrInternalServiceError,
-		"INVALID_INPUT": ferrors.ErrInvalidInput,
+		"AUTHORIZATION": facade.ErrAuthorizationError,
+		"NOT_FOUND":     facade.ErrResourceNotFound,
+		"RATE_LIMIT":    facade.ErrRateLimitExceeded,
+		"SERVICE_ERROR": facade.ErrInternalServiceError,
+		"INVALID_INPUT": facade.ErrInvalidInput,
 	}
 
 	for key, subType := range searchKeyToSubTypeMap {

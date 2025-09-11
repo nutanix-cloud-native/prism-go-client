@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/nutanix-cloud-native/prism-go-client/facade"
-	"github.com/nutanix-cloud-native/prism-go-client/facade/ferrors"
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
 
@@ -29,7 +28,7 @@ func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
 		return v4Params, nil
 	}
 
-	return nil, ferrors.NewUnexpectedTypeError(&V4ODataParams{}, params)
+	return nil, facade.NewUnexpectedTypeError(&V4ODataParams{}, params)
 }
 
 func (o *V4ODataParams) SetPageOption(page int) error {
@@ -171,7 +170,7 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 	result, ok := data.(T)
 	if !ok {
-		return zero, ferrors.NewUnexpectedTypeError(zero, data)
+		return zero, facade.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, nil
@@ -216,7 +215,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 
 	result, ok := data.([]T)
 	if !ok {
-		return zero, 0, ferrors.NewUnexpectedTypeError(zero, data)
+		return zero, 0, facade.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, totalCount, nil
