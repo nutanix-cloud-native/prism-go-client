@@ -36,7 +36,12 @@ func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.O
 
 // Create creates a new category.
 func (s *CategoriesService) Create(ctx context.Context, entity *prismModels.Category) (*prismModels.Category, error) {
-	return nil, fmt.Errorf("not implemented")
+	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](s.client.CategoriesApiInstance.CreateCategory(entity))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create category: %w", err)
+	}
+
+	return &newCategory, nil
 }
 
 // Update updates an existing category.
@@ -46,5 +51,20 @@ func (s *CategoriesService) Update(ctx context.Context, uuid string, entity *pri
 
 // Delete deletes an existing category.
 func (s *CategoriesService) Delete(ctx context.Context, uuid string) error {
-	return fmt.Errorf("not implemented")
+	category, args, err := GetEntityAndEtag(
+		s.Get(ctx, uuid),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get category with UUID %s: %w", uuid, err)
+	}
+	if category == nil {
+		return fmt.Errorf("no category found with UUID %s", uuid)
+	}
+
+	_, err = s.client.CategoriesApiInstance.DeleteCategoryById(&uuid, args)
+	if err != nil {
+		return fmt.Errorf("failed to delete category with UUID %s: %w", uuid, err)
+	}
+
+	return nil
 }
