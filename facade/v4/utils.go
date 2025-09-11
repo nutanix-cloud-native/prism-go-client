@@ -28,7 +28,7 @@ func ToV4ODataParams(params facade.ODataOptions) (*V4ODataParams, error) {
 		return v4Params, nil
 	}
 
-	return nil, fmt.Errorf("expected *V4ODataParams, got %T", params)
+	return nil, facade.NewUnexpectedTypeError(&V4ODataParams{}, params)
 }
 
 func (o *V4ODataParams) SetPageOption(page int) error {
@@ -160,7 +160,7 @@ type APIResponse interface {
 func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
-		return zero, fmt.Errorf("API call failed: %w", err)
+		return zero, GetCategorisedV4ApiCallError(err)
 	}
 
 	data := response.GetData()
@@ -170,7 +170,7 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 	result, ok := data.(T)
 	if !ok {
-		return zero, fmt.Errorf("unexpected type for API response data: %T", data)
+		return zero, facade.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, nil
@@ -200,7 +200,7 @@ func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
-		return zero, 0, fmt.Errorf("API call failed: %w", err)
+		return zero, 0, GetCategorisedV4ApiCallError(err)
 	}
 
 	totalCount, err := GetMetadataTotalResults(response)
@@ -215,7 +215,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 
 	result, ok := data.([]T)
 	if !ok {
-		return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
+		return zero, 0, facade.NewUnexpectedTypeError(zero, data)
 	}
 
 	return result, totalCount, nil
