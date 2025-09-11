@@ -97,9 +97,9 @@ func (mr *MockImagesMockRecorder[Image]) ListAll(ctx any, opts ...any) *gomock.C
 }
 
 // NewIterator mocks base method.
-func (m *MockImages[Image]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[Image] {
+func (m *MockImages[Image]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[Image] {
 	m.ctrl.T.Helper()
-	varargs := []any{}
+	varargs := []any{ctx}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -109,7 +109,8 @@ func (m *MockImages[Image]) NewIterator(opts ...convergedclient.ODataOption) con
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockImagesMockRecorder[Image]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockImagesMockRecorder[Image]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockImages[Image])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockImages[Image])(nil).NewIterator), varargs...)
 }
