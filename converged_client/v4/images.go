@@ -2,7 +2,6 @@ package v4
 
 import (
 	"context"
-	"fmt"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged_client"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
@@ -21,15 +20,45 @@ func NewImagesService(client *v4prismGoClient.Client) *ImagesService {
 
 // Get returns the image for the given UUID.
 func (s *ImagesService) Get(ctx context.Context, uuid string) (*imageModels.Image, error) {
-	return nil, fmt.Errorf("not implemented")
+	return GenericGetEntity[*imageModels.GetImageApiResponse, imageModels.Image](
+		func() (*imageModels.GetImageApiResponse, error) {
+			return s.client.ImagesApiInstance.GetImageById(&uuid)
+		},
+		"image",
+	)
 }
 
 // List returns a list of images.
 func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption) ([]imageModels.Image, error) {
-	return nil, fmt.Errorf("not implemented")
+	return GenericListEntities[*imageModels.ListImagesApiResponse, imageModels.Image](
+		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
+			return s.client.ImagesApiInstance.ListImages(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"images",
+	)
 }
 
 // NewIterator returns an iterator for listing images.
 func (s *ImagesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[imageModels.Image] {
-	return nil
+	return GenericNewIterator[*imageModels.ListImagesApiResponse, imageModels.Image](
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
+			return s.client.ImagesApiInstance.ListImages(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"images",
+	)
 }
