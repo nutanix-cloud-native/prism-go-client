@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"os"
 
+	"k8s.io/utils/ptr"
+
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
-	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
@@ -510,7 +511,7 @@ func (op Operations) ListCluster(ctx context.Context, getEntitiesRequest *DSMeta
 
 // CreateOrUpdateCategoryKey ...
 func (op Operations) CreateOrUpdateCategoryKey(ctx context.Context, body *CategoryKey) (*CategoryKeyStatus, error) {
-	path := fmt.Sprintf("/categories/%s", utils.StringValue(body.Name))
+	path := fmt.Sprintf("/categories/%s", ptr.Deref(body.Name, ""))
 	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	categoryKeyResponse := new(CategoryKeyStatus)
 
@@ -594,7 +595,7 @@ func (op Operations) ListCategoryValues(ctx context.Context, name string, getEnt
 
 // CreateOrUpdateCategoryValue ...
 func (op Operations) CreateOrUpdateCategoryValue(ctx context.Context, name string, body *CategoryValue) (*CategoryValueStatus, error) {
-	path := fmt.Sprintf("/categories/%s/%s", name, utils.StringValue(body.Value))
+	path := fmt.Sprintf("/categories/%s/%s", name, ptr.Deref(body.Value, ""))
 	req, err := op.client.NewRequest(http.MethodPut, path, body)
 	categoryValueResponse := new(CategoryValueStatus)
 
@@ -853,24 +854,24 @@ func (op Operations) ListAllVM(ctx context.Context, filter string) (*VMListInten
 
 	resp, err := op.ListVM(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("vm"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("vm"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListVM(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("vm"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("vm"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -893,25 +894,25 @@ func (op Operations) ListAllSubnet(ctx context.Context, filter string, clientSid
 
 	resp, err := op.ListSubnet(ctx, &DSMetadata{
 		Filter:            &filter,
-		Kind:              utils.StringPtr("subnet"),
-		Length:            utils.Int64Ptr(itemsPerPage),
+		Kind:              ptr.To("subnet"),
+		Length:            ptr.To(itemsPerPage),
 		ClientSideFilters: clientSideFilters,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListSubnet(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("subnet"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("subnet"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -935,24 +936,24 @@ func (op Operations) ListAllNetworkSecurityRule(ctx context.Context, filter stri
 
 	resp, err := op.ListNetworkSecurityRule(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("network_security_rule"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("network_security_rule"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListNetworkSecurityRule(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("network_security_rule"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("network_security_rule"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -976,24 +977,24 @@ func (op Operations) ListAllImage(ctx context.Context, filter string) (*ImageLis
 
 	resp, err := op.ListImage(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("image"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("image"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListImage(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("image"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("image"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1017,24 +1018,24 @@ func (op Operations) ListAllCluster(ctx context.Context, filter string) (*Cluste
 
 	resp, err := op.ListCluster(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("cluster"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("cluster"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListCluster(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("cluster"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("cluster"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1058,24 +1059,24 @@ func (op Operations) ListAllCategoryValues(ctx context.Context, categoryName, fi
 
 	resp, err := op.ListCategoryValues(ctx, categoryName, &CategoryListMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("category"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("category"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListCategoryValues(ctx, categoryName, &CategoryListMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("category"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("category"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1138,23 +1139,23 @@ func (op Operations) ListAllHost(ctx context.Context) (*HostListResponse, error)
 	entities := make([]*HostResponse, 0)
 
 	resp, err := op.ListHost(ctx, &DSMetadata{
-		Kind:   utils.StringPtr("host"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("host"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListHost(ctx, &DSMetadata{
-				Kind:   utils.StringPtr("cluster"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("cluster"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1234,24 +1235,24 @@ func (op Operations) ListAllProject(ctx context.Context, filter string) (*Projec
 
 	resp, err := op.ListProject(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("project"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("project"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListProject(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("project"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("project"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1367,24 +1368,24 @@ func (op Operations) ListAllAccessControlPolicy(ctx context.Context, filter stri
 
 	resp, err := op.ListAccessControlPolicy(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("access_control_policy"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("access_control_policy"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListAccessControlPolicy(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("access_control_policy"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("access_control_policy"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1501,24 +1502,24 @@ func (op Operations) ListAllRole(ctx context.Context, filter string) (*RoleListR
 
 	resp, err := op.ListRole(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("role"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("role"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListRole(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("role"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("role"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1668,24 +1669,24 @@ func (op Operations) ListAllUser(ctx context.Context, filter string) (*UserListR
 
 	resp, err := op.ListUser(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("user"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("user"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListUser(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("user"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("user"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1762,24 +1763,24 @@ func (op Operations) ListAllUserGroup(ctx context.Context, filter string) (*User
 
 	resp, err := op.ListUserGroup(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("user_group"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("user_group"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListUserGroup(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("user"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("user"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1837,24 +1838,24 @@ func (op Operations) ListAllPermission(ctx context.Context, filter string) (*Per
 
 	resp, err := op.ListPermission(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("permission"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("permission"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListPermission(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("permission"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("permission"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -1904,24 +1905,24 @@ func (op Operations) ListAllProtectionRules(ctx context.Context, filter string) 
 
 	resp, err := op.ListProtectionRules(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("protection_rule"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("protection_rule"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListProtectionRules(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("protection_rule"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("protection_rule"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -2027,24 +2028,24 @@ func (op Operations) ListAllRecoveryPlans(ctx context.Context, filter string) (*
 
 	resp, err := op.ListRecoveryPlans(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("recovery_plan"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("recovery_plan"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(&resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(&resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(&resp.Metadata.Offset)
+	offset := ptr.Deref(&resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListRecoveryPlans(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("recovery_plan"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("recovery_plan"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -2140,24 +2141,24 @@ func (op Operations) ListAllServiceGroups(ctx context.Context, filter string) (*
 
 	resp, err := op.listServiceGroups(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("service_group"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("service_group"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.listServiceGroups(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("service_group"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("service_group"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
@@ -2215,24 +2216,24 @@ func (op Operations) ListAllAddressGroups(ctx context.Context, filter string) (*
 
 	resp, err := op.ListAddressGroups(ctx, &DSMetadata{
 		Filter: &filter,
-		Kind:   utils.StringPtr("address_group"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind:   ptr.To("address_group"),
+		Length: ptr.To(itemsPerPage),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
+	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
+	offset := ptr.Deref(resp.Metadata.Offset, 0)
 
 	if totalEntities > itemsPerPage {
 		for hasNext(&remaining) {
 			resp, err = op.ListAddressGroups(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("address_group"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("address_group"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
