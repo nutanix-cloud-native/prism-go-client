@@ -16,13 +16,13 @@ import (
 	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/utils/ptr"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
-	"k8s.io/utils/ptr"
 )
 
 func setup(t *testing.T) (*http.ServeMux, *internal.Client, *httptest.Server) {
