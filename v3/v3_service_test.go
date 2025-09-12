@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"k8s.io/utils/ptr"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,8 +16,9 @@ import (
 	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/utils/ptr"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
