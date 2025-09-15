@@ -80,11 +80,11 @@ type CachedClientParams interface {
 type CacheOpts[T any] func(*T)
 type ClientOption[T any] func(*T) error
 
-func GetManagementEndpointHash(endpoint ManagementEndpoint) (string, error) {
+func (ep *ManagementEndpoint) GetHash() (string, error) {
 	// Note: this will only work reliably as long as types.ManagementEndpoint is predictably serializable i.e. does
 	// not contain a map. Due to randomized ordering of map keys in Go, we would constantly invalidate caches
 	// if the ManagementEndpoint has a map.
-	serializedEndpoint, err := json.Marshal(endpoint)
+	serializedEndpoint, err := json.Marshal(*ep)
 	if err != nil {
 		return "", err
 	}

@@ -14,14 +14,14 @@ const UnknownVariableValue = "74D93920-ED26-11E3-AC10-0800200C9A66"
 func Expand(m map[string]string, key string) interface{} {
 	// If the key is exactly a key in the map, just return it
 	if v, ok := m[key]; ok {
-		switch v {
-		case "true":
-			return true
-		case "false":
-			return false
-		default:
-			return v
+		boolResult, err := strconv.ParseBool(v)
+		// If the value is a boolean, return the boolean
+		if err == nil {
+			return boolResult
 		}
+
+		// If the value is not a boolean, return the value
+		return v
 	}
 
 	// Check if the key is an array, and if so, expand the array

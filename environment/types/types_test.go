@@ -145,7 +145,7 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			Insecure: true,
 		}
 
-		hash, err := GetManagementEndpointHash(endpoint)
+		hash, err := endpoint.GetHash()
 		require.NoError(t, err)
 		assert.NotEmpty(t, hash)
 		assert.Len(t, hash, 64) // SHA256 hex string length
@@ -164,10 +164,10 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			Insecure: true,
 		}
 
-		hash1, err := GetManagementEndpointHash(endpoint)
+		hash1, err := endpoint.GetHash()
 		require.NoError(t, err)
 
-		hash2, err := GetManagementEndpointHash(endpoint)
+		hash2, err := endpoint.GetHash()
 		require.NoError(t, err)
 
 		assert.Equal(t, hash1, hash2)
@@ -196,10 +196,10 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			Address: testURL2,
 		}
 
-		hash1, err := GetManagementEndpointHash(endpoint1)
+		hash1, err := endpoint1.GetHash()
 		require.NoError(t, err)
 
-		hash2, err := GetManagementEndpointHash(endpoint2)
+		hash2, err := endpoint2.GetHash()
 		require.NoError(t, err)
 
 		assert.NotEqual(t, hash1, hash2)
@@ -225,10 +225,10 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			Address: testURL,
 		}
 
-		hash1, err := GetManagementEndpointHash(endpoint1)
+		hash1, err := endpoint1.GetHash()
 		require.NoError(t, err)
 
-		hash2, err := GetManagementEndpointHash(endpoint2)
+		hash2, err := endpoint2.GetHash()
 		require.NoError(t, err)
 
 		assert.NotEqual(t, hash1, hash2)
@@ -256,10 +256,10 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			Insecure: true,
 		}
 
-		hash1, err := GetManagementEndpointHash(endpoint1)
+		hash1, err := endpoint1.GetHash()
 		require.NoError(t, err)
 
-		hash2, err := GetManagementEndpointHash(endpoint2)
+		hash2, err := endpoint2.GetHash()
 		require.NoError(t, err)
 
 		assert.NotEqual(t, hash1, hash2)
@@ -287,10 +287,10 @@ func TestGetManagementEndpointHash(t *testing.T) {
 			AdditionalTrustBundle: "bundle2",
 		}
 
-		hash1, err := GetManagementEndpointHash(endpoint1)
+		hash1, err := endpoint1.GetHash()
 		require.NoError(t, err)
 
-		hash2, err := GetManagementEndpointHash(endpoint2)
+		hash2, err := endpoint2.GetHash()
 		require.NoError(t, err)
 
 		assert.NotEqual(t, hash1, hash2)
