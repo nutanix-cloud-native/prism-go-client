@@ -76,30 +76,10 @@ func (mr *MockImagesMockRecorder[Image]) List(ctx any, opts ...any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockImages[Image])(nil).List), varargs...)
 }
 
-// ListAll mocks base method.
-func (m *MockImages[Image]) ListAll(ctx context.Context, opts ...convergedclient.ODataOption) ([]Image, error) {
+// NewIterator mocks base method.
+func (m *MockImages[Image]) NewIterator(ctx context.Context, opts ...convergedclient.ODataOption) convergedclient.Iterator[Image] {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ListAll", varargs...)
-	ret0, _ := ret[0].([]Image)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAll indicates an expected call of ListAll.
-func (mr *MockImagesMockRecorder[Image]) ListAll(ctx any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockImages[Image])(nil).ListAll), varargs...)
-}
-
-// NewIterator mocks base method.
-func (m *MockImages[Image]) NewIterator(opts ...convergedclient.ODataOption) convergedclient.Iterator[Image] {
-	m.ctrl.T.Helper()
-	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -109,7 +89,8 @@ func (m *MockImages[Image]) NewIterator(opts ...convergedclient.ODataOption) con
 }
 
 // NewIterator indicates an expected call of NewIterator.
-func (mr *MockImagesMockRecorder[Image]) NewIterator(opts ...any) *gomock.Call {
+func (mr *MockImagesMockRecorder[Image]) NewIterator(ctx any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockImages[Image])(nil).NewIterator), opts...)
+	varargs := append([]any{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewIterator", reflect.TypeOf((*MockImages[Image])(nil).NewIterator), varargs...)
 }

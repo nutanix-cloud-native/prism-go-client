@@ -46,6 +46,7 @@ generate-mocks: $(MOCKGEN) ## Generate mocks using uber/mock mockgen
 	@$(MOCKGEN) -source=converged_client/images.go -destination=converged_client/mocks/images_mock.go -package=mocks
 	@$(MOCKGEN) -source=converged_client/storage_containers.go -destination=converged_client/mocks/storage_containers_mock.go -package=mocks
 	@$(MOCKGEN) -source=converged_client/subnets.go -destination=converged_client/mocks/subnets_mock.go -package=mocks
+	@$(MOCKGEN) -source=converged_client/anti_affinity_policies.go -destination=converged_client/mocks/anti_affinity_policies_mock.go -package=mocks
 	@echo "Mocks generated successfully"
 
 generate-v3-models: ## Generate V3 models using go-swagger
