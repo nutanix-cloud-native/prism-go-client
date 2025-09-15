@@ -20,11 +20,13 @@ type Client[
 	PhysicalGpuProfile,
 	Category,
 	Image,
+	StorageContainer,
 	VM any] struct {
-	Clusters   Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
-	Categories Categories[Category]
-	Images     Images[Image]
-	VMs        VMs[VM]
+	Clusters          Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
+	Categories        Categories[Category]
+	Images            Images[Image]
+	StorageContainers StorageContainers[StorageContainer]
+	VMs               VMs[VM]
 	// Additional service interfaces can be added here as needed.
 }
 
