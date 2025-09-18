@@ -34,14 +34,6 @@ stop-keploy:
 generate: $(CONTROLLER_GEN)  ## Generate zz_generated.deepcopy.go
 	controller-gen paths="./..." object:headerFile="hack/boilerplate.go.txt"
 
-generate-mocks: ## Generate mocks
-	@echo "Generating mocks..."
-	@mkdir -p converged/mocks
-	@mockgen -source=converged/vms.go -destination=converged/mocks/vms_mock.go -package=mocks
-	@mockgen -source=converged/converged.go -destination=converged/mocks/converged_mock.go -package=mocks
-	@echo "Mocks generated successfully"
-
-
 generate-v3-models: ## Generate V3 models using go-swagger
 	swagger generate model \
 		--spec=v3/swagger.json \
