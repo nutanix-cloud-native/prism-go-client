@@ -184,7 +184,7 @@ func ConvertTaskStatus(status v4prismModels.TaskStatus) converged.TaskStatus {
 // APIResponse interface for the API response
 // It contains the method to get the data from the API response
 type APIResponse interface {
-	GetData() interface{}
+	GetData() any
 }
 
 // CallAPI calls the API and returns the result
