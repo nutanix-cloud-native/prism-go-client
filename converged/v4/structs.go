@@ -10,9 +10,10 @@ import (
 	"k8s.io/utils/ptr"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
-	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
+	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
+
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )

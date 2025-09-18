@@ -6,7 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
+	"github.com/nutanix-cloud-native/prism-go-client/converged"
+
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	"k8s.io/utils/ptr"
 )
