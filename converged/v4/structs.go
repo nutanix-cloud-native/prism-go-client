@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"k8s.io/utils/ptr"
+
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
-	"k8s.io/utils/ptr"
 )
 
 type Client struct {
@@ -23,7 +24,7 @@ type Client struct {
 }
 
 func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
-	v4Client, err := v4prismGoClient.NewV4Client(credentials)
+	v4Client, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
 		return nil, err
 	}
