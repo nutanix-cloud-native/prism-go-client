@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/utils/ptr"
-
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
@@ -16,6 +14,7 @@ import (
 
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+	"k8s.io/utils/ptr"
 )
 
 // Client struct for converged client
