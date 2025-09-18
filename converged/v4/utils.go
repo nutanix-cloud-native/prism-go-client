@@ -89,7 +89,7 @@ func (o *V4ODataParams) SetApplyOption(apply string) error {
 
 // GetEtag gets the etag from the object
 // It returns the etag if the object is valid, otherwise it returns an empty string
-func GetEtag(object interface{}) string {
+func GetEtag(object any) string {
 	var reserved reflect.Value
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
 		reserved = reflect.ValueOf(object).FieldByName("Reserved_")
@@ -101,7 +101,7 @@ func GetEtag(object interface{}) string {
 
 	if reserved.IsValid() {
 		etagKey := strings.ToLower("Etag")
-		reservedMap := reserved.Interface().(map[string]interface{})
+		reservedMap := reserved.Interface().(map[string]any)
 		for k, v := range reservedMap {
 			if strings.ToLower(k) == etagKey {
 				return v.(string)
@@ -114,11 +114,11 @@ func GetEtag(object interface{}) string {
 
 // DropEtag drops the etag from the object
 // It returns the object with the etag dropped
-func DropEtag(object interface{}) interface{} {
+func DropEtag(object any) any {
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
 		reserved := reflect.ValueOf(object).FieldByName("Reserved_")
 		if reserved.IsValid() {
-			reservedMap := reserved.Interface().(map[string]interface{})
+			reservedMap := reserved.Interface().(map[string]any)
 			allEtagKeys := make([]string, 0)
 			for k := range reservedMap {
 				if strings.ToLower(k) == "etag" {
@@ -135,7 +135,7 @@ func DropEtag(object interface{}) interface{} {
 
 // CopyEtag copies the etag from the source object to the destination object
 // It returns the destination object with the etag copied
-func CopyEtag(source, destination interface{}) interface{} {
+func CopyEtag(source, destination any) any {
 	var reserved reflect.Value
 
 	destination = DropEtag(destination)
@@ -152,7 +152,7 @@ func CopyEtag(source, destination interface{}) interface{} {
 		if etag == "" {
 			return destination
 		}
-		reservedMap := reserved.Interface().(map[string]interface{})
+		reservedMap := reserved.Interface().(map[string]any)
 		reservedMap["Etag"] = etag
 	}
 
@@ -260,7 +260,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 
 // GetEntityAndEtag gets the entity and etag from the API response
 // It returns the entity and etag if the API call is successful, otherwise it returns an error
-func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, error) {
+func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	var zero T
 
 	if err != nil {
@@ -272,7 +272,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]interface{}, er
 		return zero, nil, fmt.Errorf("no ETag found for entity of type %T", entity)
 	}
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"If-Match": &etag,
 	}
 
