@@ -17,12 +17,16 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
+// Client struct for converged client
+// It contains implementation for all required API operations grouped by service
 type Client struct {
 	converged.Client[vmmModels.Vm]
 
 	client *v4prismGoClient.Client
 }
 
+// NewClient creates a new converged client
+// It initializes the V4 client and creates the service implementations
 func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
 	v4Client, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
@@ -37,6 +41,8 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 	return client, nil
 }
 
+// Operation struct async PC task operation
+// It contains the async PC task details and the results
 type Operation[T any] struct {
 	lock             *sync.Mutex
 	entityUUIDs      []string
@@ -49,7 +55,7 @@ type Operation[T any] struct {
 	result           []*T
 }
 
-// NewOperation creates a new Operation for the given task UUID and client.
+// NewOperation creates a new Operation for the given PC async task UUID and client.
 func NewOperation[T any](
 	taskUUID string,
 	client *v4prismGoClient.Client,
@@ -65,7 +71,7 @@ func NewOperation[T any](
 	}
 }
 
-// Wait waits for the task to complete and returns the entities affected.
+// Wait waits for the PC async task to complete and returns the entities affected.
 func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 	var result []*T
 
@@ -158,7 +164,7 @@ func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 	return result, nil
 }
 
-// Results returns the results of the operation.
+// Results returns the results of the PC async task operation.
 func (o *Operation[T]) Results() ([]*T, error) {
 	if o.taskStatus == converged.TaskStatusFailed || o.taskStatus == converged.TaskStatusCanceled || o.taskStatus == converged.TaskStatusCanceling {
 		return nil, converged.ErrTaskFailed
@@ -175,14 +181,17 @@ func (o *Operation[T]) Results() ([]*T, error) {
 	return o.result, nil
 }
 
+// UUID returns the UUID of the PC async task.
 func (o *Operation[T]) UUID() string {
 	return o.taskUUID
 }
 
+// Status returns the status of the PC async task.
 func (o *Operation[T]) Status() converged.TaskStatus {
 	return o.taskStatus
 }
 
+// Errors returns the errors of the PC async task.
 func (o *Operation[T]) Errors() []error {
 	return o.taskErrors
 }
@@ -220,6 +229,7 @@ func (o *Operation[T]) setResults(results []*T) {
 	o.result = results
 }
 
+// IsDone checks if the PC async task is finished.
 func (o *Operation[T]) IsDone() bool {
 	return o.taskStatus == converged.TaskStatusSucceeded ||
 		o.taskStatus == converged.TaskStatusFailed ||
@@ -227,18 +237,17 @@ func (o *Operation[T]) IsDone() bool {
 		o.taskStatus == converged.TaskStatusCanceling
 }
 
+// IsSuccess checks if the PC async task is successful.
 func (o *Operation[T]) IsSuccess() bool {
 	return o.taskStatus == converged.TaskStatusSucceeded
 }
 
+// IsFailed checks if the PC async task is failed.
 func (o *Operation[T]) IsFailed() bool {
 	return o.taskStatus == converged.TaskStatusFailed
 }
 
-type Iterator[R APIResponse, T any] struct {
-	// Removed unused fields to fix linting issues
-}
-
+// NewIterator creates a new iterator for the given list function and options.
 func NewIterator[R APIResponse, T any](
 	ctx context.Context,
 	listFunc func(context.Context, *V4ODataParams) (R, error),

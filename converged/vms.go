@@ -1,5 +1,6 @@
 package converged
 
+// VMs is the interface for the VMs service.
 type VMs[VM any] interface {
 	// Getter is the interface for Get operations.
 	Getter[VM]
