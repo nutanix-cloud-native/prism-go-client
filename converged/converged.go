@@ -169,7 +169,7 @@ type Operation[T any] interface {
 }
 
 // NoEntity is a placeholder for cases where no entity is returned (e.g. delete operations).
-type NoEntity interface{}
+type NoEntity any
 
 // NoEntityGetter is a placeholder for cases where no entity is returned (e.g. delete operations).
 func NoEntityGetter(uuid string) (*NoEntity, error) {
