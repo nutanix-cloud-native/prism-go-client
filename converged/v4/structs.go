@@ -211,9 +211,7 @@ func (o *Operation[T]) setEntitiesAffected(count int) {
 func (o *Operation[T]) appendTaskError(err error) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
-	if o.taskErrors == nil {
-		o.taskErrors = make([]error, 0)
-	}
+
 	o.taskErrors = append(o.taskErrors, err)
 }
 
