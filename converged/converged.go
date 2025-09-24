@@ -15,16 +15,22 @@ var (
 
 // Client is the main struct for the converged client.
 type Client[
+	AntiAffinityPolicy,
 	Cluster,
 	VirtualGpuProfile,
 	PhysicalGpuProfile,
 	Category,
 	Image,
+	StorageContainer,
+	Subnet,
 	VM any] struct {
-	Clusters   Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
-	Categories Categories[Category]
-	Images     Images[Image]
-	VMs        VMs[VM]
+	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
+	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
+	Categories           Categories[Category]
+	Images               Images[Image]
+	StorageContainers    StorageContainers[StorageContainer]
+	Subnets              Subnets[Subnet]
+	VMs                  VMs[VM]
 	// Additional service interfaces can be added here as needed.
 }
 
