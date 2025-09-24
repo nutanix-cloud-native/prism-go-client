@@ -12,15 +12,29 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
+	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
+	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 	"k8s.io/utils/ptr"
 )
 
 // Client struct for converged client
 // It contains implementation for all required API operations grouped by service
 type Client struct {
-	converged.Client[prismModels.Category, vmmModels.Vm]
+	converged.Client[
+		policyModels.VmAntiAffinityPolicy,
+		clusterModels.Cluster,
+		clusterModels.VirtualGpuProfile,
+		clusterModels.PhysicalGpuProfile,
+		prismModels.Category,
+		imageModels.Image,
+		clusterModels.StorageContainer,
+		subnetModels.Subnet,
+		vmmModels.Vm,
+	]
 
 	client *v4prismGoClient.Client
 }
@@ -33,9 +47,24 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 		return nil, err
 	}
 	client := &Client{
-		Client: converged.Client[prismModels.Category, vmmModels.Vm]{
-			VMs:        NewVMsService(v4Client),
-			Categories: NewCategoriesService(v4Client),
+		Client: converged.Client[
+			policyModels.VmAntiAffinityPolicy,
+			clusterModels.Cluster,
+			clusterModels.VirtualGpuProfile,
+			clusterModels.PhysicalGpuProfile,
+			prismModels.Category,
+			imageModels.Image,
+			clusterModels.StorageContainer,
+			subnetModels.Subnet,
+			vmmModels.Vm,
+		]{
+			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4Client),
+			Clusters:             NewClustersService(v4Client),
+			Categories:           NewCategoriesService(v4Client),
+			Images:               NewImagesService(v4Client),
+			StorageContainers:    NewStorageContainersService(v4Client),
+			Subnets:              NewSubnetsService(v4Client),
+			VMs:                  NewVMsService(v4Client),
 		},
 		client: v4Client,
 	}
