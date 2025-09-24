@@ -1753,7 +1753,7 @@ func (op Operations) ListAllUserGroup(ctx context.Context, filter string) (*User
 		for hasNext(&remaining) {
 			resp, err = op.ListUserGroup(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   ptr.To("user"),
+				Kind:   ptr.To("user_group"),
 				Length: ptr.To(itemsPerPage),
 				Offset: ptr.To(offset),
 			})
