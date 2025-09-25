@@ -1135,38 +1135,13 @@ func (op Operations) ListHost(ctx context.Context, getEntitiesRequest *DSMetadat
 
 // ListAllHost ...
 func (op Operations) ListAllHost(ctx context.Context) (*HostListResponse, error) {
-	entities := make([]*HostResponse, 0)
-
 	resp, err := op.ListHost(ctx, &DSMetadata{
-		Kind:   utils.StringPtr("host"),
-		Length: utils.Int64Ptr(itemsPerPage),
+		Kind: ptr.To("host"),
+		// We omit the Length parameter, because ListHost does not support pagination,
+		// and returns all hosts.
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	totalEntities := utils.Int64Value(resp.Metadata.TotalMatches)
-	remaining := totalEntities
-	offset := utils.Int64Value(resp.Metadata.Offset)
-
-	if totalEntities > itemsPerPage {
-		for hasNext(&remaining) {
-			resp, err = op.ListHost(ctx, &DSMetadata{
-				Kind:   utils.StringPtr("cluster"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			entities = append(entities, resp.Entities...)
-
-			offset += itemsPerPage
-			log.Printf("[Debug] total=%d, remaining=%d, offset=%d len(entities)=%d\n", totalEntities, remaining, offset, len(entities))
-		}
-
-		resp.Entities = entities
 	}
 
 	return resp, nil
@@ -1777,9 +1752,9 @@ func (op Operations) ListAllUserGroup(ctx context.Context, filter string) (*User
 		for hasNext(&remaining) {
 			resp, err = op.ListUserGroup(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   utils.StringPtr("user"),
-				Length: utils.Int64Ptr(itemsPerPage),
-				Offset: utils.Int64Ptr(offset),
+				Kind:   ptr.To("user_group"),
+				Length: ptr.To(itemsPerPage),
+				Offset: ptr.To(offset),
 			})
 			if err != nil {
 				return nil, err
