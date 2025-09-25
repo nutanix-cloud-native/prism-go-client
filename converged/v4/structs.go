@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"slices"
 	"sync"
 	"time"
 
@@ -166,23 +167,30 @@ func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 			if entityRef.ExtId == nil {
 				return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", o.taskUUID)
 			}
+
+			// TODO: Get rid of this check when we will be sure that the correct amount of entities is returned (see comment below)
+			// STATE: 2025-09-23 - Ilya Alekseyev - On VM creation sometimes returns duplicates.
+			if slices.Contains(o.entityUUIDs, *entityRef.ExtId) {
+				continue
+			}
+
 			o.appendEntityUUID(*entityRef.ExtId)
 		}
 	}
 
 	for _, uuid := range o.entityUUIDs {
 		entity, err := o.entityGetter(ctx, uuid)
+		// TODO: Uncomment this when we will be sure that the correct amount of entities is returned
+		// STATE: 2025-07-29 - Ilya Alekseyev - On VM creation sometimes returns multiple entities some of those can not be found.
+		// if entity == nil {
+		// 	return nil, fmt.Errorf("entity %s not found", uuid)
+		// }
 
-		// TODO: Get rid of this check when we will be sure that the correct amount of entities is returned (see comment below)
+		// TODO: Get rid of this check when we will be sure that the correct amount of entities is returned (see comment above)
 		if entity != nil {
 			if err != nil {
 				return nil, fmt.Errorf("failed to get entity %s: %w", uuid, err)
 			}
-			// TODO: Uncomment this when we will be sure that the correct amount of entities is returned
-			// STATE: 2025-07-29 - Ilya Alekseyev - On VM creation sometimes returns 2 entities one if which can not be found.
-			// if entity == nil {
-			// 	return nil, fmt.Errorf("entity %s not found", uuid)
-			// }
 
 			result = append(result, entity)
 		}
