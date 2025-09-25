@@ -2,6 +2,7 @@ package v4
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
@@ -73,6 +74,18 @@ func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUui
 	if clusterUuid == "" {
 		return nil, fmt.Errorf("clusterUuid is required")
 	}
+
+	// Check if unsupported OData options are provided
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+	if reqParams != nil {
+		if reqParams.Apply != nil || reqParams.Expand != nil || reqParams.Select != nil {
+			return nil, errors.New("apply, expand and select are not supported")
+		}
+	}
+
 	return GenericListEntities[*clusterModels.ListVirtualGpuProfilesApiResponse, clusterModels.VirtualGpuProfile](
 		func(reqParams *V4ODataParams) (*clusterModels.ListVirtualGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ListVirtualGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
@@ -90,6 +103,18 @@ func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUu
 	if clusterUuid == "" {
 		return nil, fmt.Errorf("clusterUuid is required")
 	}
+
+	// Check if unsupported OData options are provided
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+	if reqParams != nil {
+		if reqParams.Apply != nil || reqParams.Expand != nil || reqParams.Select != nil {
+			return nil, errors.New("apply, expand and select are not supported")
+		}
+	}
+
 	return GenericListEntities[*clusterModels.ListPhysicalGpuProfilesApiResponse, clusterModels.PhysicalGpuProfile](
 		func(reqParams *V4ODataParams) (*clusterModels.ListPhysicalGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ListPhysicalGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
