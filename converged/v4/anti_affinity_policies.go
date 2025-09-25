@@ -12,12 +12,13 @@ import (
 
 // AntiAffinityPoliciesService provides default "not implemented" implementation for all AntiAffinityPolicies interface methods.
 type AntiAffinityPoliciesService struct {
-	client *v4prismGoClient.Client
+	client   *v4prismGoClient.Client
+	entities string
 }
 
 // NewAntiAffinityPoliciesService creates a new AntiAffinityPoliciesService instance.
 func NewAntiAffinityPoliciesService(client *v4prismGoClient.Client) *AntiAffinityPoliciesService {
-	return &AntiAffinityPoliciesService{client: client}
+	return &AntiAffinityPoliciesService{client: client, entities: "AntiAffinityPolicies"}
 }
 
 // Get returns the anti-affinity policy for the given UUID.
