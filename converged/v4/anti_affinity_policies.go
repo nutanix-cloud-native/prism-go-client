@@ -2,6 +2,7 @@ package v4
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
@@ -18,21 +19,39 @@ type AntiAffinityPoliciesService struct {
 
 // NewAntiAffinityPoliciesService creates a new AntiAffinityPoliciesService instance.
 func NewAntiAffinityPoliciesService(client *v4prismGoClient.Client) *AntiAffinityPoliciesService {
-	return &AntiAffinityPoliciesService{client: client, entities: "AntiAffinityPolicies"}
+	return &AntiAffinityPoliciesService{client: client, entities: "anti-affinity policy"}
 }
 
 // Get returns the anti-affinity policy for the given UUID.
 func (s *AntiAffinityPoliciesService) Get(ctx context.Context, uuid string) (*policyModels.VmAntiAffinityPolicy, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	return GenericGetEntity[*policyModels.GetVmAntiAffinityPolicyApiResponse, policyModels.VmAntiAffinityPolicy](
 		func() (*policyModels.GetVmAntiAffinityPolicyApiResponse, error) {
 			return s.client.VmAntiAffinityPoliciesApiInstance.GetVmAntiAffinityPolicyById(&uuid)
 		},
-		"anti-affinity policy",
+		s.entities,
 	)
 }
 
 // List returns a list of anti-affinity policies.
 func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converged.ODataOption) ([]policyModels.VmAntiAffinityPolicy, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	// Check if unsupported OData options are provided
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+	if reqParams != nil {
+		if reqParams.Apply != nil && reqParams.Expand != nil && reqParams.Select != nil {
+			return nil, errors.New("apply, expand and select are not supported")
+		}
+	}
+
 	return GenericListEntities[*policyModels.ListVmAntiAffinityPoliciesApiResponse, policyModels.VmAntiAffinityPolicy](
 		func(reqParams *V4ODataParams) (*policyModels.ListVmAntiAffinityPoliciesApiResponse, error) {
 			return s.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(
@@ -43,12 +62,15 @@ func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converge
 			)
 		},
 		opts,
-		"anti-affinity policies",
+		s.entities,
 	)
 }
 
 // NewIterator returns an iterator for listing anti-affinity policies.
 func (s *AntiAffinityPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
+	if s.client == nil {
+		return nil
+	}
 	return GenericNewIterator[*policyModels.ListVmAntiAffinityPoliciesApiResponse, policyModels.VmAntiAffinityPolicy](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*policyModels.ListVmAntiAffinityPoliciesApiResponse, error) {
@@ -60,12 +82,15 @@ func (s *AntiAffinityPoliciesService) NewIterator(ctx context.Context, opts ...c
 			)
 		},
 		opts,
-		"anti-affinity policies",
+		s.entities,
 	)
 }
 
 // Create creates a new anti-affinity policy.
 func (s *AntiAffinityPoliciesService) Create(ctx context.Context, entity *policyModels.VmAntiAffinityPolicy) (*policyModels.VmAntiAffinityPolicy, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	taskRef, err := CallAPI[*policyModels.CreateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
 		s.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(entity),
 	)
@@ -89,6 +114,9 @@ func (s *AntiAffinityPoliciesService) Create(ctx context.Context, entity *policy
 
 // Update updates an existing anti-affinity policy.
 func (s *AntiAffinityPoliciesService) Update(ctx context.Context, uuid string, entity *policyModels.VmAntiAffinityPolicy) (*policyModels.VmAntiAffinityPolicy, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	taskRef, err := CallAPI[*policyModels.UpdateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
 		s.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, entity),
 	)
@@ -106,6 +134,9 @@ func (s *AntiAffinityPoliciesService) Update(ctx context.Context, uuid string, e
 
 // Delete deletes an existing anti-affinity policy.
 func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
 	policy, args, err := GetEntityAndEtag(
 		s.Get(ctx, uuid),
 	)
@@ -141,6 +172,9 @@ func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) e
 // CreateAsync creates a new anti-affinity policy asynchronously.
 // Note: Anti-affinity policy creation is actually synchronous, so this returns an already-completed operation.
 func (s *AntiAffinityPoliciesService) CreateAsync(ctx context.Context, entity *policyModels.VmAntiAffinityPolicy) (converged.Operation[policyModels.VmAntiAffinityPolicy], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	taskRef, err := CallAPI[*policyModels.CreateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
 		s.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(entity),
 	)
@@ -159,6 +193,9 @@ func (s *AntiAffinityPoliciesService) CreateAsync(ctx context.Context, entity *p
 // UpdateAsync updates an existing anti-affinity policy asynchronously.
 // Note: Anti-affinity policy updates are actually synchronous, so this returns an already-completed operation.
 func (s *AntiAffinityPoliciesService) UpdateAsync(ctx context.Context, uuid string, entity *policyModels.VmAntiAffinityPolicy) (converged.Operation[policyModels.VmAntiAffinityPolicy], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	taskRef, err := CallAPI[*policyModels.UpdateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
 		s.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, entity),
 	)
@@ -173,6 +210,9 @@ func (s *AntiAffinityPoliciesService) UpdateAsync(ctx context.Context, uuid stri
 // DeleteAsync deletes an existing anti-affinity policy asynchronously.
 // Note: Anti-affinity policy deletion is actually synchronous, so this returns an already-completed operation.
 func (s *AntiAffinityPoliciesService) DeleteAsync(ctx context.Context, uuid string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
 	policy, args, err := GetEntityAndEtag(
 		s.Get(ctx, uuid),
 	)
