@@ -48,7 +48,7 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 	}
 
 	if myParams.Apply != nil {
-		return nil, fmt.Errorf("expand and apply are not supported for listing Subnets")
+		return nil, fmt.Errorf("apply is not supported for listing Subnets")
 	}
 
 	return GenericListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
