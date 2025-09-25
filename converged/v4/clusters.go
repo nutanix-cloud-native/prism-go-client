@@ -11,12 +11,13 @@ import (
 
 // ClustersService provides default "not implemented" implementation for all Clusters interface methods.
 type ClustersService struct {
-	client *v4prismGoClient.Client
+	client   *v4prismGoClient.Client
+	entities string
 }
 
 // NewClustersService creates a new ClustersService instance.
 func NewClustersService(client *v4prismGoClient.Client) *ClustersService {
-	return &ClustersService{client: client}
+	return &ClustersService{client: client, entities: "cluster"}
 }
 
 // Get returns the cluster for the given UUID.
@@ -31,7 +32,7 @@ func (s *ClustersService) Get(ctx context.Context, uuid string) (*clusterModels.
 		func() (*clusterModels.GetClusterApiResponse, error) {
 			return s.client.ClustersApiInstance.GetClusterById(&uuid, nil)
 		},
-		"cluster",
+		s.entities,
 	)
 }
 
@@ -45,7 +46,7 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 			return s.client.ClustersApiInstance.ListClusters(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
 		},
 		opts,
-		"clusters",
+		s.entities,
 	)
 }
 
@@ -60,7 +61,7 @@ func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODa
 			return s.client.ClustersApiInstance.ListClusters(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
 		},
 		opts,
-		"clusters",
+		s.entities,
 	)
 }
 
