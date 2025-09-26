@@ -23,7 +23,9 @@ type Client[
 	Image,
 	StorageContainer,
 	Subnet,
-	VM any] struct {
+	VM,
+	Task,
+	AppMessage any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
 	Categories           Categories[Category]
@@ -31,6 +33,7 @@ type Client[
 	StorageContainers    StorageContainers[StorageContainer]
 	Subnets              Subnets[Subnet]
 	VMs                  VMs[VM]
+	Tasks                Tasks[Task, AppMessage]
 	// Additional service interfaces can be added here as needed.
 }
 

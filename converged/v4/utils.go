@@ -307,15 +307,20 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 // It returns the entities if the API call is successful, otherwise it returns an error
 func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
 	returnAll := false
+	page := 0
 
 	reqParams, err := OptsToV4ODataParams(options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
 	}
 
+	if reqParams.Limit != nil && reqParams.Page == nil {
+		reqParams.Page = ptr.To(page)
+	}
+
 	if reqParams.Page == nil {
 		returnAll = true
-		reqParams.Page = ptr.To(0)
+		reqParams.Page = ptr.To(page)
 		reqParams.Limit = nil // Let API use the default limit
 	}
 
@@ -329,7 +334,8 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 
 	if returnAll {
 		for len(result) < totalCount {
-			reqParams.Page = ptr.To(*reqParams.Page + 1)
+			page++
+			reqParams.Page = ptr.To(page)
 			moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
 			if err != nil {
 				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
