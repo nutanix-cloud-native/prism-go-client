@@ -28,6 +28,7 @@ func (s *AntiAffinityPoliciesService) Get(ctx context.Context, uuid string) (*po
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*policyModels.GetVmAntiAffinityPolicyApiResponse, policyModels.VmAntiAffinityPolicy](
+		ctx,
 		func() (*policyModels.GetVmAntiAffinityPolicyApiResponse, error) {
 			return s.client.VmAntiAffinityPoliciesApiInstance.GetVmAntiAffinityPolicyById(&uuid)
 		},
@@ -53,7 +54,8 @@ func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converge
 	}
 
 	return GenericListEntities[*policyModels.ListVmAntiAffinityPoliciesApiResponse, policyModels.VmAntiAffinityPolicy](
-		func(reqParams *V4ODataParams) (*policyModels.ListVmAntiAffinityPoliciesApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*policyModels.ListVmAntiAffinityPoliciesApiResponse, error) {
 			return s.client.VmAntiAffinityPoliciesApiInstance.ListVmAntiAffinityPolicies(
 				reqParams.Page,
 				reqParams.Limit,
@@ -91,24 +93,15 @@ func (s *AntiAffinityPoliciesService) Create(ctx context.Context, entity *policy
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*policyModels.CreateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(entity),
-	)
+	operation, err := s.CreateAsync(ctx, entity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create anti-affinity policy: %w", err)
+	}
+	createdPolicy, err := operation.Wait(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create anti-affinity policy: %w", err)
 	}
 
-	if taskRef.ExtId == nil {
-		return nil, fmt.Errorf("task reference ExtId is nil for created anti-affinity policy")
-	}
-
-	waiter := NewOperation(*taskRef.ExtId, s.client, func(ctx context.Context, uuid string) (*policyModels.VmAntiAffinityPolicy, error) {
-		return s.Get(ctx, uuid)
-	})
-	createdPolicy, err := waiter.Wait(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create anti-affinity policy: %w", err)
-	}
 	return createdPolicy[0], nil
 }
 
@@ -117,18 +110,16 @@ func (s *AntiAffinityPoliciesService) Update(ctx context.Context, uuid string, e
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*policyModels.UpdateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, entity),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update anti-affinity policy with UUID %s: %w", uuid, err)
-	}
 
-	waiter := NewOperation(*taskRef.ExtId, s.client, s.Get)
-	updatedPolicy, err := waiter.Wait(ctx)
+	operation, err := s.UpdateAsync(ctx, uuid, entity)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update anti-affinity policy: %w", err)
 	}
+	updatedPolicy, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update anti-affinity policy: %w", err)
+	}
+
 	return updatedPolicy[0], nil
 }
 
@@ -137,7 +128,7 @@ func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) e
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
-	policy, args, err := GetEntityAndEtag(
+	policy, _, err := GetEntityAndEtag(
 		s.Get(ctx, uuid),
 	)
 	if err != nil {
@@ -148,24 +139,15 @@ func (s *AntiAffinityPoliciesService) Delete(ctx context.Context, uuid string) e
 		return fmt.Errorf("no anti-affinity policy found with UUID %s", uuid)
 	}
 
-	taskRef, err := CallAPI[*policyModels.DeleteVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.DeleteVmAntiAffinityPolicyById(&uuid, args),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to delete anti-affinity policy with UUID %s: %w", uuid, err)
-	}
-
-	if taskRef.ExtId == nil {
-		return fmt.Errorf("task reference ExtId is nil for deleted anti-affinity policy with UUID %s", uuid)
-	}
-
-	waiter := NewOperation(*taskRef.ExtId, s.client, func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
-		return nil, nil
-	})
-	_, err = waiter.Wait(ctx)
+	operation, err := s.DeleteAsync(ctx, uuid)
 	if err != nil {
 		return fmt.Errorf("failed to delete anti-affinity policy: %w", err)
 	}
+	_, err = operation.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete anti-affinity policy: %w", err)
+	}
+
 	return nil
 }
 
@@ -176,7 +158,12 @@ func (s *AntiAffinityPoliciesService) CreateAsync(ctx context.Context, entity *p
 		return nil, errors.New("client is not initialized")
 	}
 	taskRef, err := CallAPI[*policyModels.CreateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(entity),
+		ThreadSafeCall(
+			ctx,
+			func() (*policyModels.CreateVmAntiAffinityPolicyApiResponse, error) {
+				return s.client.VmAntiAffinityPoliciesApiInstance.CreateVmAntiAffinityPolicy(entity)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create anti-affinity policy: %w", err)
@@ -197,7 +184,12 @@ func (s *AntiAffinityPoliciesService) UpdateAsync(ctx context.Context, uuid stri
 		return nil, errors.New("client is not initialized")
 	}
 	taskRef, err := CallAPI[*policyModels.UpdateVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, entity),
+		ThreadSafeCall(
+			ctx,
+			func() (*policyModels.UpdateVmAntiAffinityPolicyApiResponse, error) {
+				return s.client.VmAntiAffinityPoliciesApiInstance.UpdateVmAntiAffinityPolicyById(&uuid, entity)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update anti-affinity policy with UUID %s: %w", uuid, err)
@@ -225,7 +217,12 @@ func (s *AntiAffinityPoliciesService) DeleteAsync(ctx context.Context, uuid stri
 	}
 
 	taskRef, err := CallAPI[*policyModels.DeleteVmAntiAffinityPolicyApiResponse, vmmPrismModels.TaskReference](
-		s.client.VmAntiAffinityPoliciesApiInstance.DeleteVmAntiAffinityPolicyById(&uuid, args),
+		ThreadSafeCall(
+			ctx,
+			func() (*policyModels.DeleteVmAntiAffinityPolicyApiResponse, error) {
+				return s.client.VmAntiAffinityPoliciesApiInstance.DeleteVmAntiAffinityPolicyById(&uuid, args)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete anti-affinity policy with UUID %s: %w", uuid, err)

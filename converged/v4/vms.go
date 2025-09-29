@@ -31,6 +31,7 @@ func (s *VMsService) Get(ctx context.Context, uuid string) (*vmmModels.Vm, error
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm](
+		ctx,
 		func() (*vmmModels.GetVmApiResponse, error) {
 			return s.client.VmApiInstance.GetVmById(&uuid)
 		},
@@ -55,7 +56,8 @@ func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([
 	}
 
 	return GenericListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
-		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return s.client.VmApiInstance.ListVms(
 				reqParams.Page,
 				reqParams.Limit,
@@ -158,7 +160,12 @@ func (s *VMsService) CreateAsync(ctx context.Context, vm *vmmModels.Vm) (converg
 		return nil, errors.New("client is not initialized")
 	}
 	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.CreateVm(vm),
+		ThreadSafeCall(
+			ctx,
+			func() (*vmmModels.CreateVmApiResponse, error) {
+				return s.client.VmApiInstance.CreateVm(vm)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VM: %w", err)
@@ -190,7 +197,12 @@ func (s *VMsService) UpdateAsync(ctx context.Context, uuid string, vm *vmmModels
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
 
 	taskRef, err := CallAPI[*vmmModels.UpdateVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.UpdateVmById(&uuid, vm, args),
+		ThreadSafeCall(
+			ctx,
+			func() (*vmmModels.UpdateVmApiResponse, error) {
+				return s.client.VmApiInstance.UpdateVmById(&uuid, vm, args)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update VM: %w", err)
@@ -242,7 +254,7 @@ func (s *VMsService) DeleteAsync(ctx context.Context, uuid string) (converged.Op
 }
 
 // PowerOnVM powers on the VM with the given UUID.
-func (s *VMsService) PowerOnVM(uuid string) (converged.Operation[vmmModels.Vm], error) {
+func (s *VMsService) PowerOnVM(ctx context.Context, uuid string) (converged.Operation[vmmModels.Vm], error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -254,7 +266,12 @@ func (s *VMsService) PowerOnVM(uuid string) (converged.Operation[vmmModels.Vm], 
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.PowerOnVm(&uuid, args),
+		ThreadSafeCall(
+			ctx,
+			func() (*vmmModels.PowerOnVmApiResponse, error) {
+				return s.client.VmApiInstance.PowerOnVm(&uuid, args)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to power on VM: %w", err)
@@ -272,7 +289,7 @@ func (s *VMsService) PowerOnVM(uuid string) (converged.Operation[vmmModels.Vm], 
 }
 
 // PowerOffVM powers off the VM with the given UUID.
-func (s *VMsService) PowerOffVM(uuid string) (converged.Operation[vmmModels.Vm], error) {
+func (s *VMsService) PowerOffVM(ctx context.Context, uuid string) (converged.Operation[vmmModels.Vm], error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -284,7 +301,12 @@ func (s *VMsService) PowerOffVM(uuid string) (converged.Operation[vmmModels.Vm],
 	}
 
 	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.PowerOffVm(&uuid, args),
+		ThreadSafeCall(
+			ctx,
+			func() (*vmmModels.PowerOffVmApiResponse, error) {
+				return s.client.VmApiInstance.PowerOffVm(&uuid, args)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to power off VM: %w", err)

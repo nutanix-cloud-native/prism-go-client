@@ -216,14 +216,12 @@ func TestTasksIntegration(t *testing.T) {
 		done := make(chan bool, 2)
 
 		// Create separate client instances for each goroutine
-		client1, err1 := NewClient(creds)
+		client, err1 := NewClient(creds)
 		require.NoError(t, err1)
-		client2, err2 := NewClient(creds)
-		require.NoError(t, err2)
 
 		go func() {
 			defer func() { done <- true }()
-			tasks, err := client1.Tasks.List(ctx, converged.WithLimit(5))
+			tasks, err := client.Tasks.List(ctx, converged.WithLimit(5))
 			assert.NoError(t, err)
 			assert.NotNil(t, tasks)
 			assert.LessOrEqual(t, len(tasks), 5)
@@ -231,7 +229,7 @@ func TestTasksIntegration(t *testing.T) {
 
 		go func() {
 			defer func() { done <- true }()
-			tasks, err := client2.Tasks.List(ctx, converged.WithLimit(3))
+			tasks, err := client.Tasks.List(ctx, converged.WithLimit(3))
 			assert.NoError(t, err)
 			assert.NotNil(t, tasks)
 			assert.LessOrEqual(t, len(tasks), 3)

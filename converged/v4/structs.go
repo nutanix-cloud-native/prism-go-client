@@ -127,7 +127,12 @@ func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 			time.Sleep(1 * time.Second)
 
 			task, err = CallAPI[*prismModels.GetTaskApiResponse, prismModels.Task](
-				o.client.TasksApiInstance.GetTaskById(&o.taskUUID, nil),
+				ThreadSafeCall(
+					ctx,
+					func() (*prismModels.GetTaskApiResponse, error) {
+						return o.client.TasksApiInstance.GetTaskById(&o.taskUUID, nil)
+					},
+				),
 			)
 
 			if err != nil {

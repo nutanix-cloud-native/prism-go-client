@@ -30,6 +30,7 @@ func (s *ClustersService) Get(ctx context.Context, uuid string) (*clusterModels.
 		return nil, fmt.Errorf("uuid is required")
 	}
 	return GenericGetEntity[*clusterModels.GetClusterApiResponse, clusterModels.Cluster](
+		ctx,
 		func() (*clusterModels.GetClusterApiResponse, error) {
 			return s.client.ClustersApiInstance.GetClusterById(&uuid, nil)
 		},
@@ -43,7 +44,8 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 		return nil, fmt.Errorf("client is nil")
 	}
 	return GenericListEntities[*clusterModels.ListClustersApiResponse, clusterModels.Cluster](
-		func(reqParams *V4ODataParams) (*clusterModels.ListClustersApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListClustersApiResponse, error) {
 			return s.client.ClustersApiInstance.ListClusters(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
 		},
 		opts,
@@ -87,7 +89,8 @@ func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUui
 	}
 
 	return GenericListEntities[*clusterModels.ListVirtualGpuProfilesApiResponse, clusterModels.VirtualGpuProfile](
-		func(reqParams *V4ODataParams) (*clusterModels.ListVirtualGpuProfilesApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListVirtualGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ListVirtualGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
 		},
 		opts,
@@ -116,7 +119,8 @@ func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUu
 	}
 
 	return GenericListEntities[*clusterModels.ListPhysicalGpuProfilesApiResponse, clusterModels.PhysicalGpuProfile](
-		func(reqParams *V4ODataParams) (*clusterModels.ListPhysicalGpuProfilesApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListPhysicalGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ListPhysicalGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
 		},
 		opts,
