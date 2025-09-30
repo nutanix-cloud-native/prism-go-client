@@ -16,6 +16,7 @@ import (
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	prismErrors "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
@@ -35,6 +36,8 @@ type Client struct {
 		clusterModels.StorageContainer,
 		subnetModels.Subnet,
 		vmmModels.Vm,
+		prismModels.Task,
+		prismErrors.AppMessage,
 	]
 
 	client *v4prismGoClient.Client
@@ -58,6 +61,8 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			clusterModels.StorageContainer,
 			subnetModels.Subnet,
 			vmmModels.Vm,
+			prismModels.Task,
+			prismErrors.AppMessage,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4Client),
 			Clusters:             NewClustersService(v4Client),
@@ -66,6 +71,7 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			StorageContainers:    NewStorageContainersService(v4Client),
 			Subnets:              NewSubnetsService(v4Client),
 			VMs:                  NewVMsService(v4Client),
+			Tasks:                NewTasksService(v4Client),
 		},
 		client: v4Client,
 	}
@@ -305,10 +311,15 @@ func NewIterator[R APIResponse, T any](
 			return
 		}
 
+		page := 0
+		if reqParams.Limit != nil && reqParams.Page == nil {
+			reqParams.Page = ptr.To(page)
+		}
+
 		if reqParams.Page == nil {
-			reqParams.Page = ptr.To(0) // Start from the first page
-			reqParams.Limit = nil      // Let API use the default limit
-			iterateAllPages = true     // Iterate through all pages
+			reqParams.Page = ptr.To(page) // Start from the first page
+			reqParams.Limit = nil         // Let API use the default limit
+			iterateAllPages = true        // Iterate through all pages
 		}
 
 		for {
