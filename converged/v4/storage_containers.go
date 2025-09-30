@@ -29,6 +29,7 @@ func (s *StorageContainersService) Get(ctx context.Context, uuid string) (*scMod
 	}
 
 	return GenericGetEntity[*scModels.GetStorageContainerApiResponse, scModels.StorageContainer](
+		ctx,
 		func() (*scModels.GetStorageContainerApiResponse, error) {
 			return s.client.StorageContainerAPI.GetStorageContainerById(&uuid)
 		},
@@ -52,7 +53,8 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 	}
 
 	return GenericListEntities[*scModels.ListStorageContainersApiResponse, scModels.StorageContainer](
-		func(reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
 			return s.client.StorageContainerAPI.ListStorageContainers(
 				reqParams.Page,
 				reqParams.Limit,

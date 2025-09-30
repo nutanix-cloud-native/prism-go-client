@@ -29,6 +29,7 @@ func (s *SubnetsService) Get(ctx context.Context, uuid string) (*subnetModels.Su
 	}
 
 	return GenericGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet](
+		ctx,
 		func() (*subnetModels.GetSubnetApiResponse, error) {
 			return s.client.SubnetsApiInstance.GetSubnetById(&uuid)
 		},
@@ -52,7 +53,8 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 	}
 
 	return GenericListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
-		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return s.client.SubnetsApiInstance.ListSubnets(
 				reqParams.Page,
 				reqParams.Limit,

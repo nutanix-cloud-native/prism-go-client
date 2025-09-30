@@ -1,5 +1,7 @@
 package converged
 
+import "context"
+
 // VMs is the interface for the VMs service.
 type VMs[VM any] interface {
 	// Getter is the interface for Get operations.
@@ -27,10 +29,10 @@ type VMs[VM any] interface {
 	AsyncDeleter[VM]
 
 	// PowerOnVM powers on the VM with the given UUID.
-	PowerOnVM(uuid string) (Operation[VM], error)
+	PowerOnVM(ctx context.Context, uuid string) (Operation[VM], error)
 
 	// PowerOffVM powers off the VM with the given UUID.
-	PowerOffVM(uuid string) (Operation[VM], error)
+	PowerOffVM(ctx context.Context, uuid string) (Operation[VM], error)
 
 	// Additional methods can be added here as needed.
 }

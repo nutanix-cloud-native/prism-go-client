@@ -5,11 +5,16 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 
 	v4prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	"k8s.io/utils/ptr"
+)
+
+var (
+	CallAPIMutex = sync.Mutex{}
 )
 
 // V4ODataParams struct for V4 OData parameters
@@ -188,6 +193,20 @@ type APIResponse interface {
 	GetData() any
 }
 
+// ThreadSafeCall calls the API in a thread safe manner and returns the result
+func ThreadSafeCall[R APIResponse](ctx context.Context, apiCall func() (R, error)) (R, error) {
+	CallAPIMutex.Lock()
+	defer CallAPIMutex.Unlock()
+	return apiCall()
+}
+
+// ThreadSafeListCall calls the list API in a thread safe manner and returns the result
+func ThreadSafeListCall[R APIResponse](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), reqParams *V4ODataParams) (R, error) {
+	CallAPIMutex.Lock()
+	defer CallAPIMutex.Unlock()
+	return apiCall(ctx, reqParams)
+}
+
 // CallAPI calls the API and returns the result
 // It returns the result if the API call is successful, otherwise it returns an error
 func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
@@ -295,8 +314,8 @@ func OptsToV4ODataParams(opts ...converged.ODataOption) (*V4ODataParams, error) 
 
 // Generic implementation of the Getter interface
 // It returns the entity if the API call is successful, otherwise it returns an error
-func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
-	result, err := CallAPI[R, T](apiCall())
+func GenericGetEntity[R APIResponse, T any](ctx context.Context, apiCall func() (R, error), entityName string) (*T, error) {
+	result, err := CallAPI[R, T](ThreadSafeCall(ctx, apiCall))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s: %w", entityName, err)
 	}
@@ -305,7 +324,7 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 
 // GenericListEntities lists the entities
 // It returns the entities if the API call is successful, otherwise it returns an error
-func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
+func GenericListEntities[R APIResponse, T any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
 	returnAll := false
 	page := 0
 
@@ -326,7 +345,7 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 
 	result := []T{}
 
-	items, totalCount, err := CallListAPI[R, T](apiCall(reqParams))
+	items, totalCount, err := CallListAPI[R, T](ThreadSafeListCall(ctx, apiCall, reqParams))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all %s: %w", entitiesName, err)
 	}
@@ -336,7 +355,7 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 		for len(result) < totalCount {
 			page++
 			reqParams.Page = ptr.To(page)
-			moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
+			moreItems, _, err := CallListAPI[R, T](ThreadSafeListCall(ctx, apiCall, reqParams))
 			if err != nil {
 				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
 			}
@@ -353,7 +372,7 @@ func GenericNewIterator[R APIResponse, T any](ctx context.Context, apiCall func(
 	return NewIterator[R, T](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (R, error) {
-			return apiCall(ctx, reqParams)
+			return ThreadSafeListCall(ctx, apiCall, reqParams)
 		},
 		options...,
 	)

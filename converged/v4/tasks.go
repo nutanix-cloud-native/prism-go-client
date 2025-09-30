@@ -34,6 +34,7 @@ func (s *TasksService) Get(ctx context.Context, uuid string) (*prismModels.Task,
 	}
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
+		ctx,
 		func() (*prismModels.GetTaskApiResponse, error) {
 			return s.client.TasksApiInstance.GetTaskById(&uuid, nil, nil)
 		},
@@ -50,6 +51,7 @@ func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []
 	selectOption := strings.Join(fields, ",")
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
+		ctx,
 		func() (*prismModels.GetTaskApiResponse, error) {
 			return s.client.TasksApiInstance.GetTaskById(&uuid, &selectOption, nil)
 		},
@@ -73,7 +75,8 @@ func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) 
 	}
 
 	return GenericListEntities[*prismModels.ListTasksApiResponse, prismModels.Task](
-		func(reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
 			return s.client.TasksApiInstance.ListTasks(
 				reqParams.Page,
 				reqParams.Limit,
@@ -116,6 +119,7 @@ func (s *TasksService) Cancel(ctx context.Context, uuid string) (*prismErrors.Ap
 	}
 
 	return GenericGetEntity[*prismModels.CancelTaskApiResponse, prismErrors.AppMessage](
+		ctx,
 		func() (*prismModels.CancelTaskApiResponse, error) {
 			return s.client.TasksApiInstance.CancelTask(&uuid)
 		},

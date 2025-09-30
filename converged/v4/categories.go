@@ -28,6 +28,7 @@ func (s *CategoriesService) Get(ctx context.Context, uuid string) (*prismModels.
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*prismModels.GetCategoryApiResponse, prismModels.Category](
+		ctx,
 		func() (*prismModels.GetCategoryApiResponse, error) {
 			return s.client.CategoriesApiInstance.GetCategoryById(&uuid, nil)
 		},
@@ -51,7 +52,8 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 	}
 
 	return GenericListEntities[*prismModels.ListCategoriesApiResponse, prismModels.Category](
-		func(reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
 			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select)
 		},
 		opts,
@@ -79,7 +81,14 @@ func (s *CategoriesService) Create(ctx context.Context, entity *prismModels.Cate
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](s.client.CategoriesApiInstance.CreateCategory(entity))
+	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](
+		ThreadSafeCall(
+			ctx,
+			func() (*prismModels.CreateCategoryApiResponse, error) {
+				return s.client.CategoriesApiInstance.CreateCategory(entity)
+			},
+		),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -103,7 +112,12 @@ func (s *CategoriesService) Update(ctx context.Context, uuid string, entity *pri
 	}
 
 	_, err = CallAPI[*prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage](
-		s.client.CategoriesApiInstance.UpdateCategoryById(&uuid, entity, args),
+		ThreadSafeCall(
+			ctx,
+			func() (*prismModels.UpdateCategoryApiResponse, error) {
+				return s.client.CategoriesApiInstance.UpdateCategoryById(&uuid, entity, args)
+			},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update category with UUID %s: %w", uuid, err)
@@ -138,7 +152,14 @@ func (s *CategoriesService) Delete(ctx context.Context, uuid string) error {
 		return fmt.Errorf("no category found with UUID %s", uuid)
 	}
 
-	_, err = s.client.CategoriesApiInstance.DeleteCategoryById(&uuid, args)
+	_, err = CallAPI[*prismModels.DeleteCategoryApiResponse, []prismMessages.AppMessage](
+		ThreadSafeCall(
+			ctx,
+			func() (*prismModels.DeleteCategoryApiResponse, error) {
+				return s.client.CategoriesApiInstance.DeleteCategoryById(&uuid, args)
+			},
+		),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete category with UUID %s: %w", uuid, err)
 	}

@@ -29,6 +29,7 @@ func (s *ImagesService) Get(ctx context.Context, uuid string) (*imageModels.Imag
 	}
 
 	return GenericGetEntity[*imageModels.GetImageApiResponse, imageModels.Image](
+		ctx,
 		func() (*imageModels.GetImageApiResponse, error) {
 			return s.client.ImagesApiInstance.GetImageById(&uuid)
 		},
@@ -52,7 +53,8 @@ func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption)
 	}
 
 	return GenericListEntities[*imageModels.ListImagesApiResponse, imageModels.Image](
-		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return s.client.ImagesApiInstance.ListImages(
 				reqParams.Page,
 				reqParams.Limit,
