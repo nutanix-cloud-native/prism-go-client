@@ -22,6 +22,8 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
+
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
 
@@ -39,7 +41,9 @@ func TestTasksIntegration(t *testing.T) {
 	}
 
 	// Create converged client
-	client, err := NewClient(creds)
+	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
+	require.NoError(t, err)
+	client, err := NewClient(v4sdkClient)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -216,9 +220,13 @@ func TestTasksIntegration(t *testing.T) {
 		done := make(chan bool, 2)
 
 		// Create separate client instances for each goroutine
-		client1, err1 := NewClient(creds)
+		v4sdkClient1, err1 := v4prismGoClient.NewV4Client(creds)
 		require.NoError(t, err1)
-		client2, err2 := NewClient(creds)
+		v4sdkClient2, err2 := v4prismGoClient.NewV4Client(creds)
+		require.NoError(t, err2)
+		client1, err1 := NewClient(v4sdkClient1)
+		require.NoError(t, err1)
+		client2, err2 := NewClient(v4sdkClient2)
 		require.NoError(t, err2)
 
 		go func() {
@@ -253,7 +261,9 @@ func TestTasksWithRealEnvironment(t *testing.T) {
 	}
 
 	// Create converged client
-	client, err := NewClient(creds)
+	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
+	require.NoError(t, err)
+	client, err := NewClient(v4sdkClient)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -298,7 +308,9 @@ func TestTasksOptions(t *testing.T) {
 		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
 	}
 
-	client, err := NewClient(creds)
+	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
+	require.NoError(t, err)
+	client, err := NewClient(v4sdkClient)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -368,7 +380,9 @@ func TestTasksErrorScenarios(t *testing.T) {
 		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
 	}
 
-	client, err := NewClient(creds)
+	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
+	require.NoError(t, err)
+	client, err := NewClient(v4sdkClient)
 	require.NoError(t, err)
 
 	ctx := context.Background()
