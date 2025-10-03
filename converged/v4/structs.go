@@ -43,8 +43,8 @@ type Client struct {
 
 // NewClient creates a new converged client
 // It initializes the V4 client and creates the service implementations
-func NewClient(v4sdkClient *v4prismGoClient.Client) (*Client, error) {
-	client := &Client{
+func NewClient(v4sdkClient *v4prismGoClient.Client) *Client {
+	return &Client{
 		Client: converged.Client[
 			policyModels.VmAntiAffinityPolicy,
 			clusterModels.Cluster,
@@ -69,7 +69,6 @@ func NewClient(v4sdkClient *v4prismGoClient.Client) (*Client, error) {
 		},
 		client: v4sdkClient,
 	}
-	return client, nil
 }
 
 // Operation struct async PC task operation

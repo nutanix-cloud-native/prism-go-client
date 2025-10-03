@@ -43,8 +43,7 @@ func TestTasksIntegration(t *testing.T) {
 	// Create converged client
 	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
 	require.NoError(t, err)
-	client, err := NewClient(v4sdkClient)
-	require.NoError(t, err)
+	client := NewClient(v4sdkClient)
 	require.NotNil(t, client)
 
 	ctx := context.Background()
@@ -224,10 +223,10 @@ func TestTasksIntegration(t *testing.T) {
 		require.NoError(t, err1)
 		v4sdkClient2, err2 := v4prismGoClient.NewV4Client(creds)
 		require.NoError(t, err2)
-		client1, err1 := NewClient(v4sdkClient1)
-		require.NoError(t, err1)
-		client2, err2 := NewClient(v4sdkClient2)
-		require.NoError(t, err2)
+		client1 := NewClient(v4sdkClient1)
+		require.NotNil(t, client1)
+		client2 := NewClient(v4sdkClient2)
+		require.NotNil(t, client2)
 
 		go func() {
 			defer func() { done <- true }()
@@ -263,8 +262,7 @@ func TestTasksWithRealEnvironment(t *testing.T) {
 	// Create converged client
 	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
 	require.NoError(t, err)
-	client, err := NewClient(v4sdkClient)
-	require.NoError(t, err)
+	client := NewClient(v4sdkClient)
 	require.NotNil(t, client)
 
 	ctx := context.Background()
@@ -310,8 +308,8 @@ func TestTasksOptions(t *testing.T) {
 
 	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
 	require.NoError(t, err)
-	client, err := NewClient(v4sdkClient)
-	require.NoError(t, err)
+	client := NewClient(v4sdkClient)
+	require.NotNil(t, client)
 
 	ctx := context.Background()
 
@@ -382,8 +380,8 @@ func TestTasksErrorScenarios(t *testing.T) {
 
 	v4sdkClient, err := v4prismGoClient.NewV4Client(creds)
 	require.NoError(t, err)
-	client, err := NewClient(v4sdkClient)
-	require.NoError(t, err)
+	client := NewClient(v4sdkClient)
+	require.NotNil(t, client)
 
 	ctx := context.Background()
 

@@ -55,10 +55,7 @@ func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, o
 		return nil, fmt.Errorf("failed to get or create v4sdk client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
 	}
 
-	client, err = NewClient(v4sdkClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create client for cachedClientParams with key %s: %w", cachedClientParams.Key(), err)
-	}
+	client = NewClient(v4sdkClient)
 
 	c.set(cachedClientParams.Key(), currentValidationHash, client)
 
