@@ -4,9 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 )
 
 func TestNewClientCacheReturnsNewCache(t *testing.T) {
@@ -340,4 +343,175 @@ func TestCacheInvalidationWithDifferentEndpoints(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, c2, c2Retrieved)
 	assert.Equal(t, v4Client2, c2Retrieved.client)
+}
+
+func TestNewClient(t *testing.T) {
+	t.Run("creates client with valid credentials", func(t *testing.T) {
+		mgmtEndpoint := testhelpers.ManagementEndpointFromEnvironment(t)
+		credentials := prismgoclient.Credentials{
+			Endpoint: mgmtEndpoint.Address.Host,
+			Port:     mgmtEndpoint.Address.Port(),
+			URL:      mgmtEndpoint.Address.String(),
+			Username: mgmtEndpoint.Username,
+			Password: mgmtEndpoint.Password,
+			Insecure: mgmtEndpoint.Insecure,
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.client)
+		assert.NotNil(t, client.AntiAffinityPolicies)
+		assert.NotNil(t, client.Clusters)
+		assert.NotNil(t, client.Categories)
+		assert.NotNil(t, client.Images)
+		assert.NotNil(t, client.StorageContainers)
+		assert.NotNil(t, client.Subnets)
+		assert.NotNil(t, client.VMs)
+		assert.NotNil(t, client.Tasks)
+	})
+
+	t.Run("returns error with invalid credentials", func(t *testing.T) {
+		credentials := prismgoclient.Credentials{
+			Endpoint: "", // Invalid endpoint
+			Username: "testuser",
+			Password: "testpass",
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.Error(t, err)
+		assert.Nil(t, client)
+	})
+
+	t.Run("returns error with missing username for basic auth", func(t *testing.T) {
+		credentials := prismgoclient.Credentials{
+			Endpoint: "test.example.com",
+			Username: "", // Missing username
+			Password: "testpass",
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.Error(t, err)
+		assert.Nil(t, client)
+	})
+
+	t.Run("returns error with missing password for basic auth", func(t *testing.T) {
+		credentials := prismgoclient.Credentials{
+			Endpoint: "test.example.com",
+			Username: "testuser",
+			Password: "", // Missing password
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.Error(t, err)
+		assert.Nil(t, client)
+	})
+
+	t.Run("returns error with missing endpoint for basic auth", func(t *testing.T) {
+		credentials := prismgoclient.Credentials{
+			Endpoint: "", // Missing endpoint
+			Username: "testuser",
+			Password: "testpass",
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.Error(t, err)
+		assert.Nil(t, client)
+	})
+
+	t.Run("returns error with missing endpoint for api key auth", func(t *testing.T) {
+		credentials := prismgoclient.Credentials{
+			Endpoint: "", // Missing endpoint
+			APIKey:   "test-api-key",
+		}
+
+		client, err := NewClient(credentials)
+
+		assert.Error(t, err)
+		assert.Nil(t, client)
+	})
+}
+
+func TestNewClientFromV4SDKClient(t *testing.T) {
+	t.Run("creates client from valid v4 SDK client", func(t *testing.T) {
+		mgmtEndpoint := testhelpers.ManagementEndpointFromEnvironment(t)
+		credentials := prismgoclient.Credentials{
+			Endpoint: mgmtEndpoint.Address.Host,
+			Port:     mgmtEndpoint.Address.Port(),
+			URL:      mgmtEndpoint.Address.String(),
+			Username: mgmtEndpoint.Username,
+			Password: mgmtEndpoint.Password,
+			Insecure: mgmtEndpoint.Insecure,
+		}
+
+		v4sdkClient, err := v4prismGoClient.NewV4Client(credentials)
+		require.NoError(t, err)
+
+		client := NewClientFromV4SDKClient(v4sdkClient)
+
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.client)
+		assert.Equal(t, v4sdkClient, client.client)
+		assert.NotNil(t, client.AntiAffinityPolicies)
+		assert.NotNil(t, client.Clusters)
+		assert.NotNil(t, client.Categories)
+		assert.NotNil(t, client.Images)
+		assert.NotNil(t, client.StorageContainers)
+		assert.NotNil(t, client.Subnets)
+		assert.NotNil(t, client.VMs)
+		assert.NotNil(t, client.Tasks)
+	})
+
+	t.Run("creates client with nil v4 SDK client", func(t *testing.T) {
+		client := NewClientFromV4SDKClient(nil)
+
+		assert.NotNil(t, client)
+		assert.Nil(t, client.client)
+		assert.NotNil(t, client.AntiAffinityPolicies)
+		assert.NotNil(t, client.Clusters)
+		assert.NotNil(t, client.Categories)
+		assert.NotNil(t, client.Images)
+		assert.NotNil(t, client.StorageContainers)
+		assert.NotNil(t, client.Subnets)
+		assert.NotNil(t, client.VMs)
+		assert.NotNil(t, client.Tasks)
+	})
+}
+
+func TestGetOrCreateErrorClientNotFound(t *testing.T) {
+	cache := NewClientCache()
+	mgmtEndpoint := testhelpers.ManagementEndpointFromEnvironment(t)
+	cp := &cachedClientParams{
+		name:         "nonexistent-cluster",
+		mgmtEndpoint: *mgmtEndpoint,
+	}
+
+	// Test GetOrCreate when client is not found in cache
+	// This should trigger the ErrorClientNotFound path and create a new client
+	client, err := cache.GetOrCreate(cp)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+	assert.NotNil(t, client.client)
+}
+
+func TestGetNoValidationHash(t *testing.T) {
+	cache := NewClientCache()
+	client := &Client{}
+
+	// Manually set a client in cache without validation hash
+	// This simulates the scenario where client exists but no validation hash
+	cache.set("test-client", "", client)
+
+	// Test get() when no validation hash exists in validationHashes map
+	returnedClient, hash, err := cache.get("test-client")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "", hash) // Should return empty hash when not found in validationHashes
+	assert.Equal(t, client, returnedClient)
 }

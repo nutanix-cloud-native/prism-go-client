@@ -8,7 +8,9 @@ import (
 	"sync"
 	"time"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
+	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
@@ -42,8 +44,17 @@ type Client struct {
 }
 
 // NewClient creates a new converged client
+func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
+	v4sdkClient, err := v4prismGoClient.NewV4Client(credentials, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return NewClientFromV4SDKClient(v4sdkClient), nil
+}
+
+// NewClientFromV4SDKClient creates a new converged client from a V4 SDK client
 // It initializes the V4 client and creates the service implementations
-func NewClient(v4sdkClient *v4prismGoClient.Client) *Client {
+func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 	return &Client{
 		Client: converged.Client[
 			policyModels.VmAntiAffinityPolicy,
