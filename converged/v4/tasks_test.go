@@ -22,6 +22,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
 
@@ -220,6 +221,8 @@ func TestTasksIntegration(t *testing.T) {
 		require.NoError(t, err1)
 		client2, err2 := NewClient(creds)
 		require.NoError(t, err2)
+		require.NotNil(t, client1)
+		require.NotNil(t, client2)
 
 		go func() {
 			defer func() { done <- true }()
@@ -300,6 +303,7 @@ func TestTasksOptions(t *testing.T) {
 
 	client, err := NewClient(creds)
 	require.NoError(t, err)
+	require.NotNil(t, client)
 
 	ctx := context.Background()
 
@@ -370,6 +374,7 @@ func TestTasksErrorScenarios(t *testing.T) {
 
 	client, err := NewClient(creds)
 	require.NoError(t, err)
+	require.NotNil(t, client)
 
 	ctx := context.Background()
 

@@ -47,7 +47,7 @@ func TestGetReturnsErrorIfClientNotPresentInCache(t *testing.T) {
 	_, hash, err := cache.get("cluster1")
 
 	assert.Equal(t, "", hash)
-	assert.ErrorIs(t, err, ErrorClientNotFound)
+	assert.ErrorIs(t, err, types.ErrorClientNotFound)
 }
 
 func TestAddAddsClientToCache(t *testing.T) {
@@ -87,7 +87,7 @@ func TestDeleteRemovesClientFromCache(t *testing.T) {
 
 	_, hash, err := cache.get("cluster1")
 	assert.Equal(t, "", hash)
-	assert.ErrorIs(t, err, ErrorClientNotFound)
+	assert.ErrorIs(t, err, types.ErrorClientNotFound)
 }
 
 func TestDeleteDoesNotErrorIfClientNotPresentInCache(t *testing.T) {

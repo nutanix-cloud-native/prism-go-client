@@ -44,13 +44,18 @@ type Client struct {
 }
 
 // NewClient creates a new converged client
-// It initializes the V4 client and creates the service implementations
 func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
-	v4Client, err := v4prismGoClient.NewV4Client(credentials, opts...)
+	v4sdkClient, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
 		return nil, err
 	}
-	client := &Client{
+	return NewClientFromV4SDKClient(v4sdkClient), nil
+}
+
+// NewClientFromV4SDKClient creates a new converged client from a V4 SDK client
+// It initializes the V4 client and creates the service implementations
+func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
+	return &Client{
 		Client: converged.Client[
 			policyModels.VmAntiAffinityPolicy,
 			clusterModels.Cluster,
@@ -64,18 +69,17 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 			prismModels.Task,
 			prismErrors.AppMessage,
 		]{
-			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4Client),
-			Clusters:             NewClustersService(v4Client),
-			Categories:           NewCategoriesService(v4Client),
-			Images:               NewImagesService(v4Client),
-			StorageContainers:    NewStorageContainersService(v4Client),
-			Subnets:              NewSubnetsService(v4Client),
-			VMs:                  NewVMsService(v4Client),
-			Tasks:                NewTasksService(v4Client),
+			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
+			Clusters:             NewClustersService(v4sdkClient),
+			Categories:           NewCategoriesService(v4sdkClient),
+			Images:               NewImagesService(v4sdkClient),
+			StorageContainers:    NewStorageContainersService(v4sdkClient),
+			Subnets:              NewSubnetsService(v4sdkClient),
+			VMs:                  NewVMsService(v4sdkClient),
+			Tasks:                NewTasksService(v4sdkClient),
 		},
-		client: v4Client,
+		client: v4sdkClient,
 	}
-	return client, nil
 }
 
 // Operation struct async PC task operation
