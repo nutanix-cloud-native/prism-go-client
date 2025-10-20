@@ -20,8 +20,12 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
+	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
 	"k8s.io/utils/ptr"
 )
+
+// EntityReferenceGetterKey is the key for the entity reference getter in the context
+const EntityReferenceGetterKey = "entityReferenceGetter"
 
 // Client struct for converged client
 // It contains implementation for all required API operations grouped by service
@@ -38,6 +42,8 @@ type Client struct {
 		vmmModels.Vm,
 		prismModels.Task,
 		prismErrors.AppMessage,
+		volumeModels.VolumeGroup,
+		volumeModels.VmAttachment,
 	]
 
 	client *v4prismGoClient.Client
@@ -68,6 +74,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			vmmModels.Vm,
 			prismModels.Task,
 			prismErrors.AppMessage,
+			volumeModels.VolumeGroup,
+			volumeModels.VmAttachment,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -77,6 +85,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			Subnets:              NewSubnetsService(v4sdkClient),
 			VMs:                  NewVMsService(v4sdkClient),
 			Tasks:                NewTasksService(v4sdkClient),
+			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
 		},
 		client: v4sdkClient,
 	}
@@ -85,15 +94,16 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 // Operation struct async PC task operation
 // It contains the async PC task details and the results
 type Operation[T any] struct {
-	lock             *sync.Mutex
-	entityUUIDs      []string
-	entitiesAffected int
-	taskUUID         string
-	taskStatus       converged.TaskStatus
-	taskErrors       []error
-	client           *v4prismGoClient.Client
-	entityGetter     func(ctx context.Context, uuid string) (*T, error)
-	result           []*T
+	lock               *sync.Mutex
+	affectedEntityRefs []prismModels.EntityReference
+	entityUUIDs        []string
+	entitiesAffected   int
+	taskUUID           string
+	taskStatus         converged.TaskStatus
+	taskErrors         []error
+	client             *v4prismGoClient.Client
+	entityGetter       func(ctx context.Context, uuid string) (*T, error)
+	result             []*T
 }
 
 // NewOperation creates a new Operation for the given PC async task UUID and client.
@@ -173,6 +183,8 @@ func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 			return nil, fmt.Errorf("task %s did not affect any entities", o.taskUUID)
 		}
 
+		o.setAffectedEntityRefs(task.EntitiesAffected)
+
 		for _, entityRef := range task.EntitiesAffected {
 			if entityRef.ExtId == nil {
 				return nil, fmt.Errorf("task %s affected entity reference is nil or has no UUID", o.taskUUID)
@@ -248,6 +260,22 @@ func (o *Operation[T]) setTaskStatus(status converged.TaskStatus) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 	o.taskStatus = status
+}
+
+func (o *Operation[T]) setAffectedEntityRefs(entityRefs []prismModels.EntityReference) {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+	o.affectedEntityRefs = slices.Clone(entityRefs)
+}
+
+func (o *Operation[T]) GetAffectedEntityRefs() ([]any, error) {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+	entityRefs := make([]any, len(o.affectedEntityRefs))
+	for i, entityRef := range o.affectedEntityRefs {
+		entityRefs[i] = &entityRef
+	}
+	return entityRefs, nil
 }
 
 func (o *Operation[T]) setEntitiesAffected(count int) {
@@ -367,4 +395,26 @@ func NewIterator[R APIResponse, T any](
 	}
 
 	return converged.Iterator[T](iter.Seq2[T, error](iterFunc))
+}
+
+// GetPrismEntityReference try to convert the entity reference to the prism entity reference.
+func GetPrismEntityReference(entityRef any) (*prismModels.EntityReference, error) {
+	entityRefValue, ok := entityRef.(*prismModels.EntityReference)
+	if !ok {
+		return nil, fmt.Errorf("entity reference is not a *prismModels.EntityReference")
+	}
+	return entityRefValue, nil
+}
+
+// GetPrismEntityReferenceSlice try to convert the entity reference slice to the prism entity reference slice.
+func GetPrismEntityReferenceSlice(entityRefs []any) ([]*prismModels.EntityReference, error) {
+	entityRefsValue := make([]*prismModels.EntityReference, len(entityRefs))
+	for i, entityRef := range entityRefs {
+		entityRefValue, err := GetPrismEntityReference(entityRef)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get prism entity reference: %w", err)
+		}
+		entityRefsValue[i] = entityRefValue
+	}
+	return entityRefsValue, nil
 }

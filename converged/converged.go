@@ -25,7 +25,9 @@ type Client[
 	Subnet,
 	VM,
 	Task,
-	AppMessage any] struct {
+	AppMessage,
+	VolumeGroup,
+	VmAttachment any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
 	Categories           Categories[Category]
@@ -34,6 +36,7 @@ type Client[
 	Subnets              Subnets[Subnet]
 	VMs                  VMs[VM]
 	Tasks                Tasks[Task, AppMessage]
+	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
 	// Additional service interfaces can be added here as needed.
 }
 
@@ -173,7 +176,8 @@ type Operation[T any] interface {
 	Wait(ctx context.Context) ([]*T, error)
 
 	// Non-blocking results
-	Results() ([]*T, error) // Returns results if complete, error if not ready
+	Results() ([]*T, error)                // Returns results if complete, error if not ready
+	GetAffectedEntityRefs() ([]any, error) // Returns the affected entity references
 
 	// Non-blocking task states
 	IsDone() bool
@@ -190,7 +194,7 @@ type Operation[T any] interface {
 type NoEntity any
 
 // NoEntityGetter is a placeholder for cases where no entity is returned (e.g. delete operations).
-func NoEntityGetter(uuid string) (*NoEntity, error) {
+func NoEntityGetter(ctx context.Context, uuid string) (*NoEntity, error) {
 	return nil, nil
 }
 

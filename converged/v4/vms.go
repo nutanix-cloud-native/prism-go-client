@@ -236,7 +236,7 @@ func (s *VMsService) DeleteAsync(ctx context.Context, uuid string) (converged.Op
 		*taskRef.ExtId,
 		s.client,
 		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
-			return converged.NoEntityGetter(uuid)
+			return converged.NoEntityGetter(ctx, uuid)
 		},
 	), nil
 }
