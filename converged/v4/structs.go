@@ -177,13 +177,8 @@ func (o *Operation[T]) Wait(ctx context.Context) ([]*T, error) {
 
 		if task.EntitiesAffected != nil {
 			o.setEntitiesAffected(len(task.EntitiesAffected))
+			o.setAffectedEntityRefs(task.EntitiesAffected)
 		}
-
-		if o.entitiesAffected == 0 {
-			return nil, fmt.Errorf("task %s did not affect any entities", o.taskUUID)
-		}
-
-		o.setAffectedEntityRefs(task.EntitiesAffected)
 
 		for _, entityRef := range task.EntitiesAffected {
 			if entityRef.ExtId == nil {
