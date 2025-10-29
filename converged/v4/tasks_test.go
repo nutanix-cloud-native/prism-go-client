@@ -97,31 +97,40 @@ func TestTasksIntegration(t *testing.T) {
 		assert.GreaterOrEqual(t, len(tasks), 0)
 
 		// Test list with limit
-		tasks, err = client.Tasks.List(ctx, converged.WithLimit(5))
+		tasks, err = client.Tasks.List(ctx, converged.WithLimit[TaskListParams](5))
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 		assert.LessOrEqual(t, len(tasks), 5)
 
 		// Test list with page
-		tasks, err = client.Tasks.List(ctx, converged.WithPage(0), converged.WithLimit(3))
+		tasks, err = client.Tasks.List(ctx,
+			converged.WithPage[TaskListParams](0),
+			converged.WithLimit[TaskListParams](3),
+		)
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 		assert.LessOrEqual(t, len(tasks), 3)
 
 		// Test list with select fields
-		tasks, err = client.Tasks.List(ctx, converged.WithSelect("extId,status"))
+		tasks, err = client.Tasks.List(ctx,
+			converged.WithSelect[TaskListParams]("extId,status"),
+		)
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 
 		// Test list with order by
-		tasks, err = client.Tasks.List(ctx, converged.WithOrderBy("createdTime desc"))
+		tasks, err = client.Tasks.List(ctx,
+			converged.WithOrderBy[TaskListParams]("createdTime desc"),
+		)
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 	})
 
 	t.Run("ListTasksWithFilter", func(t *testing.T) {
 		// Test list with filter - get only succeeded tasks
-		tasks, err := client.Tasks.List(ctx, converged.WithFilter("status eq Prism.Config.TaskStatus'SUCCEEDED'"))
+		tasks, err := client.Tasks.List(ctx,
+			converged.WithFilter[TaskListParams]("status eq Prism.Config.TaskStatus'SUCCEEDED'"),
+		)
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 
@@ -156,8 +165,8 @@ func TestTasksIntegration(t *testing.T) {
 	t.Run("NewIteratorWithOptions", func(t *testing.T) {
 		// Test iterator with options
 		iterator := client.Tasks.NewIterator(ctx,
-			converged.WithLimit(5),
-			converged.WithSelect("extId,status"),
+			converged.WithLimit[TaskListParams](5),
+			converged.WithSelect[TaskListParams]("extId,status"),
 		)
 		require.NotNil(t, iterator)
 
@@ -175,7 +184,7 @@ func TestTasksIntegration(t *testing.T) {
 
 	t.Run("CancelTask", func(t *testing.T) {
 		// First, list tasks to find a running task
-		tasks, err := client.Tasks.List(ctx, converged.WithFilter("status eq Prism.Config.TaskStatus'RUNNING'"))
+		tasks, err := client.Tasks.List(ctx, converged.WithFilter[TaskListParams]("status eq Prism.Config.TaskStatus'RUNNING'"))
 		require.NoError(t, err)
 
 		if len(tasks) == 0 {
@@ -226,7 +235,7 @@ func TestTasksIntegration(t *testing.T) {
 
 		go func() {
 			defer func() { done <- true }()
-			tasks, err := client1.Tasks.List(ctx, converged.WithLimit(5))
+			tasks, err := client1.Tasks.List(ctx, converged.WithLimit[TaskListParams](5))
 			assert.NoError(t, err)
 			assert.NotNil(t, tasks)
 			assert.LessOrEqual(t, len(tasks), 5)
@@ -234,7 +243,7 @@ func TestTasksIntegration(t *testing.T) {
 
 		go func() {
 			defer func() { done <- true }()
-			tasks, err := client2.Tasks.List(ctx, converged.WithLimit(3))
+			tasks, err := client2.Tasks.List(ctx, converged.WithLimit[TaskListParams](3))
 			assert.NoError(t, err)
 			assert.NotNil(t, tasks)
 			assert.LessOrEqual(t, len(tasks), 3)
@@ -273,7 +282,7 @@ func TestTasksWithRealEnvironment(t *testing.T) {
 
 	t.Run("RealEnvironmentGetTask", func(t *testing.T) {
 		// First get a list of tasks
-		tasks, err := client.Tasks.List(ctx, converged.WithLimit(1))
+		tasks, err := client.Tasks.List(ctx, converged.WithLimit[TaskListParams](1))
 		require.NoError(t, err)
 
 		if len(tasks) == 0 {
@@ -308,25 +317,25 @@ func TestTasksOptions(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("WithLimit", func(t *testing.T) {
-		tasks, err := client.Tasks.List(ctx, converged.WithLimit(2))
+		tasks, err := client.Tasks.List(ctx, converged.WithLimit[TaskListParams](2))
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(tasks), 2)
 	})
 
 	t.Run("WithPage", func(t *testing.T) {
-		tasks, err := client.Tasks.List(ctx, converged.WithPage(0), converged.WithLimit(1))
+		tasks, err := client.Tasks.List(ctx, converged.WithPage[TaskListParams](0), converged.WithLimit[TaskListParams](1))
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(tasks), 1)
 	})
 
 	t.Run("WithSelect", func(t *testing.T) {
-		tasks, err := client.Tasks.List(ctx, converged.WithSelect("extId,status,createdTime"))
+		tasks, err := client.Tasks.List(ctx, converged.WithSelect[TaskListParams]("extId,status,createdTime"))
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 	})
 
 	t.Run("WithOrderBy", func(t *testing.T) {
-		tasks, err := client.Tasks.List(ctx, converged.WithOrderBy("createdTime desc"))
+		tasks, err := client.Tasks.List(ctx, converged.WithOrderBy[TaskListParams]("createdTime desc"))
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
 	})
@@ -344,7 +353,7 @@ func TestTasksOptions(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				tasks, err := client.Tasks.List(ctx, converged.WithFilter(tc.filter))
+				tasks, err := client.Tasks.List(ctx, converged.WithFilter[TaskListParams](tc.filter))
 				assert.NoError(t, err)
 				assert.NotNil(t, tasks)
 			})
@@ -354,10 +363,10 @@ func TestTasksOptions(t *testing.T) {
 	t.Run("MultipleOptions", func(t *testing.T) {
 		// Test combining multiple options
 		tasks, err := client.Tasks.List(ctx,
-			converged.WithLimit(3),
-			converged.WithPage(0),
-			converged.WithSelect("extId,status"),
-			converged.WithOrderBy("createdTime desc"),
+			converged.WithLimit[TaskListParams](3),
+			converged.WithPage[TaskListParams](0),
+			converged.WithSelect[TaskListParams]("extId,status"),
+			converged.WithOrderBy[TaskListParams]("createdTime desc"),
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, tasks)
@@ -405,12 +414,12 @@ func TestTasksErrorScenarios(t *testing.T) {
 
 	t.Run("InvalidOptions", func(t *testing.T) {
 		// Test with invalid filter syntax
-		_, err := client.Tasks.List(ctx, converged.WithFilter("invalid filter syntax"))
+		_, err := client.Tasks.List(ctx, converged.WithFilter[TaskListParams]("invalid filter syntax"))
 		assert.Error(t, err)
 
 		// This might not error depending on API behavior, so we just check it doesn't panic
 		assert.NotPanics(t, func() {
-			_, _ = client.Tasks.List(ctx, converged.WithSelect("invalidField"))
+			_, _ = client.Tasks.List(ctx, converged.WithSelect[TaskListParams]("invalidField"))
 		})
 	})
 }

@@ -11,6 +11,14 @@ import (
 	scModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
+type StorageContainerListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.SelectSetter
+}
+
 // StorageContainersService provides implementation for all StorageContainers interface methods.
 type StorageContainersService struct {
 	client       *v4prismGoClient.Client
@@ -37,7 +45,7 @@ func (s *StorageContainersService) Get(ctx context.Context, uuid string) (*scMod
 }
 
 // List returns a list of storage containers.
-func (s *StorageContainersService) List(ctx context.Context, opts ...converged.ODataOption) ([]scModels.StorageContainer, error) {
+func (s *StorageContainersService) List(ctx context.Context, opts ...converged.ODataOption[StorageContainerListParams]) ([]scModels.StorageContainer, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -67,7 +75,7 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 }
 
 // NewIterator returns an iterator for listing storage containers.
-func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[scModels.StorageContainer] {
+func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...converged.ODataOption[StorageContainerListParams]) converged.Iterator[scModels.StorageContainer] {
 	if s.client == nil {
 		return nil
 	}

@@ -12,6 +12,15 @@ import (
 	prismErrors "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
+// TaskListParams interface for task list parameters
+type TaskListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.SelectSetter
+}
+
 // TasksService is the service for the tasks
 type TasksService struct {
 	client *v4prismGoClient.Client
@@ -58,7 +67,7 @@ func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []
 }
 
 // List returns the list of tasks
-func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) ([]prismModels.Task, error) {
+func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption[TaskListParams]) ([]prismModels.Task, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is not initialized")
 	}
@@ -88,7 +97,7 @@ func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) 
 }
 
 // NewIterator returns a new iterator for the tasks
-func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[prismModels.Task] {
+func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataOption[TaskListParams]) converged.Iterator[prismModels.Task] {
 	if s.client == nil {
 		return nil
 	}

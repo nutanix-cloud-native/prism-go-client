@@ -11,6 +11,13 @@ import (
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 )
 
+type AntiAffinityPolicyListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+}
+
 // AntiAffinityPoliciesService provides default "not implemented" implementation for all AntiAffinityPolicies interface methods.
 type AntiAffinityPoliciesService struct {
 	client   *v4prismGoClient.Client
@@ -36,7 +43,7 @@ func (s *AntiAffinityPoliciesService) Get(ctx context.Context, uuid string) (*po
 }
 
 // List returns a list of anti-affinity policies.
-func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converged.ODataOption) ([]policyModels.VmAntiAffinityPolicy, error) {
+func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converged.ODataOption[AntiAffinityPolicyListParams]) ([]policyModels.VmAntiAffinityPolicy, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -67,7 +74,7 @@ func (s *AntiAffinityPoliciesService) List(ctx context.Context, opts ...converge
 }
 
 // NewIterator returns an iterator for listing anti-affinity policies.
-func (s *AntiAffinityPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
+func (s *AntiAffinityPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption[AntiAffinityPolicyListParams]) converged.Iterator[policyModels.VmAntiAffinityPolicy] {
 	if s.client == nil {
 		return nil
 	}

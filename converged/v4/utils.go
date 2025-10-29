@@ -281,11 +281,13 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 
 // OptsToV4ODataParams converts the OData options to V4 OData parameters
 // It returns the V4 OData parameters if the options are valid, otherwise it returns an error
-func OptsToV4ODataParams(opts ...converged.ODataOption) (*V4ODataParams, error) {
+func OptsToV4ODataParams[Constraint any](opts ...converged.ODataOption[Constraint]) (*V4ODataParams, error) {
 	params := &V4ODataParams{}
 	for _, opt := range opts {
 		if opt != nil {
-			if err := opt(params); err != nil {
+			// Convert to func(*V4ODataParams) error since V4ODataParams implements all setter interfaces
+			fn := any(opt).(func(*V4ODataParams) error)
+			if err := fn(params); err != nil {
 				return nil, fmt.Errorf("failed to apply OData option: %w", err)
 			}
 		}
@@ -305,7 +307,7 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 
 // GenericListEntities lists the entities
 // It returns the entities if the API call is successful, otherwise it returns an error
-func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
+func GenericListEntities[R APIResponse, T any, Constraint any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption[Constraint], entitiesName string) ([]T, error) {
 	returnAll := false
 	page := 0
 
@@ -349,7 +351,7 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 
 // GenericNewIterator creates a new iterator for the given API call and options
 // It returns the iterator if the API call is successful, otherwise it returns an error
-func GenericNewIterator[R APIResponse, T any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
+func GenericNewIterator[R APIResponse, T any, Constraint any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption[Constraint], entitiesName string) converged.Iterator[T] {
 	return NewIterator[R, T](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (R, error) {

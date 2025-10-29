@@ -11,6 +11,14 @@ import (
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 )
 
+type ImageListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.SelectSetter
+}
+
 // ImagesService provides implementation for all Images interface methods.
 type ImagesService struct {
 	client       *v4prismGoClient.Client
@@ -37,7 +45,7 @@ func (s *ImagesService) Get(ctx context.Context, uuid string) (*imageModels.Imag
 }
 
 // List returns a list of images.
-func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption) ([]imageModels.Image, error) {
+func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption[ImageListParams]) ([]imageModels.Image, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -67,7 +75,7 @@ func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption)
 }
 
 // NewIterator returns an iterator for listing images.
-func (s *ImagesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[imageModels.Image] {
+func (s *ImagesService) NewIterator(ctx context.Context, opts ...converged.ODataOption[ImageListParams]) converged.Iterator[imageModels.Image] {
 	if s.client == nil {
 		return nil
 	}

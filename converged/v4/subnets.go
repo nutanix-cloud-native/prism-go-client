@@ -11,6 +11,15 @@ import (
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 )
 
+type SubnetListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.ExpandSetter
+	converged.SelectSetter
+}
+
 // SubnetsService provides implementation for all Subnets interface methods.
 type SubnetsService struct {
 	client       *v4prismGoClient.Client
@@ -37,7 +46,7 @@ func (s *SubnetsService) Get(ctx context.Context, uuid string) (*subnetModels.Su
 }
 
 // List returns a list of subnets.
-func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption) ([]subnetModels.Subnet, error) {
+func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption[SubnetListParams]) ([]subnetModels.Subnet, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -68,7 +77,7 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 }
 
 // NewIterator returns an iterator for listing subnets.
-func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[subnetModels.Subnet] {
+func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODataOption[SubnetListParams]) converged.Iterator[subnetModels.Subnet] {
 	if s.client != nil {
 		return nil
 	}
