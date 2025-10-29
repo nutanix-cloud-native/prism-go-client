@@ -1,12 +1,12 @@
 package converged
 
 // VMs is the interface for the VMs service.
-type VMs[VM any] interface {
+type VMs[VM, VmListParams any] interface {
 	// Getter is the interface for Get operations.
 	Getter[VM]
 
 	// Lister is the interface for List operations.
-	Lister[VM]
+	Lister[VM, VmListParams]
 
 	// Creator is the interface for Create operations.
 	Creator[VM]

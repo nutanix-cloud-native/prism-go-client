@@ -10,6 +10,23 @@ import (
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
+type ClusterListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.ExpandSetter
+	converged.ApplySetter
+	converged.SelectSetter
+}
+
+type GpuProfileListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+}
+
 // ClustersService provides default "not implemented" implementation for all Clusters interface methods.
 type ClustersService struct {
 	client   *v4prismGoClient.Client
@@ -38,7 +55,7 @@ func (s *ClustersService) Get(ctx context.Context, uuid string) (*clusterModels.
 }
 
 // List returns a list of clusters.
-func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOption) ([]clusterModels.Cluster, error) {
+func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOption[ClusterListParams]) ([]clusterModels.Cluster, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is nil")
 	}
@@ -52,7 +69,7 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 }
 
 // NewIterator returns an iterator for listing clusters.
-func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[clusterModels.Cluster] {
+func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODataOption[ClusterListParams]) converged.Iterator[clusterModels.Cluster] {
 	if s.client == nil {
 		return nil
 	}
@@ -67,7 +84,7 @@ func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODa
 }
 
 // ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
-func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUuid string, opts ...converged.ODataOption) ([]clusterModels.VirtualGpuProfile, error) {
+func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUuid string, opts ...converged.ODataOption[GpuProfileListParams]) ([]clusterModels.VirtualGpuProfile, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is nil")
 	}
@@ -96,7 +113,7 @@ func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUui
 }
 
 // ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
-func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUuid string, opts ...converged.ODataOption) ([]clusterModels.PhysicalGpuProfile, error) {
+func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUuid string, opts ...converged.ODataOption[GpuProfileListParams]) ([]clusterModels.PhysicalGpuProfile, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is nil")
 	}

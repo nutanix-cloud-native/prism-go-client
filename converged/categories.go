@@ -1,11 +1,11 @@
 package converged
 
-type Categories[Category any] interface {
+type Categories[Category, CategoryListParams any] interface {
 	// Getter is the interface for Get operations.
 	Getter[Category]
 
 	// Lister is the interface for List operations.
-	Lister[Category]
+	Lister[Category, CategoryListParams]
 
 	// Creator is the interface for Create operations.
 	Creator[Category]

@@ -31,19 +31,15 @@ const EntityReferenceGetterKey = "entityReferenceGetter"
 // It contains implementation for all required API operations grouped by service
 type Client struct {
 	converged.Client[
-		policyModels.VmAntiAffinityPolicy,
-		clusterModels.Cluster,
-		clusterModels.VirtualGpuProfile,
-		clusterModels.PhysicalGpuProfile,
-		prismModels.Category,
-		imageModels.Image,
-		clusterModels.StorageContainer,
-		subnetModels.Subnet,
-		vmmModels.Vm,
-		prismModels.Task,
-		prismErrors.AppMessage,
-		volumeModels.VolumeGroup,
-		volumeModels.VmAttachment,
+		policyModels.VmAntiAffinityPolicy, AntiAffinityPolicyListParams, // AntiaffinityPolicies service dependencies
+		clusterModels.Cluster, clusterModels.VirtualGpuProfile, clusterModels.PhysicalGpuProfile, ClusterListParams, GpuProfileListParams, // Clusters service dependencies
+		prismModels.Category, CategoryListParams, // Categories service dependencies
+		imageModels.Image, ImageListParams, // Images service dependencies
+		clusterModels.StorageContainer, StorageContainerListParams, //
+		subnetModels.Subnet, SubnetListParams, // Subnets service dependencies
+		vmmModels.Vm, VmListParams, // VMs service dependencies
+		prismModels.Task, prismErrors.AppMessage, TaskListParams, // Tasks service dependencies
+		volumeModels.VolumeGroup, volumeModels.VmAttachment, VolumeGroupListParams, // VolumeGroups service dependencies
 	]
 
 	client *v4prismGoClient.Client
@@ -63,19 +59,15 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 	return &Client{
 		Client: converged.Client[
-			policyModels.VmAntiAffinityPolicy,
-			clusterModels.Cluster,
-			clusterModels.VirtualGpuProfile,
-			clusterModels.PhysicalGpuProfile,
-			prismModels.Category,
-			imageModels.Image,
-			clusterModels.StorageContainer,
-			subnetModels.Subnet,
-			vmmModels.Vm,
-			prismModels.Task,
-			prismErrors.AppMessage,
-			volumeModels.VolumeGroup,
-			volumeModels.VmAttachment,
+			policyModels.VmAntiAffinityPolicy, AntiAffinityPolicyListParams, // AntiaffinityPolicies service dependencies
+			clusterModels.Cluster, clusterModels.VirtualGpuProfile, clusterModels.PhysicalGpuProfile, ClusterListParams, GpuProfileListParams, // Clusters service dependencies
+			prismModels.Category, CategoryListParams, // Categories service dependencies
+			imageModels.Image, ImageListParams, // Images service dependencies
+			clusterModels.StorageContainer, StorageContainerListParams, // StorageContainers service dependencies
+			subnetModels.Subnet, SubnetListParams, // Subnets service dependencies
+			vmmModels.Vm, VmListParams, // VMs service dependencies
+			prismModels.Task, prismErrors.AppMessage, TaskListParams, // Tasks service dependencies
+			volumeModels.VolumeGroup, volumeModels.VmAttachment, VolumeGroupListParams, // VolumeGroups service dependencies
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -317,10 +309,10 @@ func (o *Operation[T]) IsFailed() bool {
 }
 
 // NewIterator creates a new iterator for the given list function and options.
-func NewIterator[R APIResponse, T any](
+func NewIterator[R APIResponse, T any, Constraint any](
 	ctx context.Context,
 	listFunc func(context.Context, *V4ODataParams) (R, error),
-	opts ...converged.ODataOption,
+	opts ...converged.ODataOption[Constraint],
 ) converged.Iterator[T] {
 	var zero T
 

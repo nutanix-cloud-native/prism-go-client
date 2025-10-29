@@ -3,12 +3,12 @@ package converged
 import "context"
 
 // Volumes is the interface for the Volumes service.
-type VolumeGroups[VolumeGroup, VmAttachment any] interface {
+type VolumeGroups[VolumeGroup, VmAttachment, VolumeGroupListParams any] interface {
 	// Getter is the interface for Get operations.
 	Getter[VolumeGroup]
 
 	// Lister is the interface for List operations.
-	Lister[VolumeGroup]
+	Lister[VolumeGroup, VolumeGroupListParams]
 
 	// AttachToVMAsync attaches a volume group to a VM asynchronously.
 	AttachToVMAsync(ctx context.Context, volumeGroupUUID string, vmAttachment VmAttachment) (Operation[VolumeGroup], error)

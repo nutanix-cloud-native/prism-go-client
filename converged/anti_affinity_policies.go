@@ -1,11 +1,11 @@
 package converged
 
-type AntiAffinityPolicies[AntiAffinityPolicy any] interface {
+type AntiAffinityPolicies[AntiAffinityPolicy, AntiAffinityPolicyListParams any] interface {
 	// Getter is the interface for Get operations.
 	Getter[AntiAffinityPolicy]
 
 	// Lister is the interface for List operations.
-	Lister[AntiAffinityPolicy]
+	Lister[AntiAffinityPolicy, AntiAffinityPolicyListParams]
 
 	// Creator is the interface for Create operations.
 	Creator[AntiAffinityPolicy]

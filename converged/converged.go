@@ -15,29 +15,25 @@ var (
 
 // Client is the main struct for the converged client.
 type Client[
-	AntiAffinityPolicy,
-	Cluster,
-	VirtualGpuProfile,
-	PhysicalGpuProfile,
-	Category,
-	Image,
-	StorageContainer,
-	Subnet,
-	VM,
-	Task,
-	AppMessage,
-	VolumeGroup,
-	VmAttachment any] struct {
-	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
-	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
-	Categories           Categories[Category]
-	Images               Images[Image]
-	StorageContainers    StorageContainers[StorageContainer]
-	Subnets              Subnets[Subnet]
-	VMs                  VMs[VM]
-	Tasks                Tasks[Task, AppMessage]
-	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
-	// Additional service interfaces can be added here as needed.
+	AntiAffinityPolicy, AntiAffinityPolicyListParams, // AntiaffinityPolicies service dependencies
+	Cluster, VirtualGpuProfile, PhysicalGpuProfile, ClusterListParams, GpuProfileListParams, // Clusters service dependencies
+	Category, CategoryListParams, // Categories service dependencies
+	Image, ImageListParams, // Images service dependencies
+	StorageContainer, StorageContainerListParams, // StorageContainers service dependencies
+	Subnet, SubnetListParams, // Subnets service dependencies
+	VM, VmListParams, // VMs service dependencies
+	Task, AppMessage, TaskListParams, // Tasks service dependencies
+	VolumeGroup, VmAttachment, VolumeGroupListParams any, // VolumeGroups service dependencies
+] struct {
+	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy, AntiAffinityPolicyListParams]
+	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, ClusterListParams, GpuProfileListParams]
+	Categories           Categories[Category, CategoryListParams]
+	Images               Images[Image, ImageListParams]
+	StorageContainers    StorageContainers[StorageContainer, StorageContainerListParams]
+	Subnets              Subnets[Subnet, SubnetListParams]
+	VMs                  VMs[VM, VmListParams]
+	Tasks                Tasks[Task, AppMessage, TaskListParams]
+	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment, VolumeGroupListParams]
 }
 
 // Getter is the interface for Get operations.
@@ -47,13 +43,13 @@ type Getter[T any] interface {
 }
 
 // Lister is the interface for List operations.
-type Lister[T any] interface {
+type Lister[T any, Constraint any] interface {
 	// List returns a list of entities.
 	// If no page and limit are provided, the API will return all entities.
-	List(ctx context.Context, opts ...ODataOption) ([]T, error)
+	List(ctx context.Context, opts ...ODataOption[Constraint]) ([]T, error)
 
 	// NewIterator returns an iterator for listing entities.
-	NewIterator(ctx context.Context, opts ...ODataOption) Iterator[T]
+	NewIterator(ctx context.Context, opts ...ODataOption[Constraint]) Iterator[T]
 }
 
 // Creator is the interface for Create operations.
@@ -93,7 +89,24 @@ type AsyncDeleter[T any] interface {
 }
 
 // ODataOption is a functional option for the ODataOptions.
-type ODataOption func(params ODataOptions) error
+type ODataOption[Constraint any] func(Constraint) error
+
+type EmptySetter interface{}
+type PageSetter interface{ SetPageOption(int) error }
+type LimitSetter interface{ SetLimitOption(int) error }
+type FilterSetter interface{ SetFilterOption(string) error }
+type OrderBySetter interface{ SetOrderByOption(string) error }
+type ExpandSetter interface{ SetExpandOption(string) error }
+type SelectSetter interface{ SetSelectOption(string) error }
+type ApplySetter interface{ SetApplyOption(string) error }
+
+type OptionConvertibleTo[U any] interface {
+	~func(U) error
+}
+
+type ConvertibleOption[P any] interface {
+	OptionConvertibleTo[P]
+}
 
 // ODataOptions is the interface for the ODataOptions.
 type ODataOptions interface {
@@ -107,51 +120,51 @@ type ODataOptions interface {
 }
 
 // WithPage is a functional option for the ODataOptions.
-func WithPage(page int) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetPageOption(page)
+func WithPage[T PageSetter](page int) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetPageOption(page)
 	}
 }
 
 // WithLimit is a functional option for the ODataOptions.
-func WithLimit(limit int) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetLimitOption(limit)
+func WithLimit[T LimitSetter](limit int) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetLimitOption(limit)
 	}
 }
 
 // WithFilter is a functional option for the ODataOptions.
-func WithFilter(filter string) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetFilterOption(filter)
+func WithFilter[T FilterSetter](filter string) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetFilterOption(filter)
 	}
 }
 
 // WithOrderBy is a functional option for the ODataOptions.
-func WithOrderBy(orderBy string) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetOrderByOption(orderBy)
+func WithOrderBy[T OrderBySetter](orderBy string) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetOrderByOption(orderBy)
 	}
 }
 
 // WithExpand is a functional option for the ODataOptions.
-func WithExpand(expand string) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetExpandOption(expand)
+func WithExpand[T ExpandSetter](expand string) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetExpandOption(expand)
 	}
 }
 
 // WithSelect is a functional option for the ODataOptions.
-func WithSelect(selectFields string) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetSelectOption(selectFields)
+func WithSelect[T SelectSetter](selectFields string) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetSelectOption(selectFields)
 	}
 }
 
 // WithApply is a functional option for the ODataOptions.
-func WithApply(apply string) ODataOption {
-	return func(params ODataOptions) error {
-		return params.SetApplyOption(apply)
+func WithApply[T ApplySetter](apply string) ODataOption[T] {
+	return func(setter T) error {
+		return setter.SetApplyOption(apply)
 	}
 }
 

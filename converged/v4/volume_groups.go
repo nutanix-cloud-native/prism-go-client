@@ -11,6 +11,15 @@ import (
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
 )
 
+type VolumeGroupListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.ExpandSetter
+	converged.SelectSetter
+}
+
 // VolumeGroupsService provides default "not implemented" implementation for all VolumeGroups interface methods.
 type VolumeGroupsService struct {
 	client   *v4prismGoClient.Client
@@ -39,11 +48,11 @@ func (s *VolumeGroupsService) Get(ctx context.Context, uuid string) (*volumeMode
 }
 
 // List returns a list of volume groups.
-func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataOption) ([]volumeModels.VolumeGroup, error) {
+func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataOption[VolumeGroupListParams]) ([]volumeModels.VolumeGroup, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	return GenericListEntities[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
+	return GenericListEntities[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup, VolumeGroupListParams](
 		func(reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
 			return s.client.VolumeGroupsApiInstance.ListVolumeGroups(
 				reqParams.Page,
@@ -60,8 +69,8 @@ func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataO
 }
 
 // NewIterator returns an iterator for listing volume groups.
-func (s *VolumeGroupsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[volumeModels.VolumeGroup] {
-	return GenericNewIterator[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
+func (s *VolumeGroupsService) NewIterator(ctx context.Context, opts ...converged.ODataOption[VolumeGroupListParams]) converged.Iterator[volumeModels.VolumeGroup] {
+	return GenericNewIterator[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup, VolumeGroupListParams](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
 			return s.client.VolumeGroupsApiInstance.ListVolumeGroups(

@@ -11,6 +11,14 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
+type VmListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.SelectSetter
+}
+
 // VMsService provides default "not implemented" implementation for all VMs interface methods.
 type VMsService struct {
 	client       *v4prismGoClient.Client
@@ -40,7 +48,7 @@ func (s *VMsService) Get(ctx context.Context, uuid string) (*vmmModels.Vm, error
 
 // List returns a list of VMs.
 // If no page and limit are provided, the API will return all VMs.
-func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([]vmmModels.Vm, error) {
+func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption[VmListParams]) ([]vmmModels.Vm, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -70,7 +78,7 @@ func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([
 }
 
 // NewIterator returns an iterator for listing VMs.
-func (s *VMsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[vmmModels.Vm] {
+func (s *VMsService) NewIterator(ctx context.Context, opts ...converged.ODataOption[VmListParams]) converged.Iterator[vmmModels.Vm] {
 	if s.client == nil {
 		return nil
 	}

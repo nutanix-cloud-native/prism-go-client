@@ -11,6 +11,15 @@ import (
 	prismMessages "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
+type CategoryListParams interface {
+	converged.PageSetter
+	converged.LimitSetter
+	converged.FilterSetter
+	converged.OrderBySetter
+	converged.ExpandSetter
+	converged.SelectSetter
+}
+
 // CategoriesService provides default "not implemented" implementation for all Categories interface methods.
 type CategoriesService struct {
 	client   *v4prismGoClient.Client
@@ -19,7 +28,10 @@ type CategoriesService struct {
 
 // NewCategoriesService creates a new CategoriesService instance.
 func NewCategoriesService(client *v4prismGoClient.Client) *CategoriesService {
-	return &CategoriesService{client: client, entities: "category"}
+	return &CategoriesService{
+		client:   client,
+		entities: "categories",
+	}
 }
 
 // Get returns the category for the given UUID.
@@ -36,7 +48,7 @@ func (s *CategoriesService) Get(ctx context.Context, uuid string) (*prismModels.
 }
 
 // List returns a list of categories.
-func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOption) ([]prismModels.Category, error) {
+func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOption[CategoryListParams]) ([]prismModels.Category, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -52,25 +64,39 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 
 	return GenericListEntities[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		func(reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ListCategories(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Expand,
+				reqParams.Select,
+			)
 		},
 		opts,
-		"categories",
+		s.entities,
 	)
 }
 
 // NewIterator returns an iterator for listing categories.
-func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[prismModels.Category] {
+func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.ODataOption[CategoryListParams]) converged.Iterator[prismModels.Category] {
 	if s.client == nil {
 		return nil
 	}
 	return GenericNewIterator[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ListCategories(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Expand,
+				reqParams.Select,
+			)
 		},
 		opts,
-		"categories",
+		s.entities,
 	)
 }
 
