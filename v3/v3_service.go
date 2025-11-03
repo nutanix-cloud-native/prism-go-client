@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nutanix-cloud-native/prism-go-client"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
@@ -1136,7 +1136,7 @@ func (op Operations) ListHost(ctx context.Context, getEntitiesRequest *DSMetadat
 // ListAllHost ...
 func (op Operations) ListAllHost(ctx context.Context) (*HostListResponse, error) {
 	resp, err := op.ListHost(ctx, &DSMetadata{
-		Kind: ptr.To("host"),
+		Kind: utils.StringPtr("host"),
 		// We omit the Length parameter, because ListHost does not support pagination,
 		// and returns all hosts.
 	})
@@ -1752,9 +1752,9 @@ func (op Operations) ListAllUserGroup(ctx context.Context, filter string) (*User
 		for hasNext(&remaining) {
 			resp, err = op.ListUserGroup(ctx, &DSMetadata{
 				Filter: &filter,
-				Kind:   ptr.To("user_group"),
-				Length: ptr.To(itemsPerPage),
-				Offset: ptr.To(offset),
+				Kind:   utils.StringPtr("user_group"),
+				Length: utils.Int64Ptr(itemsPerPage),
+				Offset: utils.Int64Ptr(offset),
 			})
 			if err != nil {
 				return nil, err
