@@ -19,6 +19,7 @@ type Client[
 	Cluster,
 	VirtualGpuProfile,
 	PhysicalGpuProfile,
+	Host,
 	Category,
 	Image,
 	StorageContainer,
@@ -29,7 +30,7 @@ type Client[
 	VolumeGroup,
 	VmAttachment any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
-	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile]
+	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
 	Images               Images[Image]
 	StorageContainers    StorageContainers[StorageContainer]

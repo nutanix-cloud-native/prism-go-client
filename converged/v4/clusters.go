@@ -123,3 +123,138 @@ func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUu
 		"physical GPU profiles",
 	)
 }
+
+// GetClusterHost returns the host for the given cluster UUID and host id.
+func (s *ClustersService) GetClusterHost(ctx context.Context, clusterUuid string, hostId string) (*clusterModels.Host, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("client is nil")
+	}
+	if clusterUuid == "" {
+		return nil, fmt.Errorf("clusterUuid is required")
+	}
+	if hostId == "" {
+		return nil, fmt.Errorf("hostId is required")
+	}
+	return GenericGetEntity[*clusterModels.GetHostApiResponse, clusterModels.Host](
+		func() (*clusterModels.GetHostApiResponse, error) {
+			return s.client.ClustersApiInstance.GetHostById(&clusterUuid, &hostId)
+		},
+		"cluster host",
+	)
+}
+
+// ListClusterHosts returns the hosts for the given cluster UUID.
+func (s *ClustersService) ListClusterHosts(ctx context.Context, clusterUuid string, opts ...converged.ODataOption) ([]clusterModels.Host, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("client is nil")
+	}
+	if clusterUuid == "" {
+		return nil, fmt.Errorf("clusterUuid is required")
+	}
+
+	// Check if unsupported OData options are provided
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+	if reqParams != nil {
+		if reqParams.Expand != nil {
+			return nil, errors.New("apply, expand and select are not supported")
+		}
+	}
+
+	return GenericListEntities[*clusterModels.ListHostsByClusterIdApiResponse, clusterModels.Host](
+		func(reqParams *V4ODataParams) (*clusterModels.ListHostsByClusterIdApiResponse, error) {
+			return s.client.ClustersApiInstance.ListHostsByClusterId(
+				&clusterUuid,
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"cluster hosts",
+	)
+}
+
+// NewIterator returns an iterator for listing cluster hosts.
+func (s *ClustersService) NewClusterHostsIterator(ctx context.Context, clusterUuid string, opts ...converged.ODataOption) converged.Iterator[clusterModels.Host] {
+	if s.client == nil {
+		return nil
+	}
+
+	return GenericNewIterator[*clusterModels.ListHostsByClusterIdApiResponse, clusterModels.Host](
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListHostsByClusterIdApiResponse, error) {
+			return s.client.ClustersApiInstance.ListHostsByClusterId(
+				&clusterUuid,
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"cluster hosts",
+	)
+}
+
+// ListAllHosts returns all hosts.
+func (s *ClustersService) ListAllHosts(ctx context.Context, opts ...converged.ODataOption) ([]clusterModels.Host, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("client is nil")
+	}
+
+	// Check if unsupported OData options are provided
+	reqParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+	if reqParams != nil {
+		if reqParams.Expand != nil {
+			return nil, errors.New("apply, expand and select are not supported")
+		}
+	}
+
+	return GenericListEntities[*clusterModels.ListHostsApiResponse, clusterModels.Host](
+		func(reqParams *V4ODataParams) (*clusterModels.ListHostsApiResponse, error) {
+			return s.client.ClustersApiInstance.ListHosts(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Select,
+			)
+		},
+		nil,
+		"hosts",
+	)
+}
+
+// NewAllHostsIterator returns an iterator for listing all hosts.
+func (s *ClustersService) NewAllHostsIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[clusterModels.Host] {
+	if s.client == nil {
+		return nil
+	}
+	return GenericNewIterator[*clusterModels.ListHostsApiResponse, clusterModels.Host](
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListHostsApiResponse, error) {
+			return s.client.ClustersApiInstance.ListHosts(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Apply,
+				reqParams.Select,
+			)
+		},
+		opts,
+		"hosts",
+	)
+}
