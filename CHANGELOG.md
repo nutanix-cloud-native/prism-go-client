@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.6.0]
+### Added
+- Add methods for Idempotence Identifiers API in v3
+- API key based authentication support in v3
+- Add client method to fetch kubeconfig in Karbon
+- Add converged client as utility wrapper for v4
+### Changed
+- Update the underlying struct used for Cluster to swagger-generated in v3
+- Switch to go-swagger generated structs for recovery plan
+- Change the underlying API/Client used for StorageContainers in v4
+- Add defensive code to avoid panics
+- Move ClientOptions to environment/types
+### Removed
+- Remove clients for fc & foundation
+- Remove utils package
+
 ## [v0.5.5]
 ### Fixed
 - Bugfix: Remove pagination handling in ListAllHost as endpoint doesn't support pagination
