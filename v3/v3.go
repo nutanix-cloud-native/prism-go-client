@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	libraryVersion = "v3"
-	absolutePath   = "api/nutanix/" + libraryVersion
-	userAgent      = "nutanix/" + libraryVersion
+	libraryVersion      = "v3"
+	absolutePath        = "api/nutanix/" + libraryVersion
+	userAgent           = "nutanix/" + libraryVersion
+	ntnxAPIKeyHeaderKey = "X-ntnx-api-key"
 )
 
 // Client manages the V3 API
@@ -82,7 +83,7 @@ func WithUserAgent(userAgent string) types.ClientOption[Client] {
 
 // NewV3Client return a internal to operate V3 resources
 func NewV3Client(credentials prismgoclient.Credentials, opts ...types.ClientOption[Client]) (*Client, error) {
-	if credentials.APIKey != "" {
+	if credentials.APIKey != "" || credentials.Username == ntnxAPIKeyHeaderKey {
 		if credentials.Endpoint == "" {
 			return nil, fmt.Errorf("endpoint is required for api key auth")
 		}

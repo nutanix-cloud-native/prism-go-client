@@ -34,7 +34,7 @@ type apiClient interface {
 
 // setAuthHeader sets the authentication header for the API client based on the provided credentials.
 func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
-	if credentials.APIKey != "" {
+	if credentials.APIKey != "" || credentials.Username == ntnxAPIKeyHeaderKey {
 		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.APIKey)
 	} else {
 		apiClient.AddDefaultHeader(
