@@ -86,3 +86,56 @@ func TestNewV4Client(t *testing.T) {
 	assert.Nil(t, v4Client)
 	assert.EqualError(t, err, "endpoint is required for api key auth")
 }
+
+type fakeApiClientV4Test struct {
+	headers map[string]string
+}
+
+func (f *fakeApiClientV4Test) AddDefaultHeader(key, value string) {
+	if f.headers == nil {
+		f.headers = make(map[string]string)
+	}
+	f.headers[key] = value
+}
+
+func Test_setAuthHeader_ServiceAccountModes_V4(t *testing.T) {
+	// 1) Explicit APIKey
+	{
+		ac := &fakeApiClientV4Test{}
+		creds := prismgoclient.Credentials{
+			APIKey: "explicit-api-key",
+		}
+		setAuthHeader(ac, creds)
+		assert.Equal(t, "explicit-api-key", ac.headers[ntnxAPIKeyHeaderKey])
+		_, hasAuth := ac.headers[authorizationHeader]
+		assert.False(t, hasAuth)
+	}
+
+	// 2) Username equals API key header key, Password is API key
+	{
+		ac := &fakeApiClientV4Test{}
+		creds := prismgoclient.Credentials{
+			Username: ntnxAPIKeyHeaderKey,
+			Password: "password-as-api-key",
+		}
+		setAuthHeader(ac, creds)
+		assert.Equal(t, "password-as-api-key", ac.headers[ntnxAPIKeyHeaderKey])
+		_, hasAuth := ac.headers[authorizationHeader]
+		assert.False(t, hasAuth)
+	}
+
+	// 3) Normal basic auth fallback
+	{
+		ac := &fakeApiClientV4Test{}
+		creds := prismgoclient.Credentials{
+			Username: "user",
+			Password: "pass",
+		}
+		setAuthHeader(ac, creds)
+		_, hasApiKey := ac.headers[ntnxAPIKeyHeaderKey]
+		assert.False(t, hasApiKey)
+		val, hasAuth := ac.headers[authorizationHeader]
+		assert.True(t, hasAuth)
+		assert.Contains(t, val, "Basic ")
+	}
+}

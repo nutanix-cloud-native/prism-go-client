@@ -1016,6 +1016,42 @@ func TestNewUnAuthUploadRequest_ErrorCases(t *testing.T) {
 	})
 }
 
+func TestDecorateRequestWithAuthHeaders_ServiceAccountModes(t *testing.T) {
+	// 1) Explicit APIKey
+	{
+		creds := &prismgoclient.Credentials{
+			APIKey: "explicit-api-key",
+		}
+		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		decorateRequestWithAuthHeaders(req, creds)
+		assert.Equal(t, "explicit-api-key", req.Header.Get(ntnxAPIKeyHeaderKey))
+		assert.Empty(t, req.Header.Get("Authorization"))
+	}
+	// 2) Username is API token header key, Password is APIKey
+	{
+		creds := &prismgoclient.Credentials{
+			Username: ntnxAPIKeyHeaderKey,
+			Password: "password-as-api-key",
+		}
+		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		decorateRequestWithAuthHeaders(req, creds)
+		assert.Equal(t, "password-as-api-key", req.Header.Get(ntnxAPIKeyHeaderKey))
+		assert.Empty(t, req.Header.Get("Authorization"))
+	}
+	// 3) Normal basic auth should remain unchanged
+	{
+		creds := &prismgoclient.Credentials{
+			Username: "username",
+			Password: "password",
+		}
+		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		decorateRequestWithAuthHeaders(req, creds)
+		assert.Empty(t, req.Header.Get(ntnxAPIKeyHeaderKey))
+		auth := req.Header.Get("Authorization")
+		assert.True(t, strings.HasPrefix(auth, "Basic "))
+	}
+}
+
 func TestDoWithFilters_ErrorCases(t *testing.T) {
 	t.Run("nil httpClient", func(t *testing.T) {
 		client := &Client{
