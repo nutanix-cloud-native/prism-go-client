@@ -99,43 +99,65 @@ func (f *fakeApiClientV4Test) AddDefaultHeader(key, value string) {
 }
 
 func Test_setAuthHeader_ServiceAccountModes_V4(t *testing.T) {
-	// 1) Explicit APIKey
-	{
-		ac := &fakeApiClientV4Test{}
-		creds := prismgoclient.Credentials{
-			APIKey: "explicit-api-key",
-		}
-		setAuthHeader(ac, creds)
-		assert.Equal(t, "explicit-api-key", ac.headers[ntnxAPIKeyHeaderKey])
-		_, hasAuth := ac.headers[authorizationHeader]
-		assert.False(t, hasAuth)
+	tests := []struct {
+		name               string
+		creds              prismgoclient.Credentials
+		expectedAPIKey     string
+		expectAuth         bool
+		expectedAuthPrefix string
+	}{
+		{
+			name: "explicit API key",
+			creds: prismgoclient.Credentials{
+				APIKey: "explicit-api-key",
+			},
+			expectedAPIKey: "explicit-api-key",
+			expectAuth:     false,
+		},
+		{
+			name: "username is header key, password is API key",
+			creds: prismgoclient.Credentials{
+				Username: ntnxAPIKeyHeaderKey,
+				Password: "password-as-api-key",
+			},
+			expectedAPIKey: "password-as-api-key",
+			expectAuth:     false,
+		},
+		{
+			name: "basic auth fallback",
+			creds: prismgoclient.Credentials{
+				Username: "user",
+				Password: "pass",
+			},
+			expectedAPIKey:     "",
+			expectAuth:         true,
+			expectedAuthPrefix: "Basic ",
+		},
 	}
 
-	// 2) Username equals API key header key, Password is API key
-	{
-		ac := &fakeApiClientV4Test{}
-		creds := prismgoclient.Credentials{
-			Username: ntnxAPIKeyHeaderKey,
-			Password: "password-as-api-key",
-		}
-		setAuthHeader(ac, creds)
-		assert.Equal(t, "password-as-api-key", ac.headers[ntnxAPIKeyHeaderKey])
-		_, hasAuth := ac.headers[authorizationHeader]
-		assert.False(t, hasAuth)
-	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			ac := &fakeApiClientV4Test{}
+			setAuthHeader(ac, tt.creds)
 
-	// 3) Normal basic auth fallback
-	{
-		ac := &fakeApiClientV4Test{}
-		creds := prismgoclient.Credentials{
-			Username: "user",
-			Password: "pass",
-		}
-		setAuthHeader(ac, creds)
-		_, hasApiKey := ac.headers[ntnxAPIKeyHeaderKey]
-		assert.False(t, hasApiKey)
-		val, hasAuth := ac.headers[authorizationHeader]
-		assert.True(t, hasAuth)
-		assert.Contains(t, val, "Basic ")
+			if tt.expectedAPIKey != "" {
+				assert.Equal(t, tt.expectedAPIKey, ac.headers[ntnxAPIKeyHeaderKey])
+			} else {
+				_, hasAPIKey := ac.headers[ntnxAPIKeyHeaderKey]
+				assert.False(t, hasAPIKey)
+			}
+
+			if tt.expectAuth {
+				val, hasAuth := ac.headers[authorizationHeader]
+				assert.True(t, hasAuth)
+				if tt.expectedAuthPrefix != "" {
+					assert.Contains(t, val, tt.expectedAuthPrefix)
+				}
+			} else {
+				_, hasAuth := ac.headers[authorizationHeader]
+				assert.False(t, hasAuth)
+			}
+		})
 	}
 }
