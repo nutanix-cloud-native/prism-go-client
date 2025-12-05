@@ -73,7 +73,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.1 // indirect
 	go.keploy.io/server v0.8.6 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
