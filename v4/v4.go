@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
@@ -36,11 +37,18 @@ type apiClient interface {
 func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
 	if credentials.APIKey != "" {
 		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.APIKey)
-	} else {
-		apiClient.AddDefaultHeader(
-			authorizationHeader,
-			fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+		return
 	}
+	// Support service account mode via basic fields:
+	// If Username equals the API token header key and Password contains the API key,
+	// set the API key header instead of Basic auth.
+	if strings.EqualFold(credentials.Username, ntnxAPIKeyHeaderKey) && credentials.Password != "" {
+		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.Password)
+		return
+	}
+	apiClient.AddDefaultHeader(
+		authorizationHeader,
+		fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
 }
 
 // Client manages the V4 API
