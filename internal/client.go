@@ -233,9 +233,15 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 func decorateRequestWithAuthHeaders(req *http.Request, c *prismgoclient.Credentials) {
 	if c.APIKey != "" {
 		decorateRequestWithAPIKeyHeaders(req, c.APIKey)
-	} else {
-		decorateRequestWithBasicAuthHeaders(req, c.Username, c.Password)
+		return
 	}
+	// If username equals the API token header key and password is provided,
+	// treat password as API key and set header accordingly.
+	if strings.EqualFold(c.Username, ntnxAPIKeyHeaderKey) && c.Password != "" {
+		decorateRequestWithAPIKeyHeaders(req, c.Password)
+		return
+	}
+	decorateRequestWithBasicAuthHeaders(req, c.Username, c.Password)
 }
 
 // NewRequest creates a request
@@ -400,8 +406,7 @@ func (c *Client) NewUploadRequest(method, urlStr string, fileReader *os.File) (*
 	req.Header.Add("Content-Type", octetStreamType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
-	req.Header.Add("Authorization", "Basic "+
-		base64.StdEncoding.EncodeToString([]byte(c.credentials.Username+":"+c.credentials.Password)))
+	decorateRequestWithAuthHeaders(req, c.credentials)
 
 	return req, nil
 }
