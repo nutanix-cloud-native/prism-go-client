@@ -1,0 +1,47 @@
+changelog:
+  categories:
+    - title: Breaking Changes
+      labels:
+        - breaking-change
+        - breaking
+    - title: Features
+      labels:
+        - feature
+        - enhancement
+        - feat
+    - title: Fixes
+      labels:
+        - bug
+        - fix
+        - bugfix
+    - title: Performance
+      labels:
+        - perf
+    - title: Refactors
+      labels:
+        - refactor
+    - title: Documentation
+      labels:
+        - docs
+    - title: CI/CD
+      labels:
+        - ci
+    - title: Build System
+      labels:
+        - build
+    - title: Tests
+      labels:
+        - test
+    - title: Style
+      labels:
+        - style
+    - title: Chore
+      labels:
+        - chore
+    - title: Reverts
+      labels:
+        - revert
+  exclude:
+    labels:
+      - skip-changelog
+

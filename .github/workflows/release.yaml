@@ -1,0 +1,25 @@
+name: Generate release artefact
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+    - "v*.*.*"
+
+jobs:
+  build_release:
+    name: Build Release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: create release
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: false
+        prerelease: false
+        generate_release_notes: true
