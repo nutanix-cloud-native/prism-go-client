@@ -2,6 +2,9 @@ SHELL := /bin/bash
 BINARY_NAME=nutanixclient
 EXPORT_RESULT?=false # for CI please set EXPORT_RESULT to true
 
+# Ensure GOROOT is set
+export GOROOT=$(shell go env GOROOT)
+
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 WHITE  := $(shell tput -Txterm setaf 7)

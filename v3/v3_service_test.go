@@ -16,11 +16,11 @@ import (
 	"github.com/keploy/go-sdk/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/utils/ptr"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
-	"github.com/nutanix-cloud-native/prism-go-client/utils"
 	"github.com/nutanix-cloud-native/prism-go-client/v3/models"
 )
 
@@ -79,7 +79,7 @@ func TestOperations_CreateVM(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "vm",
@@ -111,26 +111,26 @@ func TestOperations_CreateVM(t *testing.T) {
 			},
 			args{
 				&VMIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind:                 utils.StringPtr("vm"),
-						ShouldForceTranslate: utils.BoolPtr(false),
+						Kind:                 ptr.To("vm"),
+						ShouldForceTranslate: ptr.To(false),
 					},
 					Spec: &VM{
 						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							Kind: ptr.To("cluster"),
+							UUID: ptr.To("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
-						Name: utils.StringPtr("VM123.create"),
+						Name: ptr.To("VM123.create"),
 					},
 				},
 			},
 			&VMIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind:                 utils.StringPtr("vm"),
-					UUID:                 utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-					ShouldForceTranslate: utils.BoolPtr(false),
+					Kind:                 ptr.To("vm"),
+					UUID:                 ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					ShouldForceTranslate: ptr.To(false),
 				},
 			},
 			false,
@@ -162,7 +162,7 @@ func TestOperations_DeleteVM(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -228,13 +228,13 @@ func TestOperations_GetVM(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/vms/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	vmResponse := &VMIntentResponse{}
 	vmResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("vm"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("vm"),
 	}
 
 	type fields struct {
@@ -285,19 +285,19 @@ func TestOperations_ListVM(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/vms/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"vm","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	vmList := &VMListIntentResponse{}
 	vmList.Entities = make([]*VMIntentResource, 1)
 	vmList.Entities[0] = &VMIntentResource{}
 	vmList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("vm"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("vm"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -373,7 +373,7 @@ func TestOperations_UpdateVM(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "vm",
@@ -406,24 +406,24 @@ func TestOperations_UpdateVM(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&VMIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("vm"),
+						Kind: ptr.To("vm"),
 					},
 					Spec: &VM{
 						ClusterReference: &Reference{
-							Kind: utils.StringPtr("cluster"),
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							Kind: ptr.To("cluster"),
+							UUID: ptr.To("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
-						Name: utils.StringPtr("VM123.create"),
+						Name: ptr.To("VM123.create"),
 					},
 				},
 			},
 			&VMIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("vm"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("vm"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -481,7 +481,7 @@ func TestOperations_CreateSubnet(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "subnet",
@@ -512,24 +512,24 @@ func TestOperations_CreateSubnet(t *testing.T) {
 			},
 			args{
 				&SubnetIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("subnet"),
+						Kind: ptr.To("subnet"),
 					},
 					Spec: &models.Subnet{
 						ClusterReference: &models.ClusterReference{
 							Kind: "cluster",
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							UUID: ptr.To("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
-						Name: utils.StringPtr("subnet.create"),
+						Name: ptr.To("subnet.create"),
 					},
 				},
 			},
 			&SubnetIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("subnet"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("subnet"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -562,7 +562,7 @@ func TestOperations_DeleteSubnet(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/subnets/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -655,7 +655,7 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "subnet",
@@ -688,24 +688,24 @@ func TestOperations_UpdateSubnet(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&SubnetIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("subnet"),
+						Kind: ptr.To("subnet"),
 					},
 					Spec: &models.Subnet{
 						ClusterReference: &models.ClusterReference{
 							Kind: "cluster",
-							UUID: utils.StringPtr("00056024-6c13-4c74-0000-00000000ecb5"),
+							UUID: ptr.To("00056024-6c13-4c74-0000-00000000ecb5"),
 						},
-						Name: utils.StringPtr("subnet.create"),
+						Name: ptr.To("subnet.create"),
 					},
 				},
 			},
 			&SubnetIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("subnet"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("subnet"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -766,7 +766,7 @@ func TestOperations_CreateImage(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "image",
@@ -797,27 +797,27 @@ func TestOperations_CreateImage(t *testing.T) {
 			},
 			args{
 				&ImageIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("image"),
+						Kind: ptr.To("image"),
 					},
 					Spec: &Image{
-						Name: utils.StringPtr("image.create"),
+						Name: ptr.To("image.create"),
 						Resources: &ImageResources{
-							ImageType: utils.StringPtr("DISK_IMAGE"),
+							ImageType: ptr.To("DISK_IMAGE"),
 							DataSourceReference: &Reference{
-								Kind: utils.StringPtr("vm_disk"),
-								UUID: utils.StringPtr("0005a238-f165-08ba-317e-ac1f6b6e5442"),
+								Kind: ptr.To("vm_disk"),
+								UUID: ptr.To("0005a238-f165-08ba-317e-ac1f6b6e5442"),
 							},
 						},
 					},
 				},
 			},
 			&ImageIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("image"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("image"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -943,7 +943,7 @@ func TestOperations_DeleteImage(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/images/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -1010,13 +1010,13 @@ func TestOperations_GetImage(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/images/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"image","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"image","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	response := &ImageIntentResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("image"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("image"),
 	}
 
 	type fields struct {
@@ -1068,19 +1068,19 @@ func TestOperations_ListImage(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/images/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"image","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"image","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	list := &ImageListIntentResponse{}
 	list.Entities = make([]*ImageIntentResponse, 1)
 	list.Entities[0] = &ImageIntentResponse{}
 	list.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("image"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("image"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -1156,7 +1156,7 @@ func TestOperations_UpdateImage(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "image",
@@ -1189,23 +1189,23 @@ func TestOperations_UpdateImage(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&ImageIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("image"),
+						Kind: ptr.To("image"),
 					},
 					Spec: &Image{
 						Resources: &ImageResources{
-							ImageType: utils.StringPtr("DISK_IMAGE"),
+							ImageType: ptr.To("DISK_IMAGE"),
 						},
-						Name: utils.StringPtr("image.update"),
+						Name: ptr.To("image.update"),
 					},
 				},
 			},
 			&ImageIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("image"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("image"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -1253,7 +1253,7 @@ func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"description": "Testing Keys",
 			"name": "test_category_key",
 			"system_defined": false
@@ -1279,13 +1279,13 @@ func TestOperations_CreateOrUpdateCategoryKey(t *testing.T) {
 			"Test CreateOrUpdateCaegoryKey OK",
 			fields{c},
 			args{&CategoryKey{
-				Description: utils.StringPtr("Testing Keys"),
-				Name:        utils.StringPtr("test_category_key"),
+				Description: ptr.To("Testing Keys"),
+				Name:        ptr.To("test_category_key"),
 			}},
 			&CategoryKeyStatus{
-				Description:   utils.StringPtr("Testing Keys"),
-				Name:          utils.StringPtr("test_category_key"),
-				SystemDefined: utils.BoolPtr(false),
+				Description:   ptr.To("Testing Keys"),
+				Name:          ptr.To("test_category_key"),
+				SystemDefined: ptr.To(false),
 			},
 			false,
 		},
@@ -1316,19 +1316,19 @@ func TestOperations_ListCategories(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/categories/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{ "description": "Testing Keys", "name": "test_category_key", "system_defined": false }]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{ "description": "Testing Keys", "name": "test_category_key", "system_defined": false }]}`)
 	})
 
 	list := &CategoryKeyListResponse{}
 	list.Entities = make([]*CategoryKeyStatus, 1)
 	list.Entities[0] = &CategoryKeyStatus{
-		Description:   utils.StringPtr("Testing Keys"),
-		Name:          utils.StringPtr("test_category_key"),
-		SystemDefined: utils.BoolPtr(false),
+		Description:   ptr.To("Testing Keys"),
+		Name:          ptr.To("test_category_key"),
+		SystemDefined: ptr.To(false),
 	}
 
 	input := &CategoryListMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -1431,7 +1431,7 @@ func TestOperations_GetCategoryKey(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/categories/test_category_key", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"description": "Testing Keys",
 			"name": "test_category_key",
 			"system_defined": false
@@ -1439,9 +1439,9 @@ func TestOperations_GetCategoryKey(t *testing.T) {
 	})
 
 	response := &CategoryKeyStatus{
-		Description:   utils.StringPtr("Testing Keys"),
-		Name:          utils.StringPtr("test_category_key"),
-		SystemDefined: utils.BoolPtr(false),
+		Description:   ptr.To("Testing Keys"),
+		Name:          ptr.To("test_category_key"),
+		SystemDefined: ptr.To(false),
 	}
 
 	type fields struct {
@@ -1493,19 +1493,19 @@ func TestOperations_ListCategoryValues(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/categories/test_category_key/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{ "description": "Testing Keys", "value": "test_category_value", "system_defined": false }]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{ "description": "Testing Keys", "value": "test_category_value", "system_defined": false }]}`)
 	})
 
 	list := &CategoryValueListResponse{}
 	list.Entities = make([]*CategoryValueStatus, 1)
 	list.Entities[0] = &CategoryValueStatus{
-		Description:   utils.StringPtr("Testing Keys"),
-		Value:         utils.StringPtr("test_category_value"),
-		SystemDefined: utils.BoolPtr(false),
+		Description:   ptr.To("Testing Keys"),
+		Value:         ptr.To("test_category_value"),
+		SystemDefined: ptr.To(false),
 	}
 
 	input := &CategoryListMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -1574,7 +1574,7 @@ func TestOperations_CreateOrUpdateCategoryValue(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"description": "Testing Value",
 			"name": "test_category_key",
 			"value": "test_category_value",
@@ -1602,14 +1602,14 @@ func TestOperations_CreateOrUpdateCategoryValue(t *testing.T) {
 			"Test CreateOrUpdateCategoryValue OK",
 			fields{c},
 			args{"test_category_key", &CategoryValue{
-				Description: utils.StringPtr("Testing Value"),
-				Value:       utils.StringPtr("test_category_value"),
+				Description: ptr.To("Testing Value"),
+				Value:       ptr.To("test_category_value"),
 			}},
 			&CategoryValueStatus{
-				Description:   utils.StringPtr("Testing Value"),
-				Value:         utils.StringPtr("test_category_value"),
-				Name:          utils.StringPtr("test_category_key"),
-				SystemDefined: utils.BoolPtr(false),
+				Description:   ptr.To("Testing Value"),
+				Value:         ptr.To("test_category_value"),
+				Name:          ptr.To("test_category_key"),
+				SystemDefined: ptr.To(false),
 			},
 			false,
 		},
@@ -1640,7 +1640,7 @@ func TestOperations_GetCategoryValue(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/categories/test_category_key/test_category_value", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"description": "Testing Value",
 			"name": "test_category_key",
 			"value": "test_category_value",
@@ -1649,10 +1649,10 @@ func TestOperations_GetCategoryValue(t *testing.T) {
 	})
 
 	response := &CategoryValueStatus{
-		Description:   utils.StringPtr("Testing Value"),
-		Name:          utils.StringPtr("test_category_key"),
-		Value:         utils.StringPtr("test_category_value"),
-		SystemDefined: utils.BoolPtr(false),
+		Description:   ptr.To("Testing Value"),
+		Name:          ptr.To("test_category_key"),
+		Value:         ptr.To("test_category_value"),
+		SystemDefined: ptr.To(false),
 	}
 
 	type fields struct {
@@ -1757,17 +1757,17 @@ func TestOperations_GetCategoryQuery(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/category/query", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"results":[{ "kind": "category_result" }]}`)
+		_, _ = fmt.Fprint(w, `{"results":[{ "kind": "category_result" }]}`)
 	})
 
 	response := &CategoryQueryResponse{}
 	response.Results = make([]*CategoryQueryResponseResults, 1)
 	response.Results[0] = &CategoryQueryResponseResults{
-		Kind: utils.StringPtr("category_result"),
+		Kind: ptr.To("category_result"),
 	}
 
 	input := &CategoryQueryInput{
-		UsageType: utils.StringPtr("APPLIED_TO"),
+		UsageType: ptr.To("APPLIED_TO"),
 	}
 
 	type fields struct {
@@ -1841,7 +1841,7 @@ func TestOperations_CreateNetworkSecurityRule(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "network_security_rule",
@@ -1872,22 +1872,22 @@ func TestOperations_CreateNetworkSecurityRule(t *testing.T) {
 			},
 			args{
 				&NetworkSecurityRuleIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("network_security_rule"),
+						Kind: ptr.To("network_security_rule"),
 					},
 					Spec: &NetworkSecurityRule{
-						Name:        utils.StringPtr("network.create"),
-						Description: utils.StringPtr("Network Create"),
+						Name:        ptr.To("network.create"),
+						Description: ptr.To("Network Create"),
 						Resources:   nil,
 					},
 				},
 			},
 			&NetworkSecurityRuleIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("network_security_rule"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("network_security_rule"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -1921,7 +1921,7 @@ func TestOperations_DeleteNetworkSecurityRule(t *testing.T) {
 		func(w http.ResponseWriter, r *http.Request) {
 			testHTTPMethod(t, r, http.MethodDelete)
 
-			fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -1989,13 +1989,13 @@ func TestOperations_GetNetworkSecurityRule(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/network_security_rules/cfde831a-4e87-4a75-960f-89b0148aa2cc",
 		func(w http.ResponseWriter, r *http.Request) {
 			testHTTPMethod(t, r, http.MethodGet)
-			fmt.Fprint(w, `{"metadata": {"kind":"network_security_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+			_, _ = fmt.Fprint(w, `{"metadata": {"kind":"network_security_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 		})
 
 	response := &NetworkSecurityRuleIntentResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("network_security_rule"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("network_security_rule"),
 	}
 
 	type fields struct {
@@ -2047,19 +2047,19 @@ func TestOperations_ListNetworkSecurityRule(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/network_security_rules/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"network_security_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"network_security_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	list := &NetworkSecurityRuleListIntentResponse{}
 	list.Entities = make([]*NetworkSecurityRuleIntentResource, 1)
 	list.Entities[0] = &NetworkSecurityRuleIntentResource{}
 	list.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("network_security_rule"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("network_security_rule"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -2134,7 +2134,7 @@ func TestOperations_UpdateNetworkSecurityRule(t *testing.T) {
 				t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 			}
 
-			fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "network_security_rule",
@@ -2167,22 +2167,22 @@ func TestOperations_UpdateNetworkSecurityRule(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&NetworkSecurityRuleIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("network_security_rule"),
+						Kind: ptr.To("network_security_rule"),
 					},
 					Spec: &NetworkSecurityRule{
 						Resources:   nil,
-						Description: utils.StringPtr("Network Update"),
-						Name:        utils.StringPtr("network.update"),
+						Description: ptr.To("Network Update"),
+						Name:        ptr.To("network.update"),
 					},
 				},
 			},
 			&NetworkSecurityRuleIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("network_security_rule"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("network_security_rule"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -2238,7 +2238,7 @@ func TestOperations_CreateVolumeGroup(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "volume_group",
@@ -2267,23 +2267,23 @@ func TestOperations_CreateVolumeGroup(t *testing.T) {
 			fields{c},
 			args{
 				&VolumeGroupInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("volume_group"),
+						Kind: ptr.To("volume_group"),
 					},
 					Spec: &VolumeGroup{
-						Name: utils.StringPtr("volume.create"),
+						Name: ptr.To("volume.create"),
 						Resources: &VolumeGroupResources{
-							FlashMode: utils.StringPtr("ON"),
+							FlashMode: ptr.To("ON"),
 						},
 					},
 				},
 			},
 			&VolumeGroupResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("volume_group"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("volume_group"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -2366,13 +2366,13 @@ func TestOperations_GetVolumeGroup(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/volume_groups/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"volume_group","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"volume_group","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	response := &VolumeGroupResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("volume_group"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("volume_group"),
 	}
 
 	type fields struct {
@@ -2424,19 +2424,19 @@ func TestOperations_ListVolumeGroup(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/volume_groups/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"volume_group","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"volume_group","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	list := &VolumeGroupListResponse{}
 	list.Entities = make([]*VolumeGroupResponse, 1)
 	list.Entities[0] = &VolumeGroupResponse{}
 	list.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("volume_group"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("volume_group"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -2512,7 +2512,7 @@ func TestOperations_UpdateVolumeGroup(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "volume_group",
@@ -2543,23 +2543,23 @@ func TestOperations_UpdateVolumeGroup(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&VolumeGroupInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Kind: utils.StringPtr("volume_group"),
+						Kind: ptr.To("volume_group"),
 					},
 					Spec: &VolumeGroup{
 						Resources: &VolumeGroupResources{
-							FlashMode: utils.StringPtr("ON"),
+							FlashMode: ptr.To("ON"),
 						},
-						Name: utils.StringPtr("volume.update"),
+						Name: ptr.To("volume.update"),
 					},
 				},
 			},
 			&VolumeGroupResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("volume_group"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("volume_group"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -2597,13 +2597,13 @@ func TestOperations_GetHost(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/hosts/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	hostResponse := &HostResponse{}
 	hostResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	type fields struct {
@@ -2655,19 +2655,19 @@ func TestOperations_ListHost(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/hosts/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	hostList := &HostListResponse{}
 	hostList.Entities = make([]*HostResponse, 1)
 	hostList.Entities[0] = &HostResponse{}
 	hostList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -2753,7 +2753,7 @@ func TestOperations_CreateProject(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "project",
@@ -2784,9 +2784,9 @@ func TestOperations_CreateProject(t *testing.T) {
 				&Project{
 					APIVersion: "3.1",
 					Metadata: &Metadata{
-						Name: utils.StringPtr("project_test_name"),
-						Kind: utils.StringPtr("project"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("project_test_name"),
+						Kind: ptr.To("project"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &ProjectSpec{
 						Name:       "project_name",
@@ -2795,7 +2795,7 @@ func TestOperations_CreateProject(t *testing.T) {
 							ResourceDomain: &ResourceDomain{
 								Resources: []*Resources{
 									{
-										Limit:        utils.Int64Ptr(4),
+										Limit:        ptr.To(int64(4)),
 										ResourceType: "resource_type_test",
 									},
 								},
@@ -2807,8 +2807,8 @@ func TestOperations_CreateProject(t *testing.T) {
 			&Project{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("project"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("project"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -2840,13 +2840,13 @@ func TestOperations_GetProject(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/projects/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	hostResponse := &Project{}
 	hostResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	type fields struct {
@@ -2898,19 +2898,19 @@ func TestOperations_ListProject(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/projects/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	hostList := &ProjectListResponse{}
 	hostList.Entities = make([]*Project, 1)
 	hostList.Entities[0] = &Project{}
 	hostList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -2995,7 +2995,7 @@ func TestOperations_UpdateProject(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "project",
@@ -3027,9 +3027,9 @@ func TestOperations_UpdateProject(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&Project{
 					Metadata: &Metadata{
-						Name: utils.StringPtr("project_test_name"),
-						Kind: utils.StringPtr("project"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("project_test_name"),
+						Kind: ptr.To("project"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &ProjectSpec{
 						Name:       "project_name",
@@ -3038,7 +3038,7 @@ func TestOperations_UpdateProject(t *testing.T) {
 							ResourceDomain: &ResourceDomain{
 								Resources: []*Resources{
 									{
-										Limit:        utils.Int64Ptr(4),
+										Limit:        ptr.To(int64(4)),
 										ResourceType: "resource_type_test",
 									},
 								},
@@ -3050,8 +3050,8 @@ func TestOperations_UpdateProject(t *testing.T) {
 			&Project{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("project"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("project"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -3084,7 +3084,7 @@ func TestOperations_DeleteProject(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/projects/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -3182,7 +3182,7 @@ func TestOperations_CreateAccessControlPolicy(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "access_control_policy",
@@ -3213,18 +3213,18 @@ func TestOperations_CreateAccessControlPolicy(t *testing.T) {
 				&AccessControlPolicy{
 					APIVersion: "3.1",
 					Metadata: &Metadata{
-						Name: utils.StringPtr("access_control_policy_test_name"),
-						Kind: utils.StringPtr("access_control_policy"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("access_control_policy_test_name"),
+						Kind: ptr.To("access_control_policy"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &AccessControlPolicySpec{
-						Name:        utils.StringPtr("access_control_policy_name"),
-						Description: utils.StringPtr("description_test"),
+						Name:        ptr.To("access_control_policy_name"),
+						Description: ptr.To("description_test"),
 						Resources: &AccessControlPolicyResources{
 							RoleReference: &Reference{
-								Kind: utils.StringPtr("role"),
-								UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-								Name: utils.StringPtr("access_control_policy_test_name"),
+								Kind: ptr.To("role"),
+								UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+								Name: ptr.To("access_control_policy_test_name"),
 							},
 						},
 					},
@@ -3233,8 +3233,8 @@ func TestOperations_CreateAccessControlPolicy(t *testing.T) {
 			&AccessControlPolicy{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("access_control_policy"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("access_control_policy"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -3266,13 +3266,13 @@ func TestOperations_GetAccessControlPolicy(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/access_control_policies/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	hostResponse := &AccessControlPolicy{}
 	hostResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	type fields struct {
@@ -3324,19 +3324,19 @@ func TestOperations_ListAccessControlPolicy(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/access_control_policies/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	hostList := &AccessControlPolicyListResponse{}
 	hostList.Entities = make([]*AccessControlPolicy, 1)
 	hostList.Entities[0] = &AccessControlPolicy{}
 	hostList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -3418,7 +3418,7 @@ func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "access_control_policy",
@@ -3450,18 +3450,18 @@ func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&AccessControlPolicy{
 					Metadata: &Metadata{
-						Name: utils.StringPtr("access_control_policy_test_name"),
-						Kind: utils.StringPtr("access_control_policy"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("access_control_policy_test_name"),
+						Kind: ptr.To("access_control_policy"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &AccessControlPolicySpec{
-						Name:        utils.StringPtr("access_control_policy_name"),
-						Description: utils.StringPtr("description_test"),
+						Name:        ptr.To("access_control_policy_name"),
+						Description: ptr.To("description_test"),
 						Resources: &AccessControlPolicyResources{
 							RoleReference: &Reference{
-								Kind: utils.StringPtr("role"),
-								UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-								Name: utils.StringPtr("access_control_policy_test_name_2"),
+								Kind: ptr.To("role"),
+								UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+								Name: ptr.To("access_control_policy_test_name_2"),
 							},
 						},
 					},
@@ -3470,8 +3470,8 @@ func TestOperations_UpdateAccessControlPolicy(t *testing.T) {
 			&AccessControlPolicy{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("access_control_policy"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("access_control_policy"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -3504,7 +3504,7 @@ func TestOperations_DeleteAccessControlPolicy(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/access_control_policies/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -3604,7 +3604,7 @@ func TestOperations_CreateRole(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "role",
@@ -3635,19 +3635,19 @@ func TestOperations_CreateRole(t *testing.T) {
 				&Role{
 					APIVersion: "3.1",
 					Metadata: &Metadata{
-						Name: utils.StringPtr("role_test_name"),
-						Kind: utils.StringPtr("role"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("role_test_name"),
+						Kind: ptr.To("role"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &RoleSpec{
-						Name:        utils.StringPtr("role_name"),
-						Description: utils.StringPtr("description_test"),
+						Name:        ptr.To("role_name"),
+						Description: ptr.To("description_test"),
 						Resources: &RoleResources{
 							PermissionReferenceList: []*Reference{
 								{
-									Kind: utils.StringPtr("role"),
-									UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-									Name: utils.StringPtr("role_test_name"),
+									Kind: ptr.To("role"),
+									UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+									Name: ptr.To("role_test_name"),
 								},
 							},
 						},
@@ -3657,8 +3657,8 @@ func TestOperations_CreateRole(t *testing.T) {
 			&Role{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("role"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("role"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -3690,13 +3690,13 @@ func TestOperations_GetRole(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/roles/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	hostResponse := &Role{}
 	hostResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	type fields struct {
@@ -3748,19 +3748,19 @@ func TestOperations_ListRole(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/roles/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"host","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	hostList := &RoleListResponse{}
 	hostList.Entities = make([]*Role, 1)
 	hostList.Entities[0] = &Role{}
 	hostList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("host"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("host"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -3844,7 +3844,7 @@ func TestOperations_UpdateRole(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "role",
@@ -3876,19 +3876,19 @@ func TestOperations_UpdateRole(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&Role{
 					Metadata: &Metadata{
-						Name: utils.StringPtr("role_test_name"),
-						Kind: utils.StringPtr("role"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("role_test_name"),
+						Kind: ptr.To("role"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &RoleSpec{
-						Name:        utils.StringPtr("role_name"),
-						Description: utils.StringPtr("description_test"),
+						Name:        ptr.To("role_name"),
+						Description: ptr.To("description_test"),
 						Resources: &RoleResources{
 							PermissionReferenceList: []*Reference{
 								{
-									Kind: utils.StringPtr("role"),
-									UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-									Name: utils.StringPtr("role_test_name"),
+									Kind: ptr.To("role"),
+									UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+									Name: ptr.To("role_test_name"),
 								},
 							},
 						},
@@ -3898,8 +3898,8 @@ func TestOperations_UpdateRole(t *testing.T) {
 			&Role{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("role"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("role"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -3932,7 +3932,7 @@ func TestOperations_DeleteRole(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/roles/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -4030,7 +4030,7 @@ func TestOperations_CreateUser(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "user",
@@ -4059,30 +4059,30 @@ func TestOperations_CreateUser(t *testing.T) {
 			fields{c},
 			args{
 				&UserIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Name: utils.StringPtr("user_name"),
-						Kind: utils.StringPtr("user"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("user_name"),
+						Kind: ptr.To("user"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &UserSpec{
 						Resources: &UserResources{
 							DirectoryServiceUser: &DirectoryServiceUser{
 								DirectoryServiceReference: &Reference{
-									Kind: utils.StringPtr("directory_service"),
-									UUID: utils.StringPtr("d8b53470-c432-4556-badd-a11c937d89c9"),
+									Kind: ptr.To("directory_service"),
+									UUID: ptr.To("d8b53470-c432-4556-badd-a11c937d89c9"),
 								},
-								UserPrincipalName: utils.StringPtr("user-dummy-tbd@ntnx.local"),
+								UserPrincipalName: ptr.To("user-dummy-tbd@ntnx.local"),
 							},
 						},
 					},
 				},
 			},
 			&UserIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("user"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("user"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -4114,13 +4114,13 @@ func TestOperations_GetUser(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/users/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"user","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"user","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	hostResponse := &UserIntentResponse{}
 	hostResponse.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("user"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("user"),
 	}
 
 	type fields struct {
@@ -4172,19 +4172,19 @@ func TestOperations_ListUser(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/users/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"user","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"user","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	hostList := &UserListResponse{}
 	hostList.Entities = make([]*UserIntentResponse, 1)
 	hostList.Entities[0] = &UserIntentResponse{}
 	hostList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("user"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("user"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -4267,7 +4267,7 @@ func TestOperations_UpdateUser(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "user",
@@ -4298,30 +4298,30 @@ func TestOperations_UpdateUser(t *testing.T) {
 			args{
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				&UserIntentInput{
-					APIVersion: utils.StringPtr("3.1"),
+					APIVersion: ptr.To("3.1"),
 					Metadata: &Metadata{
-						Name: utils.StringPtr("user_name"),
-						Kind: utils.StringPtr("user"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("user_name"),
+						Kind: ptr.To("user"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &UserSpec{
 						Resources: &UserResources{
 							DirectoryServiceUser: &DirectoryServiceUser{
 								DirectoryServiceReference: &Reference{
-									Kind: utils.StringPtr("directory_service"),
-									UUID: utils.StringPtr("d8b53470-c432-4556-badd-a11c937d89c9"),
+									Kind: ptr.To("directory_service"),
+									UUID: ptr.To("d8b53470-c432-4556-badd-a11c937d89c9"),
 								},
-								UserPrincipalName: utils.StringPtr("user-dummy-tbd@ntnx.local"),
+								UserPrincipalName: ptr.To("user-dummy-tbd@ntnx.local"),
 							},
 						},
 					},
 				},
 			},
 			&UserIntentResponse{
-				APIVersion: utils.StringPtr("3.1"),
+				APIVersion: ptr.To("3.1"),
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("user"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("user"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -4354,7 +4354,7 @@ func TestOperations_DeleteUser(t *testing.T) {
 	mux.HandleFunc("/api/nutanix/v3/users/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodDelete)
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 				"status": {
 					"state": "DELETE_PENDING",
 					"execution_context": {
@@ -4486,7 +4486,7 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "protection_rule",
@@ -4517,9 +4517,9 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 				&ProtectionRuleInput{
 					APIVersion: "3.1",
 					Metadata: &Metadata{
-						Name: utils.StringPtr("protection_rule_test_name"),
-						Kind: utils.StringPtr("protection_rule"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("protection_rule_test_name"),
+						Kind: ptr.To("protection_rule"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &ProtectionRuleSpec{
 						Name:        "protection_rule_name",
@@ -4534,25 +4534,25 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 							},
 							AvailabilityZoneConnectivityList: []*AvailabilityZoneConnectivityList{
 								{
-									DestinationAvailabilityZoneIndex: utils.Int64Ptr(0),
-									SourceAvailabilityZoneIndex:      utils.Int64Ptr(0),
+									DestinationAvailabilityZoneIndex: ptr.To(int64(0)),
+									SourceAvailabilityZoneIndex:      ptr.To(int64(0)),
 									SnapshotScheduleList: []*SnapshotScheduleList{
 										{
-											RecoveryPointObjectiveSecs: utils.Int64Ptr(0),
-											AutoSuspendTimeoutSecs:     utils.Int64Ptr(0),
+											RecoveryPointObjectiveSecs: ptr.To(int64(0)),
+											AutoSuspendTimeoutSecs:     ptr.To(int64(0)),
 											SnapshotType:               "CRASH_CONSISTENT",
 											LocalSnapshotRetentionPolicy: &SnapshotRetentionPolicy{
-												NumSnapshots: utils.Int64Ptr(1),
+												NumSnapshots: ptr.To(int64(1)),
 												RollupRetentionPolicy: &RollupRetentionPolicy{
 													SnapshotIntervalType: "HOURLY",
-													Multiple:             utils.Int64Ptr(1),
+													Multiple:             ptr.To(int64(1)),
 												},
 											},
 											RemoteSnapshotRetentionPolicy: &SnapshotRetentionPolicy{
-												NumSnapshots: utils.Int64Ptr(1),
+												NumSnapshots: ptr.To(int64(1)),
 												RollupRetentionPolicy: &RollupRetentionPolicy{
 													SnapshotIntervalType: "HOURLY",
-													Multiple:             utils.Int64Ptr(1),
+													Multiple:             ptr.To(int64(1)),
 												},
 											},
 										},
@@ -4560,8 +4560,8 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 								},
 							},
 							CategoryFilter: &CategoryFilter{
-								Type:     utils.StringPtr("CATEGORIES_MATCH_ALL"),
-								KindList: []*string{utils.StringPtr("1"), utils.StringPtr("2")},
+								Type:     ptr.To("CATEGORIES_MATCH_ALL"),
+								KindList: []*string{ptr.To("1"), ptr.To("2")},
 							},
 						},
 					},
@@ -4570,8 +4570,8 @@ func TestOperations_CreateProtectionRule(t *testing.T) {
 			&ProtectionRuleResponse{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("protection_rule"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("protection_rule"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -4603,13 +4603,13 @@ func TestOperations_GetProtectionRule(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/protection_rules/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"protection_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"protection_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	response := &ProtectionRuleResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("protection_rule"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("protection_rule"),
 	}
 
 	type fields struct {
@@ -4661,19 +4661,19 @@ func TestOperations_ListProtectionRules(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/protection_rules/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"protection_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"protection_rule","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	responseList := &ProtectionRulesListResponse{}
 	responseList.Entities = make([]*ProtectionRuleResponse, 1)
 	responseList.Entities[0] = &ProtectionRuleResponse{}
 	responseList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("protection_rule"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("protection_rule"),
 	}
 
 	input := &DSMetadata{
-		Length: utils.Int64Ptr(1.0),
+		Length: ptr.To(int64(1)),
 	}
 
 	type fields struct {
@@ -4790,7 +4790,7 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 			"api_version": "3.1",
 			"metadata": {
 				"kind": "protection_rule",
@@ -4823,9 +4823,9 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 				&ProtectionRuleInput{
 					APIVersion: "3.1",
 					Metadata: &Metadata{
-						Name: utils.StringPtr("protection_rule_test_name"),
-						Kind: utils.StringPtr("protection_rule"),
-						UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+						Name: ptr.To("protection_rule_test_name"),
+						Kind: ptr.To("protection_rule"),
+						UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 					},
 					Spec: &ProtectionRuleSpec{
 						Name:        "protection_rule_name",
@@ -4840,25 +4840,25 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 							},
 							AvailabilityZoneConnectivityList: []*AvailabilityZoneConnectivityList{
 								{
-									DestinationAvailabilityZoneIndex: utils.Int64Ptr(0),
-									SourceAvailabilityZoneIndex:      utils.Int64Ptr(0),
+									DestinationAvailabilityZoneIndex: ptr.To(int64(0)),
+									SourceAvailabilityZoneIndex:      ptr.To(int64(0)),
 									SnapshotScheduleList: []*SnapshotScheduleList{
 										{
-											RecoveryPointObjectiveSecs: utils.Int64Ptr(0),
-											AutoSuspendTimeoutSecs:     utils.Int64Ptr(0),
+											RecoveryPointObjectiveSecs: ptr.To(int64(0)),
+											AutoSuspendTimeoutSecs:     ptr.To(int64(0)),
 											SnapshotType:               "CRASH_CONSISTENT",
 											LocalSnapshotRetentionPolicy: &SnapshotRetentionPolicy{
-												NumSnapshots: utils.Int64Ptr(1),
+												NumSnapshots: ptr.To(int64(1)),
 												RollupRetentionPolicy: &RollupRetentionPolicy{
 													SnapshotIntervalType: "HOURLY",
-													Multiple:             utils.Int64Ptr(1),
+													Multiple:             ptr.To(int64(1)),
 												},
 											},
 											RemoteSnapshotRetentionPolicy: &SnapshotRetentionPolicy{
-												NumSnapshots: utils.Int64Ptr(1),
+												NumSnapshots: ptr.To(int64(1)),
 												RollupRetentionPolicy: &RollupRetentionPolicy{
 													SnapshotIntervalType: "HOURLY",
-													Multiple:             utils.Int64Ptr(1),
+													Multiple:             ptr.To(int64(1)),
 												},
 											},
 										},
@@ -4866,8 +4866,8 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 								},
 							},
 							CategoryFilter: &CategoryFilter{
-								Type:     utils.StringPtr("CATEGORIES_MATCH_ALL"),
-								KindList: []*string{utils.StringPtr("1"), utils.StringPtr("2")},
+								Type:     ptr.To("CATEGORIES_MATCH_ALL"),
+								KindList: []*string{ptr.To("1"), ptr.To("2")},
 							},
 						},
 					},
@@ -4876,8 +4876,8 @@ func TestOperations_UpdateProtectionRules(t *testing.T) {
 			&ProtectionRuleResponse{
 				APIVersion: "3.1",
 				Metadata: &Metadata{
-					Kind: utils.StringPtr("protection_rule"),
-					UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+					Kind: ptr.To("protection_rule"),
+					UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
 				},
 			},
 			false,
@@ -5024,7 +5024,7 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 			Kind: "recovery_plan",
 		},
 		Spec: &models.RecoveryPlan{
-			Name: utils.StringPtr("recovery_plan_test_name-4"),
+			Name: ptr.To("recovery_plan_test_name-4"),
 			Resources: &models.RecoveryPlanResources{
 				VolumeGroupRecoveryInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfo{
 					{
@@ -5052,20 +5052,20 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 					PrimaryLocationIndex: 0,
 					AvailabilityZoneList: []*models.AvailabilityZoneInformation{
 						{
-							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							AvailabilityZoneURL: ptr.To("4b194a2d-5468-4e92-8953-571cb39be910"),
 							ClusterReferenceList: []*models.ClusterReference{
 								{
 									Kind: "cluster",
-									UUID: utils.StringPtr("0006200e-fe43-236a-0000-00000000601e"),
+									UUID: ptr.To("0006200e-fe43-236a-0000-00000000601e"),
 								},
 							},
 						},
 						{
-							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							AvailabilityZoneURL: ptr.To("4b194a2d-5468-4e92-8953-571cb39be910"),
 							ClusterReferenceList: []*models.ClusterReference{
 								{
 									Kind: "cluster",
-									UUID: utils.StringPtr("0006200e-f1f5-ef7f-0000-00000000601d"),
+									UUID: ptr.To("0006200e-f1f5-ef7f-0000-00000000601d"),
 								},
 							},
 						},
@@ -5111,7 +5111,7 @@ func TestOperations_ListRecoveryPlans(t *testing.T) {
 		Mode: keploy.MODE_TEST,
 		Name: t.Name(),
 	})
-	_, err = v3Client.V3.ListRecoveryPlans(kctx, &DSMetadata{Length: utils.Int64Ptr(10)})
+	_, err = v3Client.V3.ListRecoveryPlans(kctx, &DSMetadata{Length: ptr.To(int64(10))})
 	assert.NoError(t, err)
 }
 
@@ -5133,7 +5133,7 @@ func TestOperations_UpdateRecoveryPlans(t *testing.T) {
 			Kind: "recovery_plan",
 		},
 		Spec: &models.RecoveryPlan{
-			Name: utils.StringPtr("recovery_plan_test_name-5"),
+			Name: ptr.To("recovery_plan_test_name-5"),
 			Resources: &models.RecoveryPlanResources{
 				VolumeGroupRecoveryInfoList: []*models.RecoveryPlanVolumeGroupRecoveryInfo{
 					{
@@ -5161,20 +5161,20 @@ func TestOperations_UpdateRecoveryPlans(t *testing.T) {
 					PrimaryLocationIndex: 0,
 					AvailabilityZoneList: []*models.AvailabilityZoneInformation{
 						{
-							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							AvailabilityZoneURL: ptr.To("4b194a2d-5468-4e92-8953-571cb39be910"),
 							ClusterReferenceList: []*models.ClusterReference{
 								{
 									Kind: "cluster",
-									UUID: utils.StringPtr("0006200e-fe43-236a-0000-00000000601e"),
+									UUID: ptr.To("0006200e-fe43-236a-0000-00000000601e"),
 								},
 							},
 						},
 						{
-							AvailabilityZoneURL: utils.StringPtr("4b194a2d-5468-4e92-8953-571cb39be910"),
+							AvailabilityZoneURL: ptr.To("4b194a2d-5468-4e92-8953-571cb39be910"),
 							ClusterReferenceList: []*models.ClusterReference{
 								{
 									Kind: "cluster",
-									UUID: utils.StringPtr("0006200e-f1f5-ef7f-0000-00000000601d"),
+									UUID: ptr.To("0006200e-f1f5-ef7f-0000-00000000601d"),
 								},
 							},
 						},
@@ -5211,13 +5211,13 @@ func TestOperations_GetRecoveryPlanJob(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}`)
 	})
 
 	response := &RecoveryPlanJobIntentResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("recovery_plan_jobs"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("recovery_plan_jobs"),
 	}
 
 	type fields struct {
@@ -5270,12 +5270,12 @@ func TestOperations_GetRecoveryPlanJobStatus(t *testing.T) {
 	// status in the URL can have one of the 2 following values: execution_status, cleanup_status
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/execution_status", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"}}`)
+		_, _ = fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"}}`)
 	})
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/cleanup_status", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"},"preprocessing_status": {"percentage_complete":100,"status":"Complete"}}`)
+		_, _ = fmt.Fprint(w, `{"operation_status": {"percentage_complete":55,"status":"Running"},"preprocessing_status": {"percentage_complete":100,"status":"Complete"}}`)
 	})
 
 	execution_status_response := &RecoveryPlanJobExecutionStatus{
@@ -5404,12 +5404,12 @@ func TestOperations_PerformRecoveryPlanJobAction(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/cleanup", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
+		_, _ = fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
 	})
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/cfde831a-4e87-4a75-960f-89b0148aa2cc/rerun", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
+		_, _ = fmt.Fprint(w, `{"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"}`)
 	})
 
 	type fields struct {
@@ -5436,7 +5436,7 @@ func TestOperations_PerformRecoveryPlanJobAction(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				"cleanup",
 				&RecoveryPlanJobActionRequest{
-					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+					ShouldContinueRerunOnValidationFailure: ptr.To(true),
 				},
 			},
 			&RecoveryPlanJobResponse{
@@ -5451,7 +5451,7 @@ func TestOperations_PerformRecoveryPlanJobAction(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				"rerun",
 				&RecoveryPlanJobActionRequest{
-					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+					ShouldContinueRerunOnValidationFailure: ptr.To(true),
 				},
 			},
 			&RecoveryPlanJobResponse{
@@ -5466,7 +5466,7 @@ func TestOperations_PerformRecoveryPlanJobAction(t *testing.T) {
 				"cfde831a-4e87-4a75-960f-89b0148aa2cc",
 				"jump",
 				&RecoveryPlanJobActionRequest{
-					ShouldContinueRerunOnValidationFailure: utils.BoolPtr(true),
+					ShouldContinueRerunOnValidationFailure: ptr.To(true),
 				},
 			},
 			&RecoveryPlanJobResponse{},
@@ -5501,15 +5501,15 @@ func TestOperations_ListRecoveryPlanJobs(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/recovery_plan_jobs/list", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
+		_, _ = fmt.Fprint(w, `{"entities":[{"metadata": {"kind":"recovery_plan_jobs","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}}]}`)
 	})
 
 	responseList := &RecoveryPlanJobListResponse{}
 	responseList.Entities = make([]*RecoveryPlanJobIntentResponse, 1)
 	responseList.Entities[0] = &RecoveryPlanJobIntentResponse{}
 	responseList.Entities[0].Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("recovery_plan_jobs"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("recovery_plan_jobs"),
 	}
 
 	type fields struct {
@@ -5532,7 +5532,7 @@ func TestOperations_ListRecoveryPlanJobs(t *testing.T) {
 			fields{c},
 			args{
 				&DSMetadata{
-					Length: utils.Int64Ptr(1.0),
+					Length: ptr.To(int64(1)),
 				},
 			},
 			responseList,
@@ -5565,7 +5565,7 @@ func TestOperations_GroupsGetEntities(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/groups", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodPost)
-		fmt.Fprint(w, `{"filtered_group_count": 3, "group_results": [{"entity_results": [{"entity_id":"some_entity_id", "data":[{"values":[{"time":100, "values":["a", "b", "c"]}]}]}]}]}`)
+		_, _ = fmt.Fprint(w, `{"filtered_group_count": 3, "group_results": [{"entity_results": [{"entity_id":"some_entity_id", "data":[{"values":[{"time":100, "values":["a", "b", "c"]}]}]}]}]}`)
 	})
 
 	type fields struct {
@@ -5588,13 +5588,13 @@ func TestOperations_GroupsGetEntities(t *testing.T) {
 			fields{c},
 			args{
 				&GroupsGetEntitiesRequest{
-					EntityType: utils.StringPtr("volume_group_config"),
+					EntityType: ptr.To("volume_group_config"),
 					GroupMemberAttributes: []*GroupsRequestedAttribute{
 						{
-							Attribute: utils.StringPtr("synchronous_replication_status"),
+							Attribute: ptr.To("synchronous_replication_status"),
 						},
 						{
-							Attribute: utils.StringPtr("_master_cluster_uuid_"),
+							Attribute: ptr.To("_master_cluster_uuid_"),
 						},
 					},
 					FilterCriteria: "uuid=in=uuid1|uuid2",
@@ -5652,16 +5652,16 @@ func TestOperations_GetAvailabilityZone(t *testing.T) {
 
 	mux.HandleFunc("/api/nutanix/v3/availability_zones/cfde831a-4e87-4a75-960f-89b0148aa2cc", func(w http.ResponseWriter, r *http.Request) {
 		testHTTPMethod(t, r, http.MethodGet)
-		fmt.Fprint(w, `{"metadata": {"kind":"availability_zone","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}, "status":{"resources":{"management_url":"dfde831a-4e87-4a75-960f-89b0148aa2cc"}}}`)
+		_, _ = fmt.Fprint(w, `{"metadata": {"kind":"availability_zone","uuid":"cfde831a-4e87-4a75-960f-89b0148aa2cc"}, "status":{"resources":{"management_url":"dfde831a-4e87-4a75-960f-89b0148aa2cc"}}}`)
 	})
 
 	response := &AvailabilityZoneIntentResponse{}
 	response.Metadata = &Metadata{
-		UUID: utils.StringPtr("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
-		Kind: utils.StringPtr("availability_zone"),
+		UUID: ptr.To("cfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		Kind: ptr.To("availability_zone"),
 	}
 	resources := &AvailabilityZoneResources{
-		ManagementUrl: utils.StringPtr("dfde831a-4e87-4a75-960f-89b0148aa2cc"),
+		ManagementUrl: ptr.To("dfde831a-4e87-4a75-960f-89b0148aa2cc"),
 	}
 	response.Status = &AvailabilityZoneStatus{
 		Resources: resources,
@@ -5825,7 +5825,7 @@ func TestOperations_CreateIdempotenceIdentifers(t *testing.T) {
 		kctx,
 		&models.IdempotenceIdentifiersInput{
 			ClientIdentifier:       "testclient",
-			Count:                  utils.Int64Ptr(2),
+			Count:                  ptr.To(int64(2)),
 			ValidDurationInMinutes: 10,
 		},
 	)
