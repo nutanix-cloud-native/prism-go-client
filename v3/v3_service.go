@@ -135,6 +135,10 @@ type Service interface {
 	CreateIdempotenceIdentifiers(ctx context.Context, request *models.IdempotenceIdentifiersInput) (*models.IdempotenceIdentifiersResponse, error)
 	GetIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) (*models.IdempotenceIdentifiersResponse, error)
 	DeleteIdempotenceIdentifiers(ctx context.Context, clientIdentifier string) error
+	ListRecoveryPoints(ctx context.Context, getEntitiesRequest *DSMetadata) (*VMRecoveryPointListIntentResponse, error)
+	GetRecoveryPoint(ctx context.Context, uuid string) (*VMRecoveryPointIntentResponse, error)
+	CreateRecoveryPoint(ctx context.Context, createRequest *VMRecoveryPointIntentInput) (*VMRecoveryPointIntentResponse, error)
+	DeleteRecoveryPoint(ctx context.Context, uuid string) (*DeleteResponse, error)
 }
 
 /*CreateVM Creates a VM
@@ -2462,4 +2466,58 @@ func (op Operations) DeleteIdempotenceIdentifiers(ctx context.Context, clientIde
 	}
 
 	return op.client.Do(ctx, req, nil)
+}
+
+/*ListRecoveryPoints Gets a list of recoverypoints
+ *
+ * @param getEntitiesRequest @return *VMRecoveryPointListIntentResponse
+ */
+func (op Operations) ListRecoveryPoints(ctx context.Context, getEntitiesRequest *DSMetadata) (*VMRecoveryPointListIntentResponse, error) {
+	path := "/vm_recovery_points/list"
+
+	req, err := op.client.NewRequest(http.MethodPost, path, getEntitiesRequest)
+	vmRecoveryPointListIntentResponse := new(VMRecoveryPointListIntentResponse)
+
+	if err != nil {
+		return nil, err
+	}
+	baseSearchPaths := []string{"metadata", "status", "status.resources"}
+
+	return vmRecoveryPointListIntentResponse, op.client.DoWithFilters(ctx, req, vmRecoveryPointListIntentResponse, getEntitiesRequest.ClientSideFilters, baseSearchPaths)
+}
+
+func (op Operations) GetRecoveryPoint(ctx context.Context, uuid string) (*VMRecoveryPointIntentResponse, error) {
+	path := fmt.Sprintf("/vm_recovery_points/%s", uuid)
+	response := new(VMRecoveryPointIntentResponse)
+
+	req, err := op.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, op.client.Do(ctx, req, response)
+}
+
+func (op Operations) CreateRecoveryPoint(ctx context.Context, createRequest *VMRecoveryPointIntentInput) (*VMRecoveryPointIntentResponse, error) {
+	req, err := op.client.NewRequest(http.MethodPost, "/vm_recovery_points", createRequest)
+	vmRecoveryPointIntentResponse := new(VMRecoveryPointIntentResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return vmRecoveryPointIntentResponse, op.client.Do(ctx, req, vmRecoveryPointIntentResponse)
+}
+
+func (op Operations) DeleteRecoveryPoint(ctx context.Context, uuid string) (*DeleteResponse, error) {
+	path := fmt.Sprintf("/vm_recovery_points/%s", uuid)
+
+	req, err := op.client.NewRequest(http.MethodDelete, path, nil)
+	deleteResponse := new(DeleteResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteResponse, op.client.Do(ctx, req, deleteResponse)
 }
