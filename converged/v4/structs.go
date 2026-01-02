@@ -14,6 +14,7 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
@@ -47,6 +48,7 @@ type Client struct {
 		prismErrors.AppMessage,
 		volumeModels.VolumeGroup,
 		volumeModels.VmAttachment,
+		iamModels.User,
 	]
 
 	client *v4prismGoClient.Client
@@ -81,6 +83,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			prismErrors.AppMessage,
 			volumeModels.VolumeGroup,
 			volumeModels.VmAttachment,
+			iamModels.User,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -91,6 +94,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			VMs:                  NewVMsService(v4sdkClient),
 			Tasks:                NewTasksService(v4sdkClient),
 			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
+			Users:                NewUsersService(v4sdkClient),
 		},
 		client: v4sdkClient,
 	}
