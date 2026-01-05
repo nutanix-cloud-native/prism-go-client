@@ -10,9 +10,7 @@ type Users[User any] interface {
 	// Lister is the interface for List operations.
 	Lister[User]
 
-	// GetCurrentLoggedInUser returns the currently logged-in user based on the authenticated credentials.
-	// Since V4 IAM API doesn't support a direct "me" endpoint (unlike V3's /users/me),
-	// this method internally uses List with limit 1 to retrieve the authenticated user.
-	// Returns nil, nil if credentials are valid but no user is found (valid for credential validation).
-	GetCurrentLoggedInUser(ctx context.Context) (*User, error)
+	// ValidateCredentials validates the provided credentials by making an authenticated API call.
+	// Returns an error if credentials are invalid or authentication fails.
+	ValidateCredentials(ctx context.Context) error
 }

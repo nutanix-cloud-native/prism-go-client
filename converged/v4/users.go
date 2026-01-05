@@ -7,8 +7,8 @@ import (
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
-
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
+	"k8s.io/utils/ptr"
 )
 
 // UsersService provides implementation for IAM Users API operations.
@@ -91,23 +91,18 @@ func (s *UsersService) NewIterator(ctx context.Context, opts ...converged.ODataO
 	)
 }
 
-// GetCurrentLoggedInUser returns the currently logged-in user.
-// Since V4 IAM API doesn't support "me" endpoint (requires UUID format),
-// this implementation internally uses List with limit 1 to get the current user.
-// This is a convenience method that wraps List for getting the authenticated user.
-func (s *UsersService) GetCurrentLoggedInUser(ctx context.Context) (*iamModels.User, error) {
-	// Use List with limit 1 to get the current authenticated user
-	// This reuses the credential validation logic from List
-	userList, err := s.List(ctx, converged.WithLimit(1))
+// ValidateCredentials validates the provided credentials by making an authenticated API call.
+// Returns an error if credentials are invalid or authentication fails.
+func (s *UsersService) ValidateCredentials(ctx context.Context) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+
+	// Use ListUsers API with limit 1 to validate credentials
+	_, err := s.client.UsersApiInstance.ListUsers(nil, ptr.To(1), nil, nil, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get current logged-in user: %w", err)
+		return fmt.Errorf("failed to validate credentials: %w", err)
 	}
 
-	// If no user is found, return nil without error
-	// This is valid for credential validation - if List succeeds, credentials are valid
-	if len(userList) == 0 {
-		return nil, nil
-	}
-
-	return &userList[0], nil
+	return nil
 }
