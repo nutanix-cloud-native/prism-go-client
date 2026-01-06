@@ -39,12 +39,6 @@ func TestUsersIntegration(t *testing.T) {
 
 	ctx := context.Background()
 
-	t.Run("ValidateCredentials", func(t *testing.T) {
-		// Test ValidateCredentials with valid credentials
-		err := client.Users.ValidateCredentials(ctx)
-		assert.NoError(t, err, "ValidateCredentials should succeed with valid credentials")
-	})
-
 	t.Run("ListUsers", func(t *testing.T) {
 		// Test List users
 		users, err := client.Users.List(ctx, converged.WithLimit(10))
@@ -79,12 +73,6 @@ func TestUsersService_ErrorHandling(t *testing.T) {
 	service := NewUsersService(nil)
 	require.NotNil(t, service)
 	ctx := context.Background()
-
-	t.Run("ValidateCredentials_NilClient", func(t *testing.T) {
-		err := service.ValidateCredentials(ctx)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "client is not initialized")
-	})
 
 	t.Run("Get_NilClient", func(t *testing.T) {
 		_, err := service.Get(ctx, "test-id")

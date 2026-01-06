@@ -8,7 +8,6 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
-	"k8s.io/utils/ptr"
 )
 
 // UsersService provides implementation for IAM Users API operations.
@@ -89,20 +88,4 @@ func (s *UsersService) NewIterator(ctx context.Context, opts ...converged.ODataO
 		opts,
 		s.entitiesName,
 	)
-}
-
-// ValidateCredentials validates the provided credentials by making an authenticated API call.
-// Returns an error if credentials are invalid or authentication fails.
-func (s *UsersService) ValidateCredentials(ctx context.Context) error {
-	if s.client == nil {
-		return errors.New("client is not initialized")
-	}
-
-	// Use ListUsers API with limit 1 to validate credentials
-	_, err := s.client.UsersApiInstance.ListUsers(nil, ptr.To(1), nil, nil, nil)
-	if err != nil {
-		return fmt.Errorf("failed to validate credentials: %w", err)
-	}
-
-	return nil
 }
