@@ -79,7 +79,6 @@ func (s *DomainManagerService) NewIterator(ctx context.Context, opts ...converge
 
 // GetPrismCentralVersion gets the Prism Central version from Domain Manager API
 // This is a lightweight alternative to V3 GetPrismCentral() API
-// Endpoint: GET /prism/v4.2/domain-managers
 func (s *DomainManagerService) GetPrismCentralVersion(ctx context.Context) (string, error) {
 	if s.client == nil {
 		return "", errors.New("client is not initialized")
