@@ -30,7 +30,6 @@ type Client[
 	AppMessage,
 	VolumeGroup,
 	VmAttachment,
-	DomainManagerEntity,
 	User any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
@@ -41,7 +40,6 @@ type Client[
 	VMs                  VMs[VM]
 	Tasks                Tasks[Task, AppMessage]
 	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
-	DomainManager        DomainManager[DomainManagerEntity]
 	Users                Users[User]
 	// Additional service interfaces can be added here as needed.
 }

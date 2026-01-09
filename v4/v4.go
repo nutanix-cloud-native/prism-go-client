@@ -55,7 +55,6 @@ func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
 type Client struct {
 	CategoriesApiInstance             *prismApi.CategoriesApi
 	ClustersApiInstance               *clusterApi.ClustersApi
-	DomainManagerApiInstance          *prismApi.DomainManagerApi
 	ImagesApiInstance                 *vmApi.ImagesApi
 	StorageContainerAPI               *clusterApi.StorageContainersApi
 	SubnetsApiInstance                *networkingApi.SubnetsApi
@@ -154,7 +153,6 @@ func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	v4Client.CategoriesApiInstance = prismApi.NewCategoriesApi(apiClientInstance)
-	v4Client.DomainManagerApiInstance = prismApi.NewDomainManagerApi(apiClientInstance)
 	return nil
 }
 

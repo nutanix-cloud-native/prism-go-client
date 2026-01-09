@@ -48,7 +48,6 @@ type Client struct {
 		prismErrors.AppMessage,
 		volumeModels.VolumeGroup,
 		volumeModels.VmAttachment,
-		prismModels.DomainManager,
 		iamModels.User,
 	]
 
@@ -84,7 +83,6 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			prismErrors.AppMessage,
 			volumeModels.VolumeGroup,
 			volumeModels.VmAttachment,
-			prismModels.DomainManager,
 			iamModels.User,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
@@ -96,7 +94,6 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			VMs:                  NewVMsService(v4sdkClient),
 			Tasks:                NewTasksService(v4sdkClient),
 			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
-			DomainManager:        NewDomainManagerService(v4sdkClient),
 			Users:                NewUsersService(v4sdkClient),
 		},
 		client: v4sdkClient,
