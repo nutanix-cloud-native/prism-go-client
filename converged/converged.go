@@ -29,8 +29,7 @@ type Client[
 	Task,
 	AppMessage,
 	VolumeGroup,
-	VmAttachment,
-	User any] struct {
+	VmAttachment any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
@@ -40,7 +39,6 @@ type Client[
 	VMs                  VMs[VM]
 	Tasks                Tasks[Task, AppMessage]
 	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
-	Users                Users[User]
 	// Additional service interfaces can be added here as needed.
 }
 
