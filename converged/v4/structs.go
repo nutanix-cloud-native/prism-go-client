@@ -15,7 +15,6 @@ import (
 
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
-	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	prismErrors "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
@@ -41,7 +40,6 @@ type Client struct {
 		imageModels.Image,
 		clusterModels.StorageContainer,
 		subnetModels.Subnet,
-		networkingprismapi.TaskReference,
 		vmmModels.Vm,
 		prismModels.Task,
 		prismErrors.AppMessage,
@@ -75,7 +73,6 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			imageModels.Image,
 			clusterModels.StorageContainer,
 			subnetModels.Subnet,
-			networkingprismapi.TaskReference,
 			vmmModels.Vm,
 			prismModels.Task,
 			prismErrors.AppMessage,

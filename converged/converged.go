@@ -24,7 +24,6 @@ type Client[
 	Image,
 	StorageContainer,
 	Subnet,
-	SubnetTaskReference,
 	VM,
 	Task,
 	AppMessage,
@@ -35,7 +34,7 @@ type Client[
 	Categories           Categories[Category]
 	Images               Images[Image]
 	StorageContainers    StorageContainers[StorageContainer]
-	Subnets              Subnets[Subnet, SubnetTaskReference]
+	Subnets              Subnets[Subnet]
 	VMs                  VMs[VM]
 	Tasks                Tasks[Task, AppMessage]
 	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
