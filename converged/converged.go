@@ -24,20 +24,25 @@ type Client[
 	Image,
 	StorageContainer,
 	Subnet,
+	SubnetTaskReference,
 	VM,
 	Task,
 	AppMessage,
 	VolumeGroup,
-	VmAttachment any] struct {
+	VmAttachment,
+	DomainManagerEntity,
+	User any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
 	Images               Images[Image]
 	StorageContainers    StorageContainers[StorageContainer]
-	Subnets              Subnets[Subnet]
+	Subnets              Subnets[Subnet, SubnetTaskReference]
 	VMs                  VMs[VM]
 	Tasks                Tasks[Task, AppMessage]
 	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
+	DomainManager        DomainManager[DomainManagerEntity]
+	Users                Users[User]
 	// Additional service interfaces can be added here as needed.
 }
 

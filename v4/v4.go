@@ -9,6 +9,8 @@ import (
 
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
+	iamApi "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/api"
+	iamClient "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
 	networkingClient "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/client"
 	prismApi "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/api"
@@ -55,6 +57,7 @@ func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
 type Client struct {
 	CategoriesApiInstance             *prismApi.CategoriesApi
 	ClustersApiInstance               *clusterApi.ClustersApi
+	DomainManagerApiInstance          *prismApi.DomainManagerApi
 	ImagesApiInstance                 *vmApi.ImagesApi
 	StorageContainerAPI               *clusterApi.StorageContainersApi
 	SubnetsApiInstance                *networkingApi.SubnetsApi
@@ -63,6 +66,7 @@ type Client struct {
 	VolumeGroupsApiInstance           *volumesApi.VolumeGroupsApi
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
+	UsersApiInstance                  *iamApi.UsersApi
 }
 
 type endpointInfo struct {
@@ -106,6 +110,10 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 
 	if err := initVolumesApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Volumes API instance: %v", err)
+	}
+
+	if err := initUsersApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -153,6 +161,7 @@ func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.TasksApiInstance = prismApi.NewTasksApi(apiClientInstance)
 	v4Client.CategoriesApiInstance = prismApi.NewCategoriesApi(apiClientInstance)
+	v4Client.DomainManagerApiInstance = prismApi.NewDomainManagerApi(apiClientInstance)
 	return nil
 }
 
@@ -196,6 +205,20 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.VolumeGroupsApiInstance = volumesApi.NewVolumeGroupsApi(apiClientInstance)
+	return nil
+}
+
+func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
 	return nil
 }
 
