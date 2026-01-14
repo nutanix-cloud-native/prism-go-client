@@ -32,7 +32,7 @@ func (s *VolumeGroupsService) Get(ctx context.Context, uuid string) (*volumeMode
 	}
 	return GenericGetEntity[*volumeModels.GetVolumeGroupApiResponse, volumeModels.VolumeGroup](
 		func() (*volumeModels.GetVolumeGroupApiResponse, error) {
-			return s.client.VolumeGroupsApiInstance.GetVolumeGroupById(&uuid)
+			return s.client.VolumeGroupsApiInstance.GetVolumeGroupById(&uuid, nil)
 		},
 		s.entities,
 	)
