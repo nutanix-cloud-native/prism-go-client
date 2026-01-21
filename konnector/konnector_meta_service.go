@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"context"
@@ -15,25 +15,25 @@ type MetaOperations struct {
 	httpClient *internal.Client
 }
 
-// MetaService provides the interface for the karbon metadata e.g. Versions
-// Karbon v2.1
+// MetaService provides the interface for the konnector metadata e.g. Versions
+// Konnector v2.1
 type MetaService interface {
 	GetVersion(ctx context.Context) (*MetaVersionResponse, error)
 	GetSemanticVersion(ctx context.Context) (*MetaSemanticVersionResponse, error)
 }
 
-// GetVersion returns the karbon version
+// GetVersion returns the konnector version
 func (op MetaOperations) GetVersion(ctx context.Context) (*MetaVersionResponse, error) {
 	path := "/v1-alpha.1/version"
 	req, err := op.httpClient.NewRequest(http.MethodGet, path, nil)
-	karbonMetaVersionResponse := new(MetaVersionResponse)
+	konnectorMetaVersionResponse := new(MetaVersionResponse)
 	if err != nil {
 		return nil, err
 	}
-	return karbonMetaVersionResponse, op.httpClient.Do(ctx, req, karbonMetaVersionResponse)
+	return konnectorMetaVersionResponse, op.httpClient.Do(ctx, req, konnectorMetaVersionResponse)
 }
 
-// GetSemanticVersion is a wrapper on GetVersion and returns the karbon semantic version
+// GetSemanticVersion is a wrapper on GetVersion and returns the konnector semantic version
 func (op MetaOperations) GetSemanticVersion(ctx context.Context) (*MetaSemanticVersionResponse, error) {
 	const expectedVersionLength int = 3
 	metaSemanticVersionResponse := new(MetaSemanticVersionResponse)
@@ -43,7 +43,7 @@ func (op MetaOperations) GetSemanticVersion(ctx context.Context) (*MetaSemanticV
 	}
 	splitted := strings.Split(*rawVersion.Version, ".")
 	if len(splitted) != expectedVersionLength {
-		return nil, fmt.Errorf("expected karbon version to be consisting out of 3 elements but was %v", len(splitted))
+		return nil, fmt.Errorf("expected konnector version to be consisting out of 3 elements but was %v", len(splitted))
 	}
 
 	major, err := strconv.Atoi(splitted[0])

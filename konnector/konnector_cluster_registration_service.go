@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"context"
@@ -73,11 +73,11 @@ func (op ClusterRegistrationOperations) DeleteK8sRegistration(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationDeleteResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sClusterRegistrationDeleteResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // DeleteK8sRegistrationKubeconfig deletes the kubeconfig of the cluster
@@ -97,11 +97,11 @@ func (op ClusterRegistrationOperations) DeleteK8sRegistrationKubeconfig(ctx cont
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sClusterKubeconfigDeleteResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sClusterKubeconfigDeleteResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // GetK8sRegistration gets the k8s registration with UUID
@@ -111,11 +111,11 @@ func (op ClusterRegistrationOperations) GetK8sRegistration(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sClusterRegistration)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sClusterRegistration)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // GetK8sRegistrationList gets the k8s registration list
@@ -125,11 +125,11 @@ func (op ClusterRegistrationOperations) GetK8sRegistrationList(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sClusterRegistrationList)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sClusterRegistrationList)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // UpdateK8sRegistrationInfo updates k8s info
@@ -139,11 +139,11 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationInfo(ctx context.Co
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationInfoResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sUpdateClusterRegistrationInfoResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // UpdateK8sRegistrationAddonInfo updates k8s info
@@ -153,11 +153,11 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonInfo(ctx conte
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationAddonInfoResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sUpdateClusterRegistrationAddonInfoResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // UpdateK8sRegistrationInfo updates k8s info
@@ -167,11 +167,11 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationMetrics(ctx context
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationMetricsResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sUpdateClusterRegistrationMetricsResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // UpdateK8sRegistrationAddonInfo updates k8s info
@@ -181,11 +181,11 @@ func (op ClusterRegistrationOperations) UpdateK8sRegistrationAddonMetrics(ctx co
 	if err != nil {
 		return nil, err
 	}
-	karbonClusterActionResponse := new(K8sUpdateClusterRegistrationAddonMetricsResponse)
-	if err := op.httpClient.Do(ctx, req, karbonClusterActionResponse); err != nil {
+	konnectorClusterActionResponse := new(K8sUpdateClusterRegistrationAddonMetricsResponse)
+	if err := op.httpClient.Do(ctx, req, konnectorClusterActionResponse); err != nil {
 		return nil, err
 	}
-	return karbonClusterActionResponse, nil
+	return konnectorClusterActionResponse, nil
 }
 
 // GetK8sClusterRegistrationKubeconfig gets the k8s cluster registration kubeconfig

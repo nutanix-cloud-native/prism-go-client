@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ import (
 func TestMetaOperations_GetVersion(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	kc, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	kc, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -32,7 +32,7 @@ func TestMetaOperations_GetVersion(t *testing.T) {
 func TestMetaOperations_GetSemanticVersion(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	kc, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	kc, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{

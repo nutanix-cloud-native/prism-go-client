@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"context"
@@ -151,13 +151,13 @@ func validateK8sClusterRegistrationMetricsResponse(t *testing.T, expected_k8s_cl
 	assert.Equal(t, expected_k8s_cluster_uuid, clusterRegMetricsResp.ClusterUUID)
 }
 
-func TestKarbonCreateClusterRegistration(t *testing.T) {
+func TestKonnectorCreateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
 
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
-	require.NotNil(t, nkeClient)
+	require.NotNil(t, konnectorClient)
 
 	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
 	require.NoError(t, err)
@@ -179,11 +179,11 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	test_k8s_distribution := "Openshift"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 
 		// Valid k8s cluster registration delete response
@@ -203,7 +203,7 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
-	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	responseCreateReg, err := konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
 
 	// Valid k8s cluster registration create response
@@ -214,13 +214,13 @@ func TestKarbonCreateClusterRegistration(t *testing.T) {
 	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseCreateReg.TaskUUID, creds)
 }
 
-func TestKarbonUpdateClusterRegistration(t *testing.T) {
+func TestKonnectorUpdateClusterRegistration(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
 
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
-	require.NotNil(t, nkeClient)
+	require.NotNil(t, konnectorClient)
 
 	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
 	require.NoError(t, err)
@@ -241,11 +241,11 @@ func TestKarbonUpdateClusterRegistration(t *testing.T) {
 	test_metadata_apiversion := "v1.1.0"
 	test_k8s_distribution := "Openshift"
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 
 		// Valid k8s cluster registration delete response
@@ -265,7 +265,7 @@ func TestKarbonUpdateClusterRegistration(t *testing.T) {
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
-	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	responseCreateReg, err := konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
 
 	// Valid k8s cluster registration create response
@@ -287,30 +287,30 @@ func TestKarbonUpdateClusterRegistration(t *testing.T) {
 	}
 
 	// Call the Update (PATCH) operation
-	responseUpdate, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistration(kctx, updateReq)
+	responseUpdate, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistration(kctx, updateReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, *responseUpdate.TaskUUID)
 	require.NotNil(t, responseUpdate.TaskUUID)
 	validateK8sClusterRegistrationTaskStatus(t, kctx, v3Client, *responseUpdate.TaskUUID, creds)
 	// Get the kubeconfig of the registered cluster
-	kubeconfigResponse, err := nkeClient.ClusterRegistrationOperations.GetK8sClusterRegistrationKubeconfig(kctx, test_cluster_uuid)
+	kubeconfigResponse, err := konnectorClient.ClusterRegistrationOperations.GetK8sClusterRegistrationKubeconfig(kctx, test_cluster_uuid)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, *kubeconfigResponse.KubeconfigChecksum)
 
 	// Delete the kubeconfig of the registered cluster
-	deleteKubeconfigResponse, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistrationKubeconfig(kctx, test_cluster_uuid, DeleteK8sRegistrationKubeconfigParams{Force: false})
+	deleteKubeconfigResponse, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistrationKubeconfig(kctx, test_cluster_uuid, DeleteK8sRegistrationKubeconfigParams{Force: false})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, *deleteKubeconfigResponse.TaskUUID)
 	require.NotNil(t, deleteKubeconfigResponse.TaskUUID)
 }
 
-func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
 
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
-	require.NotNil(t, nkeClient)
+	require.NotNil(t, konnectorClient)
 
 	v3Client, err := v3.NewV3Client(creds, v3.WithRoundTripper(interceptor))
 	require.NoError(t, err)
@@ -327,11 +327,11 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	test_metadata := &Metadata{APIVersion: &test_metadata_apiversion}
 	test_k8s_distribution := "Openshift"
 
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		// Valid k8s cluster registration delete response
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
@@ -348,16 +348,16 @@ func TestKarbonCreateClusterRegistrationWithNoCategory(t *testing.T) {
 	}
 
 	// check if the error is expected
-	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	_, err = konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
 		assert.Contains(t, fmt.Sprint(err), _noCategoryMappingErrorMsg)
 	}
 }
 
-func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -382,16 +382,16 @@ func TestKarbonCreateClusterRegistrationWithNoUUID(t *testing.T) {
 	}
 
 	// check if the error is expected
-	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	_, err = konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
 		assert.Contains(t, fmt.Sprint(err), _noUUIDErrorMsg)
 	}
 }
 
-func TestKarbonCreateClusterRegistrationWithNoK8sDistribution(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationWithNoK8sDistribution(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -416,16 +416,16 @@ func TestKarbonCreateClusterRegistrationWithNoK8sDistribution(t *testing.T) {
 	}
 
 	// check if the error is expected
-	_, err = nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	_, err = konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	if assert.Error(t, err) {
 		assert.Contains(t, fmt.Sprint(err), _noK8sDistributionMsg)
 	}
 }
 
-func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -445,13 +445,13 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	test_k8s_distribution := "Openshift"
 
 	t.Log("Get Cluster registration")
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -466,7 +466,7 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
-	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	responseCreateReg, err := konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
@@ -483,27 +483,27 @@ func TestKarbonCreateClusterRegistrationAndSetInfo(t *testing.T) {
 	updateInfoRequest := &K8sUpdateClusterRegistrationInfoRequest{
 		ClusterInfo: test_cluster_info,
 	}
-	responseUpdateInfo, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistrationInfo(kctx, test_cluster_uuid, updateInfoRequest)
+	responseUpdateInfo, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistrationInfo(kctx, test_cluster_uuid, updateInfoRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationInfoResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateInfo)
 
 	t.Log("Get Cluster registration")
-	responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err = konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponseWithClusterInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
 }
 
-func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -523,13 +523,13 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	test_k8s_distribution := "Openshift"
 
 	t.Log("Get Cluster registration")
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -544,7 +544,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
-	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	responseCreateReg, err := konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
@@ -559,7 +559,7 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	updateAddonInfoRequest := &K8sUpdateClusterRegistrationAddonInfoRequest{
 		ClusterAddonInfo: test_cluster_addon_info,
 	}
-	responseUpdateAddonInfo, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistrationAddonInfo(kctx, test_cluster_uuid, test_addon_name, updateAddonInfoRequest)
+	responseUpdateAddonInfo, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistrationAddonInfo(kctx, test_cluster_uuid, test_addon_name, updateAddonInfoRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationAddonInfoResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateAddonInfo)
 
@@ -572,25 +572,25 @@ func TestKarbonCreateClusterRegistrationAndAddonSetInfo(t *testing.T) {
 	updateAddonInfoRequest = &K8sUpdateClusterRegistrationAddonInfoRequest{
 		ClusterAddonInfo: test_cluster_addon_info,
 	}
-	responseUpdateAddonInfo, err = nkeClient.ClusterRegistrationOperations.UpdateK8sRegistrationAddonInfo(kctx, test_cluster_uuid, test_addon_name, updateAddonInfoRequest)
+	responseUpdateAddonInfo, err = konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistrationAddonInfo(kctx, test_cluster_uuid, test_addon_name, updateAddonInfoRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationAddonInfoResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateAddonInfo)
 
 	t.Log("Get Cluster registration")
-	responseGetReg, err = nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err = konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationGetResponseWithAddonInfo(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 
 	t.Log("Delete Cluster registration")
-	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+	responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }
 
-func TestKarbonGetK8sRegistrationList(t *testing.T) {
+func TestKonnectorGetK8sRegistrationList(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -598,15 +598,15 @@ func TestKarbonGetK8sRegistrationList(t *testing.T) {
 		Name: t.Name(),
 	})
 	// returns type K8sCreateClusterRegistrationResponse
-	response, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
+	response, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistrationList(kctx)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationList(t, response)
 }
 
-func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
+func TestKonnectorCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 	interceptor := khttpclient.NewInterceptor(http.DefaultTransport)
 	creds := testhelpers.CredentialsFromEnvironment(t)
-	nkeClient, err := NewKarbonAPIClient(creds, WithRoundTripper(interceptor))
+	konnectorClient, err := NewKonnectorAPIClient(creds, WithRoundTripper(interceptor))
 	require.NoError(t, err)
 
 	kctx := mock.NewContext(mock.Config{
@@ -626,13 +626,13 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 	test_k8s_distribution := "Openshift"
 
 	t.Log("Get Cluster registration")
-	responseGetReg, err := nkeClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
+	responseGetReg, err := konnectorClient.ClusterRegistrationOperations.GetK8sRegistration(kctx, test_cluster_uuid)
 	if err == nil {
 		t.Log("Get Cluster registration exists")
 		validateK8sClusterRegistrationGetResponse(t, test_cluster_name, test_cluster_uuid, test_k8s_distribution, responseGetReg)
 		// Registration exists. delete it so that we can create it
 		t.Log("Delete Cluster registration")
-		responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+		responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 		assert.NoError(t, err)
 		validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 	}
@@ -647,7 +647,7 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 	}
 
 	// returns type K8sCreateClusterRegistrationResponse
-	responseCreateReg, err := nkeClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
+	responseCreateReg, err := konnectorClient.ClusterRegistrationOperations.CreateK8sRegistration(kctx, createRequest)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationCreateResponse(t, test_cluster_name, test_cluster_uuid, responseCreateReg)
 
@@ -718,12 +718,12 @@ func TestKarbonCreateClusterRegistrationAndSetMetrics(t *testing.T) {
 	}
 	test_uuid, err := uuid.Parse(test_cluster_uuid)
 	assert.NoError(t, err)
-	responseUpdateMetrics, err := nkeClient.ClusterRegistrationOperations.UpdateK8sRegistrationMetrics(kctx, test_uuid, &updateClusterRegistrationMetricsReq)
+	responseUpdateMetrics, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistrationMetrics(kctx, test_uuid, &updateClusterRegistrationMetricsReq)
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationMetricsResponse(t, test_cluster_name, test_cluster_uuid, responseUpdateMetrics)
 
 	t.Log("Delete Cluster registration")
-	responseDelReg, err := nkeClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
+	responseDelReg, err := konnectorClient.ClusterRegistrationOperations.DeleteK8sRegistration(kctx, test_cluster_uuid, DeleteK8sRegistrationParams{Force: false})
 	assert.NoError(t, err)
 	validateK8sClusterRegistrationDeleteResponse(t, test_cluster_name, test_cluster_uuid, responseDelReg)
 }

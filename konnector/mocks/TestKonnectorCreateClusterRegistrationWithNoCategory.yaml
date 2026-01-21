@@ -1,6 +1,6 @@
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationWithNoCategory
+name: TestKonnectorCreateClusterRegistrationWithNoCategory
 spec:
     metadata:
         Body: ""
@@ -54,7 +54,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationWithNoCategory
+name: TestKonnectorCreateClusterRegistrationWithNoCategory
 spec:
     metadata:
         Body: |

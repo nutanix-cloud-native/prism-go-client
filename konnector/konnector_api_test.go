@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
-func TestNewKarbonAPIClient(t *testing.T) {
+func TestNewKonnectorAPIClient(t *testing.T) {
 	// verifies positive httpClient creation
 	cred := prismgoclient.Credentials{
 		URL:                "foo.com",
@@ -21,7 +21,7 @@ func TestNewKarbonAPIClient(t *testing.T) {
 		FoundationPort:     "8000",
 		RequiredFields:     nil,
 	}
-	_, err := NewKarbonAPIClient(cred)
+	_, err := NewKonnectorAPIClient(cred)
 	assert.NoError(t, err)
 
 	// verify missing httpClient scenario
@@ -29,9 +29,9 @@ func TestNewKarbonAPIClient(t *testing.T) {
 		URL:      "foo.com",
 		Insecure: true,
 		RequiredFields: map[string][]string{
-			"karbon": {"username", "password", "endpoint"},
+			"konnector": {"username", "password", "endpoint"},
 		},
 	}
-	_, err = NewKarbonAPIClient(cred)
+	_, err = NewKonnectorAPIClient(cred)
 	assert.Error(t, err)
 }
