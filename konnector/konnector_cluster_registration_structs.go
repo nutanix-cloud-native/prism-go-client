@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import "net/http"
 
@@ -43,7 +43,7 @@ type K8sClusterRegistration struct {
 	ClusterInfo K8sClusterInfoMapping `json:"cluster_info,omitempty"`
 
 	// The type of 3rd party k8s cluster.
-	// Enum: [Openshift NKE CAPX]
+	// Enum: [Openshift NKP CAPX]
 	K8sDistribution string `json:"k8s_distribution,omitempty"`
 
 	// K8s cluster name.
@@ -78,7 +78,7 @@ type K8sCreateClusterRegistrationRequest struct {
 
 	// The type of 3rd party k8s cluster.
 	// Required: true
-	// Enum: [Openshift NKE CAPX]
+	// Enum: [Openshift NKP CAPX EKSA]
 	K8sDistribution *string `json:"k8s_distribution"`
 
 	// metadata
@@ -100,7 +100,7 @@ type K8sCreateClusterRegistrationRequest struct {
 }
 
 type Metadata struct {
-	// Karbon API version.
+	// Konnector API version.
 	// Required: true
 	// Pattern: ^v?(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
 	APIVersion *string `json:"api_version"`

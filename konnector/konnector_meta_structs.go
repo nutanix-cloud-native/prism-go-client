@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 type MetaVersionResponse struct {
 	BuildDate *string `json:"build_date" mapstructure:"build_date, omitempty"`

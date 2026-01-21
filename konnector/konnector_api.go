@@ -1,4 +1,4 @@
-package karbon
+package konnector
 
 import (
 	"crypto/x509"
@@ -14,15 +14,13 @@ import (
 const (
 	absolutePath = "karbon"
 	userAgent    = "nutanix"
-	clientName   = "karbon"
+	clientName   = "konnector"
 )
 
-// Client manages the V3 API
+// Client manages the Konnector API
 type Client struct {
 	httpClient                    *internal.Client
 	clientOpts                    []internal.ClientOption
-	Cluster                       ClusterService
-	PrivateRegistry               PrivateRegistryService
 	Meta                          MetaService
 	ClusterRegistrationOperations ClusterRegistrationOperations
 }
@@ -67,10 +65,10 @@ func WithPEMEncodedCertBundle(certBundle []byte) ClientOption {
 	}
 }
 
-// NewKarbonAPIClient return a internal to operate Karbon resources
-func NewKarbonAPIClient(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
+// NewKonnectorAPIClient return a internal to operate Konnector resources
+func NewKonnectorAPIClient(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
 	if credentials.URL == "" || credentials.Username == "" || credentials.Password == "" {
-		return nil, fmt.Errorf("karbon Client is missing: %s %s",
+		return nil, fmt.Errorf("konnector Client is missing: %s %s",
 			"Please provide required details - %s in provider configuration",
 			strings.Join(credentials.RequiredFields[clientName], ", "))
 	}
@@ -93,8 +91,6 @@ func NewKarbonAPIClient(credentials prismgoclient.Credentials, opts ...ClientOpt
 	}
 
 	kc.httpClient = c
-	kc.Cluster = ClusterOperations{httpClient: c}
-	kc.PrivateRegistry = PrivateRegistryOperations{httpClient: c}
 	kc.Meta = MetaOperations{httpClient: c}
 	kc.ClusterRegistrationOperations = ClusterRegistrationOperations{httpClient: c}
 
