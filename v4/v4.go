@@ -67,6 +67,12 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
+	// TODO: Add when available in iam-go-client SDK
+	// RolesApiInstance                  *iamApi.RolesApi
+	// AccessPoliciesApiInstance         *iamApi.AccessPoliciesApi
+	// OperationsApiInstance             *iamApi.OperationsApi
+	// ServiceAccountsApiInstance        *iamApi.ServiceAccountsApi
+	// ApiKeysApiInstance                *iamApi.ApiKeysApi
 }
 
 type endpointInfo struct {
@@ -112,8 +118,8 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 		return nil, fmt.Errorf("failed to create Volumes API instance: %v", err)
 	}
 
-	if err := initUsersApiInstance(v4Client, credentials); err != nil {
-		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
+	if err := initIAMApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create IAM API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -208,7 +214,7 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	return nil
 }
 
-func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+func initIAMApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
 	ep, err := getEndpointInfo(credentials)
 	if err != nil {
 		return err
@@ -219,6 +225,12 @@ func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
+	// TODO: Add when available in iam-go-client SDK
+	// v4Client.RolesApiInstance = iamApi.NewRolesApi(apiClientInstance)
+	// v4Client.AccessPoliciesApiInstance = iamApi.NewAccessPoliciesApi(apiClientInstance)
+	// v4Client.OperationsApiInstance = iamApi.NewOperationsApi(apiClientInstance)
+	// v4Client.ServiceAccountsApiInstance = iamApi.NewServiceAccountsApi(apiClientInstance)
+	// v4Client.ApiKeysApiInstance = iamApi.NewApiKeysApi(apiClientInstance)
 	return nil
 }
 
