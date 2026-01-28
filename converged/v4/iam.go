@@ -1,39 +1,39 @@
 package v4
 
 import (
+	"context"
+	"errors"
+	"fmt"
+
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	iamAuthnModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
-	// iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
+	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
 )
 
 // IAMService provides implementation for all IAM interface methods.
-// NOTE: Currently only Users API is available in iam-go-client v4.0.1.
-// Additional services (Roles, AccessPolicies, Operations, ServiceAccounts, APIKeys)
-// are defined in the converged/iam.go interfaces and will be implemented here
-// when they become available in future SDK versions.
 type IAMService struct {
-	client *v4prismGoClient.Client
-	users  *UsersService
-	// TODO: Uncomment when available in iam-go-client SDK
-	// roles           *RolesService
-	// accessPolicies  *AccessPoliciesService
-	// operations      *OperationsService
-	// serviceAccounts *ServiceAccountsService
-	// apiKeys         *APIKeysService
+	client                *v4prismGoClient.Client
+	users                 *UsersService
+	roles                 *RolesService
+	authorizationPolicies *AuthorizationPoliciesService
+	operations            *OperationsService
+	userGroups            *UserGroupsService
+	directoryServices     *DirectoryServicesService
+	samlIdentityProviders *SAMLIdentityProvidersService
 }
 
 // NewIAMService creates a new IAMService instance.
 func NewIAMService(client *v4prismGoClient.Client) *IAMService {
 	return &IAMService{
-		client: client,
-		users:  NewUsersService(client),
-		// TODO: Uncomment when available in iam-go-client SDK
-		// roles:           NewRolesService(client),
-		// accessPolicies:  NewAccessPoliciesService(client),
-		// operations:      NewOperationsService(client),
-		// serviceAccounts: NewServiceAccountsService(client),
-		// apiKeys:         NewAPIKeysService(client),
+		client:                client,
+		users:                 NewUsersService(client),
+		roles:                 NewRolesService(client),
+		authorizationPolicies: NewAuthorizationPoliciesService(client),
+		operations:            NewOperationsService(client),
+		userGroups:            NewUserGroupsService(client),
+		directoryServices:     NewDirectoryServicesService(client),
+		samlIdentityProviders: NewSAMLIdentityProvidersService(client),
 	}
 }
 
@@ -42,31 +42,34 @@ func (s *IAMService) Users() converged.Users[iamAuthnModels.User] {
 	return s.users
 }
 
-// ========================================
-// The following service implementations are commented out until the corresponding
-// API instances become available in the iam-go-client SDK.
-//
-// To enable them:
-// 1. Uncomment the import for iamAuthzModels above
-// 2. Add the API instances to v4/v4.go Client struct
-// 3. Initialize the API instances in v4/v4.go initIAMApiInstance function
-// 4. Uncomment the service implementations below
-// ========================================
-
-/*
 // Roles returns the Roles service.
 func (s *IAMService) Roles() converged.Roles[iamAuthzModels.Role] {
 	return s.roles
 }
 
-// AccessPolicies returns the AccessPolicies service.
-func (s *IAMService) AccessPolicies() converged.AccessPolicies[iamAuthzModels.AccessPolicy] {
-	return s.accessPolicies
+// AuthorizationPolicies returns the AuthorizationPolicies service.
+func (s *IAMService) AuthorizationPolicies() converged.AuthorizationPolicies[iamAuthzModels.AuthorizationPolicy] {
+	return s.authorizationPolicies
 }
 
 // Operations returns the Operations service.
 func (s *IAMService) Operations() converged.Operations[iamAuthzModels.Operation] {
 	return s.operations
+}
+
+// UserGroups returns the UserGroups service.
+func (s *IAMService) UserGroups() converged.UserGroups[iamAuthnModels.UserGroup] {
+	return s.userGroups
+}
+
+// DirectoryServices returns the DirectoryServices service.
+func (s *IAMService) DirectoryServices() converged.DirectoryServices[iamAuthnModels.DirectoryService] {
+	return s.directoryServices
+}
+
+// SAMLIdentityProviders returns the SAML Identity Providers service.
+func (s *IAMService) SAMLIdentityProviders() converged.SAML[iamAuthnModels.SamlIdentityProvider] {
+	return s.samlIdentityProviders
 }
 
 // RolesService provides implementation for IAM Roles API operations.
@@ -155,12 +158,12 @@ func (s *RolesService) Create(ctx context.Context, role *iamAuthzModels.Role) (*
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericCreateEntity[*iamAuthzModels.CreateRoleApiResponse, iamAuthzModels.Role](
-		func() (*iamAuthzModels.CreateRoleApiResponse, error) {
-			return s.client.RolesApiInstance.CreateRole(role, nil)
-		},
-		s.entitiesName,
-	)
+	result, err := CallAPI[*iamAuthzModels.CreateRoleApiResponse, iamAuthzModels.Role](
+		s.client.RolesApiInstance.CreateRole(role, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
 }
 
 // Update updates an existing role.
@@ -169,12 +172,12 @@ func (s *RolesService) Update(ctx context.Context, uuid string, role *iamAuthzMo
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericUpdateEntity[*iamAuthzModels.UpdateRoleApiResponse, iamAuthzModels.Role](
-		func() (*iamAuthzModels.UpdateRoleApiResponse, error) {
-			return s.client.RolesApiInstance.UpdateRoleById(&uuid, role, nil)
-		},
-		s.entitiesName,
-	)
+	result, err := CallAPI[*iamAuthzModels.UpdateRoleApiResponse, iamAuthzModels.Role](
+		s.client.RolesApiInstance.UpdateRoleById(&uuid, role, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
 }
 
 // Delete deletes an existing role.
@@ -183,44 +186,43 @@ func (s *RolesService) Delete(ctx context.Context, uuid string) error {
 		return errors.New("client is not initialized")
 	}
 
-	return GenericDeleteEntity(
-		func() (*iamAuthzModels.DeleteRoleApiResponse, error) {
-			return s.client.RolesApiInstance.DeleteRoleById(&uuid, nil)
-		},
-		s.entitiesName,
-	)
+	_, err := s.client.RolesApiInstance.DeleteRoleById(&uuid, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
+	}
+	return nil
 }
 
-// AccessPoliciesService provides implementation for IAM Access Policies API operations.
-type AccessPoliciesService struct {
+// AuthorizationPoliciesService provides implementation for IAM Authorization Policies API operations.
+type AuthorizationPoliciesService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewAccessPoliciesService creates a new AccessPoliciesService instance.
-func NewAccessPoliciesService(client *v4prismGoClient.Client) *AccessPoliciesService {
-	return &AccessPoliciesService{
+// NewAuthorizationPoliciesService creates a new AuthorizationPoliciesService instance.
+func NewAuthorizationPoliciesService(client *v4prismGoClient.Client) *AuthorizationPoliciesService {
+	return &AuthorizationPoliciesService{
 		client:       client,
-		entitiesName: "access policy",
+		entitiesName: "authorization policy",
 	}
 }
 
-// Get returns the access policy for the given UUID.
-func (s *AccessPoliciesService) Get(ctx context.Context, uuid string) (*iamAuthzModels.AccessPolicy, error) {
+// Get returns the authorization policy for the given UUID.
+func (s *AuthorizationPoliciesService) Get(ctx context.Context, uuid string) (*iamAuthzModels.AuthorizationPolicy, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericGetEntity[*iamAuthzModels.GetAccessPolicyApiResponse, iamAuthzModels.AccessPolicy](
-		func() (*iamAuthzModels.GetAccessPolicyApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.GetAccessPolicyById(&uuid, nil)
+	return GenericGetEntity[*iamAuthzModels.GetAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
+		func() (*iamAuthzModels.GetAuthorizationPolicyApiResponse, error) {
+			return s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(&uuid, nil)
 		},
 		s.entitiesName,
 	)
 }
 
-// List returns a list of access policies.
-func (s *AccessPoliciesService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthzModels.AccessPolicy, error) {
+// List returns a list of authorization policies.
+func (s *AuthorizationPoliciesService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthzModels.AuthorizationPolicy, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -231,16 +233,17 @@ func (s *AccessPoliciesService) List(ctx context.Context, opts ...converged.ODat
 	}
 
 	if myParams != nil && (myParams.Apply != nil || myParams.Expand != nil) {
-		return nil, fmt.Errorf("apply and expand options are not supported for listing Access Policies")
+		return nil, fmt.Errorf("apply and expand options are not supported for listing Authorization Policies")
 	}
 
-	return GenericListEntities[*iamAuthzModels.ListAccessPoliciesApiResponse, iamAuthzModels.AccessPolicy](
-		func(reqParams *V4ODataParams) (*iamAuthzModels.ListAccessPoliciesApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.ListAccessPolicies(
+	return GenericListEntities[*iamAuthzModels.ListAuthorizationPoliciesApiResponse, iamAuthzModels.AuthorizationPolicy](
+		func(reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
+			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},
@@ -249,20 +252,21 @@ func (s *AccessPoliciesService) List(ctx context.Context, opts ...converged.ODat
 	)
 }
 
-// NewIterator returns an iterator for listing access policies.
-func (s *AccessPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthzModels.AccessPolicy] {
+// NewIterator returns an iterator for listing authorization policies.
+func (s *AuthorizationPoliciesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthzModels.AuthorizationPolicy] {
 	if s.client == nil {
 		return nil
 	}
 
-	return GenericNewIterator[*iamAuthzModels.ListAccessPoliciesApiResponse, iamAuthzModels.AccessPolicy](
+	return GenericNewIterator[*iamAuthzModels.ListAuthorizationPoliciesApiResponse, iamAuthzModels.AuthorizationPolicy](
 		ctx,
-		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListAccessPoliciesApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.ListAccessPolicies(
+		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
+			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},
@@ -271,46 +275,45 @@ func (s *AccessPoliciesService) NewIterator(ctx context.Context, opts ...converg
 	)
 }
 
-// Create creates a new access policy.
-func (s *AccessPoliciesService) Create(ctx context.Context, policy *iamAuthzModels.AccessPolicy) (*iamAuthzModels.AccessPolicy, error) {
+// Create creates a new authorization policy.
+func (s *AuthorizationPoliciesService) Create(ctx context.Context, policy *iamAuthzModels.AuthorizationPolicy) (*iamAuthzModels.AuthorizationPolicy, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericCreateEntity[*iamAuthzModels.CreateAccessPolicyApiResponse, iamAuthzModels.AccessPolicy](
-		func() (*iamAuthzModels.CreateAccessPolicyApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.CreateAccessPolicy(policy, nil)
-		},
-		s.entitiesName,
-	)
+	result, err := CallAPI[*iamAuthzModels.CreateAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
+		s.client.AuthorizationPoliciesApiInstance.CreateAuthorizationPolicy(policy, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
 }
 
-// Update updates an existing access policy.
-func (s *AccessPoliciesService) Update(ctx context.Context, uuid string, policy *iamAuthzModels.AccessPolicy) (*iamAuthzModels.AccessPolicy, error) {
+// Update updates an existing authorization policy.
+func (s *AuthorizationPoliciesService) Update(ctx context.Context, uuid string, policy *iamAuthzModels.AuthorizationPolicy) (*iamAuthzModels.AuthorizationPolicy, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericUpdateEntity[*iamAuthzModels.UpdateAccessPolicyApiResponse, iamAuthzModels.AccessPolicy](
-		func() (*iamAuthzModels.UpdateAccessPolicyApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.UpdateAccessPolicyById(&uuid, policy, nil)
-		},
-		s.entitiesName,
-	)
+	result, err := CallAPI[*iamAuthzModels.UpdateAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
+		s.client.AuthorizationPoliciesApiInstance.UpdateAuthorizationPolicyById(&uuid, policy, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
 }
 
-// Delete deletes an existing access policy.
-func (s *AccessPoliciesService) Delete(ctx context.Context, uuid string) error {
+// Delete deletes an existing authorization policy.
+func (s *AuthorizationPoliciesService) Delete(ctx context.Context, uuid string) error {
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
 
-	return GenericDeleteEntity(
-		func() (*iamAuthzModels.DeleteAccessPolicyApiResponse, error) {
-			return s.client.AccessPoliciesApiInstance.DeleteAccessPolicyById(&uuid, nil)
-		},
-		s.entitiesName,
-	)
+	_, err := s.client.AuthorizationPoliciesApiInstance.DeleteAuthorizationPolicyById(&uuid, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
+	}
+	return nil
 }
 
 // OperationsService provides implementation for IAM Operations API operations.
@@ -393,36 +396,36 @@ func (s *OperationsService) NewIterator(ctx context.Context, opts ...converged.O
 	)
 }
 
-// ServiceAccountsService provides implementation for IAM Service Accounts API operations.
-type ServiceAccountsService struct {
+// UserGroupsService provides implementation for IAM User Groups API operations.
+type UserGroupsService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewServiceAccountsService creates a new ServiceAccountsService instance.
-func NewServiceAccountsService(client *v4prismGoClient.Client) *ServiceAccountsService {
-	return &ServiceAccountsService{
+// NewUserGroupsService creates a new UserGroupsService instance.
+func NewUserGroupsService(client *v4prismGoClient.Client) *UserGroupsService {
+	return &UserGroupsService{
 		client:       client,
-		entitiesName: "service account",
+		entitiesName: "user group",
 	}
 }
 
-// Get returns the service account for the given UUID.
-func (s *ServiceAccountsService) Get(ctx context.Context, uuid string) (*iamAuthnModels.ServiceAccount, error) {
+// Get returns the user group for the given UUID.
+func (s *UserGroupsService) Get(ctx context.Context, uuid string) (*iamAuthnModels.UserGroup, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericGetEntity[*iamAuthnModels.GetServiceAccountApiResponse, iamAuthnModels.ServiceAccount](
-		func() (*iamAuthnModels.GetServiceAccountApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.GetServiceAccountById(&uuid, nil)
+	return GenericGetEntity[*iamAuthnModels.GetUserGroupApiResponse, iamAuthnModels.UserGroup](
+		func() (*iamAuthnModels.GetUserGroupApiResponse, error) {
+			return s.client.UserGroupsApiInstance.GetUserGroupById(&uuid, nil)
 		},
 		s.entitiesName,
 	)
 }
 
-// List returns a list of service accounts.
-func (s *ServiceAccountsService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthnModels.ServiceAccount, error) {
+// List returns a list of user groups.
+func (s *UserGroupsService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthnModels.UserGroup, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -433,12 +436,12 @@ func (s *ServiceAccountsService) List(ctx context.Context, opts ...converged.ODa
 	}
 
 	if myParams != nil && (myParams.Apply != nil || myParams.Expand != nil) {
-		return nil, fmt.Errorf("apply and expand options are not supported for listing Service Accounts")
+		return nil, fmt.Errorf("apply and expand options are not supported for listing User Groups")
 	}
 
-	return GenericListEntities[*iamAuthnModels.ListServiceAccountsApiResponse, iamAuthnModels.ServiceAccount](
-		func(reqParams *V4ODataParams) (*iamAuthnModels.ListServiceAccountsApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.ListServiceAccounts(
+	return GenericListEntities[*iamAuthnModels.ListUserGroupsApiResponse, iamAuthnModels.UserGroup](
+		func(reqParams *V4ODataParams) (*iamAuthnModels.ListUserGroupsApiResponse, error) {
+			return s.client.UserGroupsApiInstance.ListUserGroups(
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
@@ -451,16 +454,16 @@ func (s *ServiceAccountsService) List(ctx context.Context, opts ...converged.ODa
 	)
 }
 
-// NewIterator returns an iterator for listing service accounts.
-func (s *ServiceAccountsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthnModels.ServiceAccount] {
+// NewIterator returns an iterator for listing user groups.
+func (s *UserGroupsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthnModels.UserGroup] {
 	if s.client == nil {
 		return nil
 	}
 
-	return GenericNewIterator[*iamAuthnModels.ListServiceAccountsApiResponse, iamAuthnModels.ServiceAccount](
+	return GenericNewIterator[*iamAuthnModels.ListUserGroupsApiResponse, iamAuthnModels.UserGroup](
 		ctx,
-		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthnModels.ListServiceAccountsApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.ListServiceAccounts(
+		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthnModels.ListUserGroupsApiResponse, error) {
+			return s.client.UserGroupsApiInstance.ListUserGroups(
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
@@ -473,181 +476,271 @@ func (s *ServiceAccountsService) NewIterator(ctx context.Context, opts ...conver
 	)
 }
 
-// Create creates a new service account.
-func (s *ServiceAccountsService) Create(ctx context.Context, serviceAccount *iamAuthnModels.ServiceAccount) (*iamAuthnModels.ServiceAccount, error) {
+// Create creates a new user group.
+func (s *UserGroupsService) Create(ctx context.Context, userGroup *iamAuthnModels.UserGroup) (*iamAuthnModels.UserGroup, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	return GenericCreateEntity[*iamAuthnModels.CreateServiceAccountApiResponse, iamAuthnModels.ServiceAccount](
-		func() (*iamAuthnModels.CreateServiceAccountApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.CreateServiceAccount(serviceAccount, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// Update updates an existing service account.
-func (s *ServiceAccountsService) Update(ctx context.Context, uuid string, serviceAccount *iamAuthnModels.ServiceAccount) (*iamAuthnModels.ServiceAccount, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
-
-	return GenericUpdateEntity[*iamAuthnModels.UpdateServiceAccountApiResponse, iamAuthnModels.ServiceAccount](
-		func() (*iamAuthnModels.UpdateServiceAccountApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.UpdateServiceAccountById(&uuid, serviceAccount, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// Delete deletes an existing service account.
-func (s *ServiceAccountsService) Delete(ctx context.Context, uuid string) error {
-	if s.client == nil {
-		return errors.New("client is not initialized")
-	}
-
-	return GenericDeleteEntity(
-		func() (*iamAuthnModels.DeleteServiceAccountApiResponse, error) {
-			return s.client.ServiceAccountsApiInstance.DeleteServiceAccountById(&uuid, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// APIKeysService provides implementation for IAM API Keys operations.
-type APIKeysService struct {
-	client       *v4prismGoClient.Client
-	entitiesName string
-}
-
-// NewAPIKeysService creates a new APIKeysService instance.
-func NewAPIKeysService(client *v4prismGoClient.Client) *APIKeysService {
-	return &APIKeysService{
-		client:       client,
-		entitiesName: "api key",
-	}
-}
-
-// Get returns the API key for the given UUID.
-func (s *APIKeysService) Get(ctx context.Context, uuid string) (*iamAuthnModels.ApiKey, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
-
-	return GenericGetEntity[*iamAuthnModels.GetApiKeyApiResponse, iamAuthnModels.ApiKey](
-		func() (*iamAuthnModels.GetApiKeyApiResponse, error) {
-			return s.client.ApiKeysApiInstance.GetApiKeyById(&uuid, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// List returns a list of API keys.
-func (s *APIKeysService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthnModels.ApiKey, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
-
-	myParams, err := OptsToV4ODataParams(opts...)
+	result, err := CallAPI[*iamAuthnModels.CreateUserGroupApiResponse, iamAuthnModels.UserGroup](
+		s.client.UserGroupsApiInstance.CreateUserGroup(userGroup, nil))
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
-
-	if myParams != nil && (myParams.Apply != nil || myParams.Expand != nil) {
-		return nil, fmt.Errorf("apply and expand options are not supported for listing API Keys")
-	}
-
-	return GenericListEntities[*iamAuthnModels.ListApiKeysApiResponse, iamAuthnModels.ApiKey](
-		func(reqParams *V4ODataParams) (*iamAuthnModels.ListApiKeysApiResponse, error) {
-			return s.client.ApiKeysApiInstance.ListApiKeys(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
-		},
-		opts,
-		s.entitiesName,
-	)
+	return &result, nil
 }
 
-// NewIterator returns an iterator for listing API keys.
-func (s *APIKeysService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthnModels.ApiKey] {
-	if s.client == nil {
-		return nil
-	}
-
-	return GenericNewIterator[*iamAuthnModels.ListApiKeysApiResponse, iamAuthnModels.ApiKey](
-		ctx,
-		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthnModels.ListApiKeysApiResponse, error) {
-			return s.client.ApiKeysApiInstance.ListApiKeys(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
-		},
-		opts,
-		s.entitiesName,
-	)
-}
-
-// Create creates a new API key.
-func (s *APIKeysService) Create(ctx context.Context, apiKey *iamAuthnModels.ApiKey) (*iamAuthnModels.ApiKey, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
-
-	return GenericCreateEntity[*iamAuthnModels.CreateApiKeyApiResponse, iamAuthnModels.ApiKey](
-		func() (*iamAuthnModels.CreateApiKeyApiResponse, error) {
-			return s.client.ApiKeysApiInstance.CreateApiKey(apiKey, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// Update updates an existing API key.
-func (s *APIKeysService) Update(ctx context.Context, uuid string, apiKey *iamAuthnModels.ApiKey) (*iamAuthnModels.ApiKey, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
-
-	return GenericUpdateEntity[*iamAuthnModels.UpdateApiKeyApiResponse, iamAuthnModels.ApiKey](
-		func() (*iamAuthnModels.UpdateApiKeyApiResponse, error) {
-			return s.client.ApiKeysApiInstance.UpdateApiKeyById(&uuid, apiKey, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// Delete deletes an existing API key.
-func (s *APIKeysService) Delete(ctx context.Context, uuid string) error {
+// Delete deletes an existing user group.
+func (s *UserGroupsService) Delete(ctx context.Context, uuid string) error {
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
 
-	return GenericDeleteEntity(
-		func() (*iamAuthnModels.DeleteApiKeyApiResponse, error) {
-			return s.client.ApiKeysApiInstance.DeleteApiKeyById(&uuid, nil)
-		},
-		s.entitiesName,
-	)
-}
-
-// RevokeAPIKey revokes an API key.
-func (s *APIKeysService) RevokeAPIKey(ctx context.Context, apiKeyExtId string) error {
-	if s.client == nil {
-		return errors.New("client is not initialized")
-	}
-
-	_, err := s.client.ApiKeysApiInstance.RevokeApiKey(&apiKeyExtId, nil)
+	_, err := s.client.UserGroupsApiInstance.DeleteUserGroupById(&uuid, nil)
 	if err != nil {
-		return fmt.Errorf("failed to revoke %s: %w", s.entitiesName, err)
+		return fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
-
 	return nil
 }
-*/
+
+// DirectoryServicesService provides implementation for IAM Directory Services API operations.
+type DirectoryServicesService struct {
+	client       *v4prismGoClient.Client
+	entitiesName string
+}
+
+// NewDirectoryServicesService creates a new DirectoryServicesService instance.
+func NewDirectoryServicesService(client *v4prismGoClient.Client) *DirectoryServicesService {
+	return &DirectoryServicesService{
+		client:       client,
+		entitiesName: "directory service",
+	}
+}
+
+// Get returns the directory service for the given UUID.
+func (s *DirectoryServicesService) Get(ctx context.Context, uuid string) (*iamAuthnModels.DirectoryService, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	return GenericGetEntity[*iamAuthnModels.GetDirectoryServiceApiResponse, iamAuthnModels.DirectoryService](
+		func() (*iamAuthnModels.GetDirectoryServiceApiResponse, error) {
+			return s.client.DirectoryServicesApiInstance.GetDirectoryServiceById(&uuid, nil)
+		},
+		s.entitiesName,
+	)
+}
+
+// List returns a list of directory services.
+func (s *DirectoryServicesService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthnModels.DirectoryService, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	myParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+
+	if myParams != nil && (myParams.Apply != nil || myParams.Expand != nil) {
+		return nil, fmt.Errorf("apply and expand options are not supported for listing Directory Services")
+	}
+
+	return GenericListEntities[*iamAuthnModels.ListDirectoryServicesApiResponse, iamAuthnModels.DirectoryService](
+		func(reqParams *V4ODataParams) (*iamAuthnModels.ListDirectoryServicesApiResponse, error) {
+			return s.client.DirectoryServicesApiInstance.ListDirectoryServices(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		s.entitiesName,
+	)
+}
+
+// NewIterator returns an iterator for listing directory services.
+func (s *DirectoryServicesService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthnModels.DirectoryService] {
+	if s.client == nil {
+		return nil
+	}
+
+	return GenericNewIterator[*iamAuthnModels.ListDirectoryServicesApiResponse, iamAuthnModels.DirectoryService](
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthnModels.ListDirectoryServicesApiResponse, error) {
+			return s.client.DirectoryServicesApiInstance.ListDirectoryServices(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		s.entitiesName,
+	)
+}
+
+// Create creates a new directory service.
+func (s *DirectoryServicesService) Create(ctx context.Context, directoryService *iamAuthnModels.DirectoryService) (*iamAuthnModels.DirectoryService, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	result, err := CallAPI[*iamAuthnModels.CreateDirectoryServiceApiResponse, iamAuthnModels.DirectoryService](
+		s.client.DirectoryServicesApiInstance.CreateDirectoryService(directoryService, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
+}
+
+// Update updates an existing directory service.
+func (s *DirectoryServicesService) Update(ctx context.Context, uuid string, directoryService *iamAuthnModels.DirectoryService) (*iamAuthnModels.DirectoryService, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	result, err := CallAPI[*iamAuthnModels.UpdateDirectoryServiceApiResponse, iamAuthnModels.DirectoryService](
+		s.client.DirectoryServicesApiInstance.UpdateDirectoryServiceById(&uuid, directoryService, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
+}
+
+// Delete deletes an existing directory service.
+func (s *DirectoryServicesService) Delete(ctx context.Context, uuid string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+
+	_, err := s.client.DirectoryServicesApiInstance.DeleteDirectoryServiceById(&uuid, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
+	}
+	return nil
+}
+
+// SAMLIdentityProvidersService provides implementation for SAML Identity Providers API operations.
+type SAMLIdentityProvidersService struct {
+	client       *v4prismGoClient.Client
+	entitiesName string
+}
+
+// NewSAMLIdentityProvidersService creates a new SAMLIdentityProvidersService instance.
+func NewSAMLIdentityProvidersService(client *v4prismGoClient.Client) *SAMLIdentityProvidersService {
+	return &SAMLIdentityProvidersService{
+		client:       client,
+		entitiesName: "SAML identity provider",
+	}
+}
+
+// Get returns the SAML identity provider for the given UUID.
+func (s *SAMLIdentityProvidersService) Get(ctx context.Context, uuid string) (*iamAuthnModels.SamlIdentityProvider, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	return GenericGetEntity[*iamAuthnModels.GetSamlIdentityProviderApiResponse, iamAuthnModels.SamlIdentityProvider](
+		func() (*iamAuthnModels.GetSamlIdentityProviderApiResponse, error) {
+			return s.client.SAMLIdentityProvidersApiInstance.GetSamlIdentityProviderById(&uuid, nil)
+		},
+		s.entitiesName,
+	)
+}
+
+// List returns a list of SAML identity providers.
+func (s *SAMLIdentityProvidersService) List(ctx context.Context, opts ...converged.ODataOption) ([]iamAuthnModels.SamlIdentityProvider, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	myParams, err := OptsToV4ODataParams(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
+	}
+
+	if myParams != nil && (myParams.Apply != nil || myParams.Expand != nil) {
+		return nil, fmt.Errorf("apply and expand options are not supported for listing SAML Identity Providers")
+	}
+
+	return GenericListEntities[*iamAuthnModels.ListSamlIdentityProvidersApiResponse, iamAuthnModels.SamlIdentityProvider](
+		func(reqParams *V4ODataParams) (*iamAuthnModels.ListSamlIdentityProvidersApiResponse, error) {
+			return s.client.SAMLIdentityProvidersApiInstance.ListSamlIdentityProviders(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		s.entitiesName,
+	)
+}
+
+// NewIterator returns an iterator for listing SAML identity providers.
+func (s *SAMLIdentityProvidersService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[iamAuthnModels.SamlIdentityProvider] {
+	if s.client == nil {
+		return nil
+	}
+
+	return GenericNewIterator[*iamAuthnModels.ListSamlIdentityProvidersApiResponse, iamAuthnModels.SamlIdentityProvider](
+		ctx,
+		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthnModels.ListSamlIdentityProvidersApiResponse, error) {
+			return s.client.SAMLIdentityProvidersApiInstance.ListSamlIdentityProviders(
+				reqParams.Page,
+				reqParams.Limit,
+				reqParams.Filter,
+				reqParams.OrderBy,
+				reqParams.Select,
+			)
+		},
+		opts,
+		s.entitiesName,
+	)
+}
+
+// Create creates a new SAML identity provider.
+func (s *SAMLIdentityProvidersService) Create(ctx context.Context, samlIdp *iamAuthnModels.SamlIdentityProvider) (*iamAuthnModels.SamlIdentityProvider, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	result, err := CallAPI[*iamAuthnModels.CreateSamlIdentityProviderApiResponse, iamAuthnModels.SamlIdentityProvider](
+		s.client.SAMLIdentityProvidersApiInstance.CreateSamlIdentityProvider(samlIdp, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
+}
+
+// Update updates an existing SAML identity provider.
+func (s *SAMLIdentityProvidersService) Update(ctx context.Context, uuid string, samlIdp *iamAuthnModels.SamlIdentityProvider) (*iamAuthnModels.SamlIdentityProvider, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	result, err := CallAPI[*iamAuthnModels.UpdateSamlIdentityProviderApiResponse, iamAuthnModels.SamlIdentityProvider](
+		s.client.SAMLIdentityProvidersApiInstance.UpdateSamlIdentityProviderById(&uuid, samlIdp, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
+	}
+	return &result, nil
+}
+
+// Delete deletes an existing SAML identity provider.
+func (s *SAMLIdentityProvidersService) Delete(ctx context.Context, uuid string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+
+	_, err := s.client.SAMLIdentityProvidersApiInstance.DeleteSamlIdentityProviderById(&uuid, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
+	}
+	return nil
+}

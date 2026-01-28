@@ -67,12 +67,12 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
-	// TODO: Add when available in iam-go-client SDK
-	// RolesApiInstance                  *iamApi.RolesApi
-	// AccessPoliciesApiInstance         *iamApi.AccessPoliciesApi
-	// OperationsApiInstance             *iamApi.OperationsApi
-	// ServiceAccountsApiInstance        *iamApi.ServiceAccountsApi
-	// ApiKeysApiInstance                *iamApi.ApiKeysApi
+	RolesApiInstance                  *iamApi.RolesApi
+	AuthorizationPoliciesApiInstance  *iamApi.AuthorizationPoliciesApi
+	OperationsApiInstance             *iamApi.OperationsApi
+	UserGroupsApiInstance             *iamApi.UserGroupsApi
+	DirectoryServicesApiInstance      *iamApi.DirectoryServicesApi
+	SAMLIdentityProvidersApiInstance  *iamApi.SAMLIdentityProvidersApi
 }
 
 type endpointInfo struct {
@@ -225,12 +225,12 @@ func initIAMApiInstance(v4Client *Client, credentials prismgoclient.Credentials)
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
-	// TODO: Add when available in iam-go-client SDK
-	// v4Client.RolesApiInstance = iamApi.NewRolesApi(apiClientInstance)
-	// v4Client.AccessPoliciesApiInstance = iamApi.NewAccessPoliciesApi(apiClientInstance)
-	// v4Client.OperationsApiInstance = iamApi.NewOperationsApi(apiClientInstance)
-	// v4Client.ServiceAccountsApiInstance = iamApi.NewServiceAccountsApi(apiClientInstance)
-	// v4Client.ApiKeysApiInstance = iamApi.NewApiKeysApi(apiClientInstance)
+	v4Client.RolesApiInstance = iamApi.NewRolesApi(apiClientInstance)
+	v4Client.AuthorizationPoliciesApiInstance = iamApi.NewAuthorizationPoliciesApi(apiClientInstance)
+	v4Client.OperationsApiInstance = iamApi.NewOperationsApi(apiClientInstance)
+	v4Client.UserGroupsApiInstance = iamApi.NewUserGroupsApi(apiClientInstance)
+	v4Client.DirectoryServicesApiInstance = iamApi.NewDirectoryServicesApi(apiClientInstance)
+	v4Client.SAMLIdentityProvidersApiInstance = iamApi.NewSAMLIdentityProvidersApi(apiClientInstance)
 	return nil
 }
 

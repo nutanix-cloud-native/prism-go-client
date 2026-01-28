@@ -1,21 +1,28 @@
 package converged
 
-import "context"
-
 // IAM defines the interface for Identity and Access Management operations.
-// It provides access to all IAM-related services including Users, Roles, AccessPolicies, and Operations.
-type IAM[User, Role, AccessPolicy, Operation any] interface {
+// It provides access to all IAM-related services including Users, Roles, AuthorizationPolicies, and Operations.
+type IAM[User, Role, AuthorizationPolicy, Operation, UserGroup, DirectoryService, SAMLIdentityProvider any] interface {
 	// Users provides access to IAM User operations.
 	Users() Users[User]
 
 	// Roles provides access to IAM Role operations.
 	Roles() Roles[Role]
 
-	// AccessPolicies provides access to IAM Access Policy operations.
-	AccessPolicies() AccessPolicies[AccessPolicy]
+	// AuthorizationPolicies provides access to IAM Authorization Policy operations.
+	AuthorizationPolicies() AuthorizationPolicies[AuthorizationPolicy]
 
 	// Operations provides access to IAM Operation operations.
 	Operations() Operations[Operation]
+
+	// UserGroups provides access to IAM User Group operations.
+	UserGroups() UserGroups[UserGroup]
+
+	// DirectoryServices provides access to IAM Directory Service operations.
+	DirectoryServices() DirectoryServices[DirectoryService]
+
+	// SAMLIdentityProviders provides access to SAML Identity Provider operations.
+	SAMLIdentityProviders() SAML[SAMLIdentityProvider]
 }
 
 // Roles defines the interface for IAM Roles API operations.
@@ -36,22 +43,22 @@ type Roles[Role any] interface {
 	Deleter[Role]
 }
 
-// AccessPolicies defines the interface for IAM Access Policies API operations.
-type AccessPolicies[AccessPolicy any] interface {
+// AuthorizationPolicies defines the interface for IAM Authorization Policies API operations.
+type AuthorizationPolicies[AuthorizationPolicy any] interface {
 	// Getter is the interface for Get operations.
-	Getter[AccessPolicy]
+	Getter[AuthorizationPolicy]
 
 	// Lister is the interface for List operations.
-	Lister[AccessPolicy]
+	Lister[AuthorizationPolicy]
 
 	// Creator is the interface for Create operations.
-	Creator[AccessPolicy]
+	Creator[AuthorizationPolicy]
 
 	// Updater is the interface for Update operations.
-	Updater[AccessPolicy]
+	Updater[AuthorizationPolicy]
 
 	// Deleter is the interface for Delete operations.
-	Deleter[AccessPolicy]
+	Deleter[AuthorizationPolicy]
 }
 
 // Operations defines the interface for IAM Operations API operations.
@@ -62,54 +69,6 @@ type Operations[Operation any] interface {
 
 	// Lister is the interface for List operations.
 	Lister[Operation]
-}
-
-// ServiceAccounts defines the interface for IAM Service Accounts API operations.
-type ServiceAccounts[ServiceAccount any] interface {
-	// Getter is the interface for Get operations.
-	Getter[ServiceAccount]
-
-	// Lister is the interface for List operations.
-	Lister[ServiceAccount]
-
-	// Creator is the interface for Create operations.
-	Creator[ServiceAccount]
-
-	// Updater is the interface for Update operations.
-	Updater[ServiceAccount]
-
-	// Deleter is the interface for Delete operations.
-	Deleter[ServiceAccount]
-}
-
-// APIKeys defines the interface for IAM API Keys operations.
-type APIKeys[APIKey any] interface {
-	// Getter is the interface for Get operations.
-	Getter[APIKey]
-
-	// Lister is the interface for List operations.
-	Lister[APIKey]
-
-	// Creator is the interface for Create operations.
-	Creator[APIKey]
-
-	// Updater is the interface for Update operations.
-	Updater[APIKey]
-
-	// Deleter is the interface for Delete operations.
-	Deleter[APIKey]
-
-	// RevokeAPIKey revokes an API key.
-	RevokeAPIKey(ctx context.Context, apiKeyExtId string) error
-}
-
-// AuthenticationPolicies defines the interface for IAM Authentication Policies API operations.
-type AuthenticationPolicies[AuthenticationPolicy any] interface {
-	// Getter is the interface for Get operations.
-	Getter[AuthenticationPolicy]
-
-	// Updater is the interface for Update operations.
-	Updater[AuthenticationPolicy]
 }
 
 // DirectoryServices defines the interface for IAM Directory Services API operations.
@@ -141,9 +100,6 @@ type UserGroups[UserGroup any] interface {
 	// Creator is the interface for Create operations.
 	Creator[UserGroup]
 
-	// Updater is the interface for Update operations.
-	Updater[UserGroup]
-
 	// Deleter is the interface for Delete operations.
 	Deleter[UserGroup]
 }
@@ -164,22 +120,4 @@ type SAML[SAMLIdentityProvider any] interface {
 
 	// Deleter is the interface for Delete operations.
 	Deleter[SAMLIdentityProvider]
-}
-
-// Certificates defines the interface for IAM Certificate operations.
-type Certificates[Certificate any] interface {
-	// Getter is the interface for Get operations.
-	Getter[Certificate]
-
-	// Lister is the interface for List operations.
-	Lister[Certificate]
-
-	// Creator is the interface for Create operations.
-	Creator[Certificate]
-
-	// Updater is the interface for Update operations.
-	Updater[Certificate]
-
-	// Deleter is the interface for Delete operations.
-	Deleter[Certificate]
 }

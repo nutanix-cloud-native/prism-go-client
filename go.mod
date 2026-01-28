@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/keploy/go-sdk v0.9.0
 	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.2.1
-	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.0.1
+	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.1-beta.2
 	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.2.1
 	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.2.1
 	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.2.1
