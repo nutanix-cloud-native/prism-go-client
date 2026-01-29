@@ -1,10 +1,8 @@
 package converged
 
-// StorageContainers defines the interface for managing storage containers.
+// StorageContainers defines the interface for storage container operations.
+// Storage containers are logical groupings of storage for VMs and images.
 type StorageContainers[StorageContainer any] interface {
-	// Getter is the interface for Get operations.
 	Getter[StorageContainer]
-
-	// Lister is the interface for List operations.
 	Lister[StorageContainer]
 }

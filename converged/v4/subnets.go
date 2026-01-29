@@ -12,13 +12,13 @@ import (
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 )
 
-// SubnetsService provides implementation for all Subnets interface methods.
+// SubnetsService implements the converged Subnets interface for the Prism Central V4 API.
 type SubnetsService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewSubnetsService creates a new SubnetsService instance.
+// NewSubnetsService returns a new SubnetsService for the given V4 client.
 func NewSubnetsService(client *v4prismGoClient.Client) *SubnetsService {
 	return &SubnetsService{client: client, entitiesName: "subnet"}
 }

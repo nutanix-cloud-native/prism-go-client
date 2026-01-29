@@ -11,13 +11,13 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
-// VMsService provides default "not implemented" implementation for all VMs interface methods.
+// VMsService implements the converged VMs interface for the Prism Central V4 API.
 type VMsService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewVMsService creates a new VMsService instance.
+// NewVMsService returns a new VMsService for the given V4 client.
 func NewVMsService(client *v4prismGoClient.Client) *VMsService {
 	return &VMsService{
 		client:       client,

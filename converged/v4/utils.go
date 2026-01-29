@@ -12,8 +12,7 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-// V4ODataParams struct for V4 OData parameters
-// It contains the OData parameters for the V4 API
+// V4ODataParams holds OData query parameters for Prism Central V4 list APIs (page, limit, filter, orderBy, expand, select, apply).
 type V4ODataParams struct {
 	Page    *int
 	Limit   *int
@@ -24,8 +23,7 @@ type V4ODataParams struct {
 	Apply   *string
 }
 
-// ToV4ODataParams converts the OData options to V4 OData parameters
-// It returns the V4 OData parameters if the options are valid, otherwise it returns an error
+// ToV4ODataParams converts converged ODataOptions to *V4ODataParams if the underlying type is V4ODataParams.
 func ToV4ODataParams(params converged.ODataOptions) (*V4ODataParams, error) {
 	if params == nil {
 		return nil, nil
@@ -38,57 +36,49 @@ func ToV4ODataParams(params converged.ODataOptions) (*V4ODataParams, error) {
 	return nil, fmt.Errorf("expected *V4ODataParams, got %T", params)
 }
 
-// SetPageOption sets the page option for the V4 OData parameters
-// It returns an error if the page option is not valid
+// SetPageOption sets the page number for list requests.
 func (o *V4ODataParams) SetPageOption(page int) error {
 	o.Page = &page
 	return nil
 }
 
-// SetLimitOption sets the limit option for the V4 OData parameters
-// It returns an error if the limit option is not valid
+// SetLimitOption sets the page size for list requests.
 func (o *V4ODataParams) SetLimitOption(limit int) error {
 	o.Limit = &limit
 	return nil
 }
 
-// SetFilterOption sets the filter option for the V4 OData parameters
-// It returns an error if the filter option is not valid
+// SetFilterOption sets the OData filter expression.
 func (o *V4ODataParams) SetFilterOption(filter string) error {
 	o.Filter = &filter
 	return nil
 }
 
-// SetOrderByOption sets the order by option for the V4 OData parameters
-// It returns an error if the order by option is not valid
+// SetOrderByOption sets the OData order-by expression.
 func (o *V4ODataParams) SetOrderByOption(orderBy string) error {
 	o.OrderBy = &orderBy
 	return nil
 }
 
-// SetExpandOption sets the expand option for the V4 OData parameters
-// It returns an error if the expand option is not valid
+// SetExpandOption sets the OData expand expression.
 func (o *V4ODataParams) SetExpandOption(expand string) error {
 	o.Expand = &expand
 	return nil
 }
 
-// SetSelectOption sets the select option for the V4 OData parameters
-// It returns an error if the select option is not valid
+// SetSelectOption sets the OData select expression.
 func (o *V4ODataParams) SetSelectOption(selectFields string) error {
 	o.Select = &selectFields
 	return nil
 }
 
-// SetApplyOption sets the apply option for the V4 OData parameters
-// It returns an error if the apply option is not valid
+// SetApplyOption sets the OData apply expression.
 func (o *V4ODataParams) SetApplyOption(apply string) error {
 	o.Apply = &apply
 	return nil
 }
 
-// GetEtag gets the etag from the object
-// It returns the etag if the object is valid, otherwise it returns an empty string
+// GetEtag extracts the ETag from an API entity (via Reserved_ map) for conditional updates.
 func GetEtag(object any) string {
 	var reserved reflect.Value
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
@@ -112,8 +102,7 @@ func GetEtag(object any) string {
 	return ""
 }
 
-// DropEtag drops the etag from the object
-// It returns the object with the etag dropped
+// DropEtag removes the ETag from the object's Reserved_ map.
 func DropEtag(object any) any {
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
 		reserved := reflect.ValueOf(object).FieldByName("Reserved_")
@@ -133,8 +122,7 @@ func DropEtag(object any) any {
 	return object
 }
 
-// CopyEtag copies the etag from the source object to the destination object
-// It returns the destination object with the etag copied
+// CopyEtag copies the ETag from source to destination (used when building update payloads).
 func CopyEtag(source, destination any) any {
 	var reserved reflect.Value
 
@@ -159,8 +147,8 @@ func CopyEtag(source, destination any) any {
 	return destination
 }
 
-var (
-	V4TaskStatusesMap = map[v4prismModels.TaskStatus]converged.TaskStatus{
+// V4TaskStatusesMap maps Prism Central V4 task status values to converged.TaskStatus.
+var V4TaskStatusesMap = map[v4prismModels.TaskStatus]converged.TaskStatus{
 		v4prismModels.TASKSTATUS_CANCELED:  converged.TaskStatusCanceled,
 		v4prismModels.TASKSTATUS_CANCELING: converged.TaskStatusCanceling,
 		v4prismModels.TASKSTATUS_FAILED:    converged.TaskStatusFailed,
@@ -171,10 +159,8 @@ var (
 		v4prismModels.TASKSTATUS_UNKNOWN:   converged.TaskStatusUnknown,
 		v4prismModels.TASKSTATUS_REDACTED:  converged.TaskStatusRedacted,
 	}
-)
 
-// ConvertTaskStatus converts the V4 task status to the converged task status
-// It returns the converted task status if the status is valid, otherwise it returns the unknown task status
+// ConvertTaskStatus converts a V4 API task status to converged.TaskStatus.
 func ConvertTaskStatus(status v4prismModels.TaskStatus) converged.TaskStatus {
 	if convertedStatus, ok := V4TaskStatusesMap[status]; ok {
 		return convertedStatus
@@ -182,14 +168,12 @@ func ConvertTaskStatus(status v4prismModels.TaskStatus) converged.TaskStatus {
 	return converged.TaskStatusUnknown
 }
 
-// APIResponse interface for the API response
-// It contains the method to get the data from the API response
+// APIResponse is implemented by V4 API response types that expose GetData().
 type APIResponse interface {
 	GetData() any
 }
 
-// CallAPI calls the API and returns the result
-// It returns the result if the API call is successful, otherwise it returns an error
+// CallAPI unwraps a V4 API response into the data type T, or returns an error.
 func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
@@ -209,8 +193,7 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	return result, nil
 }
 
-// GetMetadataTotalResults gets the total results from the API response metadata
-// It returns the total results if the metadata is valid, otherwise it returns an error
+// GetMetadataTotalResults returns Metadata.TotalAvailableResults from a V4 list API response.
 func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
@@ -232,8 +215,7 @@ func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 	return int(*totalCount), nil
 }
 
-// CallListAPI calls the list API and returns the result
-// It returns the result if the API call is successful, otherwise it returns an error
+// CallListAPI unwraps a V4 list API response into a slice of T and total count, or returns an error.
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
@@ -258,8 +240,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 	return result, totalCount, nil
 }
 
-// GetEntityAndEtag gets the entity and etag from the API response
-// It returns the entity and etag if the API call is successful, otherwise it returns an error
+// GetEntityAndEtag returns the entity, its ETag, and If-Match args for conditional update/delete.
 func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	var zero T
 
@@ -279,8 +260,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	return entity, args, nil
 }
 
-// OptsToV4ODataParams converts the OData options to V4 OData parameters
-// It returns the V4 OData parameters if the options are valid, otherwise it returns an error
+// OptsToV4ODataParams builds V4ODataParams from converged OData options.
 func OptsToV4ODataParams(opts ...converged.ODataOption) (*V4ODataParams, error) {
 	params := &V4ODataParams{}
 	for _, opt := range opts {
@@ -293,8 +273,7 @@ func OptsToV4ODataParams(opts ...converged.ODataOption) (*V4ODataParams, error) 
 	return params, nil
 }
 
-// Generic implementation of the Getter interface
-// It returns the entity if the API call is successful, otherwise it returns an error
+// GenericGetEntity calls the API and returns the entity data, or an error including entityName.
 func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
 	result, err := CallAPI[R, T](apiCall())
 	if err != nil {
@@ -303,8 +282,7 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 	return &result, nil
 }
 
-// GenericListEntities lists the entities
-// It returns the entities if the API call is successful, otherwise it returns an error
+// GenericListEntities calls the list API with OData options and returns all entities (paginating if needed).
 func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
 	returnAll := false
 	page := 0
@@ -347,8 +325,7 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 	return result, nil
 }
 
-// GenericNewIterator creates a new iterator for the given API call and options
-// It returns the iterator if the API call is successful, otherwise it returns an error
+// GenericNewIterator returns an iterator that calls the list API with the given options.
 func GenericNewIterator[R APIResponse, T any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
 	return NewIterator[R, T](
 		ctx,

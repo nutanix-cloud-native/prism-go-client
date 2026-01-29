@@ -12,13 +12,13 @@ import (
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 )
 
-// ImagesService provides implementation for all Images interface methods.
+// ImagesService implements the converged Images interface for the Prism Central V4 API.
 type ImagesService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewImagesService creates a new ImagesService instance.
+// NewImagesService returns a new ImagesService for the given V4 client.
 func NewImagesService(client *v4prismGoClient.Client) *ImagesService {
 	return &ImagesService{client: client, entitiesName: "image"}
 }

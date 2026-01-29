@@ -9,6 +9,8 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 )
 
+// ClientCache caches converged V4 clients by key and validation hash.
+// When credentials or endpoint change, the cache invalidates and recreates the client.
 type ClientCache struct {
 	cache            map[string]*Client
 	validationHashes map[string]string
@@ -17,6 +19,7 @@ type ClientCache struct {
 	v4sdkClientCache *v4prismGoClient.ClientCache
 }
 
+// NewClientCache creates a new ClientCache with the given V4 cache options.
 func NewClientCache(opts ...v4prismGoClient.CacheOpts) *ClientCache {
 	v4sdkClientCache := v4prismGoClient.NewClientCache(opts...)
 
@@ -28,6 +31,8 @@ func NewClientCache(opts ...v4prismGoClient.CacheOpts) *ClientCache {
 	}
 }
 
+// GetOrCreate returns a cached converged Client for the given params, or creates and caches one.
+// If the validation hash has changed, the old client is evicted and a new one is created.
 func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
 	currentValidationHash, err := cachedClientParams.ManagementEndpoint().GetHash()
 	if err != nil {
@@ -87,6 +92,7 @@ func (c *ClientCache) set(clientName string, validationHash string, client *Clie
 	c.validationHashes[clientName] = validationHash
 }
 
+// Delete removes the converged client and its V4 SDK client from the cache for the given params.
 func (c *ClientCache) Delete(params types.CachedClientParams) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()

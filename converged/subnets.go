@@ -4,11 +4,10 @@ import (
 	"context"
 )
 
+// Subnets defines the interface for subnet operations.
+// It supports get/list for subnets and IP reserve/unreserve operations.
 type Subnets[Subnet, TaskReference any] interface {
-	// Getter is the interface for Get operations.
 	Getter[Subnet]
-
-	// Lister is the interface for List operations.
 	Lister[Subnet]
 
 	// ReserveIpsBySubnetId reserves IP addresses on a subnet.
@@ -21,8 +20,6 @@ type Subnets[Subnet, TaskReference any] interface {
 	// spec should be of type *subnetModels.IpUnreserveSpec (for v4 implementation).
 	UnreserveIpsBySubnetId(ctx context.Context, subnetExtId string, spec any) (*TaskReference, error)
 
-	// ListReservedIpsBySubnetId fetches a list of reserved IP addresses on a subnet.
+	// ListReservedIpsBySubnetId returns the list of reserved IP addresses on a subnet.
 	ListReservedIpsBySubnetId(ctx context.Context, subnetExtId string, opts ...ODataOption) (any, error)
-
-	// Additional methods can be added here as needed.
 }

@@ -11,13 +11,13 @@ import (
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
 )
 
-// VolumeGroupsService provides default "not implemented" implementation for all VolumeGroups interface methods.
+// VolumeGroupsService implements the converged VolumeGroups interface for the Prism Central V4 API.
 type VolumeGroupsService struct {
 	client   *v4prismGoClient.Client
 	entities string
 }
 
-// NewVolumeGroupsService creates a new VolumeGroupsService instance.
+// NewVolumeGroupsService returns a new VolumeGroupsService for the given V4 client.
 func NewVolumeGroupsService(client *v4prismGoClient.Client) *VolumeGroupsService {
 	return &VolumeGroupsService{
 		client:   client,

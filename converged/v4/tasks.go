@@ -12,14 +12,14 @@ import (
 	prismErrors "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
-// TasksService is the service for the tasks
+// TasksService implements the converged Tasks interface for the Prism Central V4 API.
 type TasksService struct {
 	client *v4prismGoClient.Client
 
 	entityName string
 }
 
-// NewTasksService creates a new TasksService for the converged client
+// NewTasksService returns a new TasksService for the given V4 client.
 func NewTasksService(client *v4prismGoClient.Client) *TasksService {
 	return &TasksService{
 		client:     client,
@@ -27,7 +27,7 @@ func NewTasksService(client *v4prismGoClient.Client) *TasksService {
 	}
 }
 
-// Get returns the task for the given UUID
+// Get returns the task for the given UUID.
 func (s *TasksService) Get(ctx context.Context, uuid string) (*prismModels.Task, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is not initialized")
@@ -41,7 +41,7 @@ func (s *TasksService) Get(ctx context.Context, uuid string) (*prismModels.Task,
 	)
 }
 
-// GetWithSelect returns the task for the given UUID and select fields
+// GetWithSelect returns the task for the given UUID with the specified fields selected.
 func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []string) (*prismModels.Task, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is not initialized")
@@ -57,7 +57,7 @@ func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []
 	)
 }
 
-// List returns the list of tasks
+// List returns a list of tasks.
 func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) ([]prismModels.Task, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is not initialized")
@@ -87,7 +87,7 @@ func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) 
 	)
 }
 
-// NewIterator returns a new iterator for the tasks
+// NewIterator returns an iterator for listing tasks.
 func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[prismModels.Task] {
 	if s.client == nil {
 		return nil
@@ -109,7 +109,7 @@ func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataO
 	)
 }
 
-// Cancel cancels the task for the given UUID
+// Cancel cancels the task with the given UUID.
 func (s *TasksService) Cancel(ctx context.Context, uuid string) (*prismErrors.AppMessage, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("client is not initialized")

@@ -10,13 +10,13 @@ import (
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
-// ClustersService provides default "not implemented" implementation for all Clusters interface methods.
+// ClustersService implements the converged Clusters interface for the Prism Central V4 API.
 type ClustersService struct {
 	client   *v4prismGoClient.Client
 	entities string
 }
 
-// NewClustersService creates a new ClustersService instance.
+// NewClustersService returns a new ClustersService for the given V4 client.
 func NewClustersService(client *v4prismGoClient.Client) *ClustersService {
 	return &ClustersService{client: client, entities: "cluster"}
 }

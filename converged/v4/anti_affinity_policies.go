@@ -11,13 +11,13 @@ import (
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 )
 
-// AntiAffinityPoliciesService provides default "not implemented" implementation for all AntiAffinityPolicies interface methods.
+// AntiAffinityPoliciesService implements the converged AntiAffinityPolicies interface for the Prism Central V4 API.
 type AntiAffinityPoliciesService struct {
 	client   *v4prismGoClient.Client
 	entities string
 }
 
-// NewAntiAffinityPoliciesService creates a new AntiAffinityPoliciesService instance.
+// NewAntiAffinityPoliciesService returns a new AntiAffinityPoliciesService for the given V4 client.
 func NewAntiAffinityPoliciesService(client *v4prismGoClient.Client) *AntiAffinityPoliciesService {
 	return &AntiAffinityPoliciesService{client: client, entities: "anti-affinity policy"}
 }

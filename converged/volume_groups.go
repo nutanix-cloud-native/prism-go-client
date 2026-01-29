@@ -2,12 +2,10 @@ package converged
 
 import "context"
 
-// Volumes is the interface for the Volumes service.
+// VolumeGroups defines the interface for volume group operations.
+// Volume groups are collections of volumes that can be attached to or detached from VMs.
 type VolumeGroups[VolumeGroup, VmAttachment any] interface {
-	// Getter is the interface for Get operations.
 	Getter[VolumeGroup]
-
-	// Lister is the interface for List operations.
 	Lister[VolumeGroup]
 
 	// AttachToVMAsync attaches a volume group to a VM asynchronously.
@@ -21,6 +19,4 @@ type VolumeGroups[VolumeGroup, VmAttachment any] interface {
 
 	// DetachFromVM detaches a volume group from a VM.
 	DetachFromVM(ctx context.Context, volumeGroupUUID string, vmAttachment VmAttachment) (*VolumeGroup, error)
-
-	// Additional methods can be added here as needed.
 }
