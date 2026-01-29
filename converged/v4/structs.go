@@ -26,11 +26,11 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-// EntityReferenceGetterKey is the key for the entity reference getter in the context
+// EntityReferenceGetterKey is the context key for the entity reference getter.
 const EntityReferenceGetterKey = "entityReferenceGetter"
 
-// Client struct for converged client
-// It contains implementation for all required API operations grouped by service
+// Client is the V4 implementation of the converged Prism Central client.
+// It embeds converged.Client with V4 entity types and wires in V4 service implementations.
 type Client struct {
 	converged.Client[
 		policyModels.VmAntiAffinityPolicy,
@@ -55,7 +55,7 @@ type Client struct {
 	client *v4prismGoClient.Client
 }
 
-// NewClient creates a new converged client
+// NewClient creates a new V4 converged client using the given credentials and options.
 func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption[v4prismGoClient.Client]) (*Client, error) {
 	v4sdkClient, err := v4prismGoClient.NewV4Client(credentials, opts...)
 	if err != nil {
@@ -64,8 +64,7 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 	return NewClientFromV4SDKClient(v4sdkClient), nil
 }
 
-// NewClientFromV4SDKClient creates a new converged client from a V4 SDK client
-// It initializes the V4 client and creates the service implementations
+// NewClientFromV4SDKClient builds a converged Client from an existing Prism Central V4 SDK client.
 func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 	return &Client{
 		Client: converged.Client[
@@ -103,8 +102,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 	}
 }
 
-// Operation struct async PC task operation
-// It contains the async PC task details and the results
+// Operation holds state for a Prism Central asynchronous task (e.g. create VM, delete image).
+// It implements converged.Operation and can be used to wait for completion or poll status.
 type Operation[T any] struct {
 	lock               *sync.Mutex
 	affectedEntityRefs []prismModels.EntityReference
@@ -118,7 +117,7 @@ type Operation[T any] struct {
 	result             []*T
 }
 
-// NewOperation creates a new Operation for the given PC async task UUID and client.
+// NewOperation creates an Operation that tracks the given task UUID and uses the client to poll for results.
 func NewOperation[T any](
 	taskUUID string,
 	client *v4prismGoClient.Client,
@@ -328,7 +327,7 @@ func (o *Operation[T]) IsFailed() bool {
 	return o.taskStatus == converged.TaskStatusFailed
 }
 
-// NewIterator creates a new iterator for the given list function and options.
+// NewIterator returns an iterator that yields entities from the list API, respecting OData options and pagination.
 func NewIterator[R APIResponse, T any](
 	ctx context.Context,
 	listFunc func(context.Context, *V4ODataParams) (R, error),
@@ -404,7 +403,7 @@ func NewIterator[R APIResponse, T any](
 	return converged.Iterator[T](iter.Seq2[T, error](iterFunc))
 }
 
-// GetPrismEntityReference try to convert the entity reference to the prism entity reference.
+// GetPrismEntityReference converts an entity reference to *prismModels.EntityReference.
 func GetPrismEntityReference(entityRef any) (*prismModels.EntityReference, error) {
 	entityRefValue, ok := entityRef.(*prismModels.EntityReference)
 	if !ok {
@@ -413,7 +412,7 @@ func GetPrismEntityReference(entityRef any) (*prismModels.EntityReference, error
 	return entityRefValue, nil
 }
 
-// GetPrismEntityReferenceSlice try to convert the entity reference slice to the prism entity reference slice.
+// GetPrismEntityReferenceSlice converts a slice of entity references to []*prismModels.EntityReference.
 func GetPrismEntityReferenceSlice(entityRefs []any) ([]*prismModels.EntityReference, error) {
 	entityRefsValue := make([]*prismModels.EntityReference, len(entityRefs))
 	for i, entityRef := range entityRefs {

@@ -2,15 +2,15 @@ package converged
 
 import "context"
 
+// Clusters defines the interface for cluster operations.
+// It supports get/list for clusters and cluster-scoped resources such as
+// virtual/physical GPU profiles and hosts.
 type Clusters[
 	Cluster,
 	VirtualGpuProfile,
 	PhysicalGpuProfile,
 	Host any] interface {
-	// Getter is the interface for Get operations.
 	Getter[Cluster]
-
-	// Lister is the interface for List operations.
 	Lister[Cluster]
 
 	// ListClusterVirtualGPUs returns the virtual GPU configuration for the given cluster UUID.
@@ -28,7 +28,7 @@ type Clusters[
 	// NewClusterHostsIterator returns an iterator for listing cluster hosts.
 	NewClusterHostsIterator(ctx context.Context, clusterUuid string, opts ...ODataOption) Iterator[Host]
 
-	// ListAllHosts returns all hosts.
+	// ListAllHosts returns all hosts across clusters.
 	ListAllHosts(ctx context.Context, opts ...ODataOption) ([]Host, error)
 
 	// NewAllHostsIterator returns an iterator for listing all hosts.

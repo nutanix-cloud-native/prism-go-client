@@ -10,13 +10,13 @@ import (
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
 )
 
-// UsersService provides implementation for IAM Users API operations.
+// UsersService implements the converged Users interface for the Prism Central V4 API (IAM users).
 type UsersService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewUsersService creates a new UsersService instance.
+// NewUsersService returns a new UsersService for the given V4 client.
 func NewUsersService(client *v4prismGoClient.Client) *UsersService {
 	return &UsersService{
 		client:       client,

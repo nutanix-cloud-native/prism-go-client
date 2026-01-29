@@ -11,13 +11,13 @@ import (
 	prismMessages "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
 )
 
-// CategoriesService provides default "not implemented" implementation for all Categories interface methods.
+// CategoriesService implements the converged Categories interface for the Prism Central V4 API.
 type CategoriesService struct {
 	client   *v4prismGoClient.Client
 	entities string
 }
 
-// NewCategoriesService creates a new CategoriesService instance.
+// NewCategoriesService returns a new CategoriesService for the given V4 client.
 func NewCategoriesService(client *v4prismGoClient.Client) *CategoriesService {
 	return &CategoriesService{client: client, entities: "category"}
 }

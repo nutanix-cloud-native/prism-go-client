@@ -10,13 +10,13 @@ import (
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
 
-// DomainManagerService provides methods to interact with Domain Manager API
+// DomainManagerService implements the converged DomainManager interface for the Prism Central V4 API.
 type DomainManagerService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewDomainManagerService creates a new DomainManagerService instance
+// NewDomainManagerService returns a new DomainManagerService for the given V4 client.
 func NewDomainManagerService(client *v4prismGoClient.Client) *DomainManagerService {
 	return &DomainManagerService{client: client, entitiesName: "domain manager"}
 }
@@ -77,8 +77,8 @@ func (s *DomainManagerService) NewIterator(ctx context.Context, opts ...converge
 	)
 }
 
-// GetPrismCentralVersion gets the Prism Central version from Domain Manager API
-// This is a lightweight alternative to V3 GetPrismCentral() API
+// GetPrismCentralVersion returns the Prism Central version from the Domain Manager API.
+// It is a lightweight alternative to the V3 GetPrismCentral() API.
 func (s *DomainManagerService) GetPrismCentralVersion(ctx context.Context) (string, error) {
 	if s.client == nil {
 		return "", errors.New("client is not initialized")

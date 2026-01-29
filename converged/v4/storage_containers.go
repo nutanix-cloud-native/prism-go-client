@@ -11,13 +11,13 @@ import (
 	scModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 )
 
-// StorageContainersService provides implementation for all StorageContainers interface methods.
+// StorageContainersService implements the converged StorageContainers interface for the Prism Central V4 API.
 type StorageContainersService struct {
 	client       *v4prismGoClient.Client
 	entitiesName string
 }
 
-// NewStorageContainersService creates a new StorageContainersService instance.
+// NewStorageContainersService returns a new StorageContainersService for the given V4 client.
 func NewStorageContainersService(client *v4prismGoClient.Client) *StorageContainersService {
 	return &StorageContainersService{client: client, entitiesName: "storage container"}
 }
