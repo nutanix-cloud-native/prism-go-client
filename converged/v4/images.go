@@ -111,6 +111,28 @@ func (s *ImagesService) Create(ctx context.Context, image *imageModels.Image) (*
 	return result[0], nil
 }
 
+// Update updates an existing Image.
+func (s *ImagesService) Update(ctx context.Context, uuid string, entity *imageModels.Image) (*imageModels.Image, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	operation, err := s.UpdateAsync(ctx, uuid, entity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update Image: %w", err)
+	}
+
+	result, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update Image: %w", err)
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("failed to update Image: operation completed but no Image returned")
+	}
+
+	return result[0], nil
+}
+
 // Delete deletes an existing Image.
 func (s *ImagesService) Delete(ctx context.Context, uuid string) error {
 	if s.client == nil {
@@ -143,6 +165,38 @@ func (s *ImagesService) CreateAsync(ctx context.Context, image *imageModels.Imag
 
 	if taskRef.ExtId == nil {
 		return nil, fmt.Errorf("task reference ExtId is nil for created Image")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
+
+// UpdateAsync updates an existing Image asynchronously.
+func (s *ImagesService) UpdateAsync(ctx context.Context, uuid string, image *imageModels.Image) (converged.Operation[imageModels.Image], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	currentImage, args, err := GetEntityAndEtag(
+		s.client.ImagesApiInstance.GetImageById(&uuid),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Image for update: %w", err)
+	}
+
+	image = CopyEtag(currentImage, image).(*imageModels.Image)
+
+	taskRef, err := CallAPI[*imageModels.UpdateImageApiResponse, vmmConfig.TaskReference](
+		s.client.ImagesApiInstance.UpdateImageById(&uuid, image, args),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update Image: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for updated Image")
 	}
 
 	return NewOperation(
