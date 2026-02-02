@@ -1,20 +1,19 @@
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationWithNoK8sDistribution
+name: TestKonnectorGetK8sRegistrationList
 spec:
     metadata:
-        Body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster4","kubernetes-io-cluster-cluster4":"owned"},"k8s_distribution":null,"metadata":{"api_version":"v1.1.0"},"name":"cluster4","uuid":"fe139669-50f3-4307-8867-f7630241f0df"}
+        Body: ""
         Header: map[Accept:[application/json] Content-Type:[application/json] User-Agent:[nutanix]]
         Proto: HTTP/1.1
         ProtoMajor: "1"
         ProtoMinor: "1"
         URL: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
         name: http-client
-        operation: POST
+        operation: GET
         type: HTTP_CLIENT
     req:
-        method: POST
+        method: GET
         proto_major: 1
         proto_minor: 1
         url: https://prism-test.nutanix.com:9440/karbon/v1-alpha.1/k8s/cluster-registrations/
@@ -22,29 +21,29 @@ spec:
             Accept: application/json
             Content-Type: application/json
             User-Agent: nutanix
-        body: |
-            {"categories_mapping":{"KubernetesClusterName":"cluster4","kubernetes-io-cluster-cluster4":"owned"},"k8s_distribution":null,"metadata":{"api_version":"v1.1.0"},"name":"cluster4","uuid":"fe139669-50f3-4307-8867-f7630241f0df"}
+        body: ""
         body_type: utf-8
     resp:
-        status_code: 422
+        status_code: 200
         header:
             Content-Security-Policy: 'default-src ''self'' https://*.nutanix.com; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''; style-src ''self'' ''unsafe-inline''; connect-src ''self'' wss: https://downloads.frame.nutanix.com https://downloads.frame.nutanix.us; img-src ''self'' blob: data:; frame-src ''self'' https://*.nutanix.com blob: data:'
             Content-Type: application/json
-            Date: Tue, 07 Mar 2023 07:31:48 GMT
+            Date: Tue, 07 Mar 2023 07:31:54 GMT
             Server: envoy
-            Set-Cookie: NTNX_IGW_SESSION=Expires=Tue, 07-Mar-2023 07:46:48 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
+            Set-Cookie: NTNX_IGW_SESSION=Expires=Tue, 07-Mar-2023 07:46:53 GMT;Path=/;Secure;HttpOnly;SameSite=Lax
             Strict-Transport-Security: max-age=8640000:includeSubdomains
             Vary: Accept-Encoding
             X-Content-Type-Options: nosniff
             X-Dns-Prefetch-Control: "off"
-            X-Envoy-Upstream-Service-Time: "210"
+            X-Envoy-Upstream-Service-Time: "383"
             X-Frame-Options: SAMEORIGIN
             X-Ntnx-Env: pc
             X-Ntnx-Product: pc.2022.6.0.3
             X-Permitted-Cross-Domain-Policies: master-only
             X-Powered-By: Express
             X-Xss-Protection: 1; mode=block
-        body: '{"code":602,"message":"k8s_distribution in body is required"}'
+        body: |
+            [{"addons_info":{"CNDS":{"addon_version":"v1.0"},"CSI":{"addon_version":"v2.0"}},"categories_mapping":{"KubernetesClusterUUID":"fd201401-480b-4583-bf69-1726f444f6b9","kubernetes-io-cluster-source-k8s-cluster":"owned"},"cluster_info":{"k8s_version":"v1.23.15"},"k8s_distribution":"Openshift","name":"source-k8s-cluster","status":"kActive","uuid":"fd201401-480b-4583-bf69-1726f444f6b9"}]
         body_type: utf-8
         status_message: ""
         proto_major: 0

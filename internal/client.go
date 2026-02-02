@@ -697,7 +697,7 @@ func CheckResponse(r *http.Response) error {
 		return err
 	}
 
-	// karbon error check
+	// konnector-server error check
 	if messageInfo, ok := res["message_info"]; ok {
 		return fmt.Errorf("error: %s", messageInfo)
 	}

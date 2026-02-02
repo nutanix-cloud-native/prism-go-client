@@ -1,6 +1,6 @@
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: |
@@ -56,7 +56,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: |
@@ -112,7 +112,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: |
@@ -168,7 +168,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: ""
@@ -222,7 +222,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: ""
@@ -276,7 +276,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: ""
@@ -330,7 +330,7 @@ spec:
 ---
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationAndAddonSetInfo
+name: TestKonnectorCreateClusterRegistrationAndAddonSetInfo
 spec:
     metadata:
         Body: ""

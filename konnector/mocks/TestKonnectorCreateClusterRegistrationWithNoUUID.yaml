@@ -1,6 +1,6 @@
 version: api.keploy.io/v1beta2
 kind: Http
-name: TestKarbonCreateClusterRegistrationWithNoUUID
+name: TestKonnectorCreateClusterRegistrationWithNoUUID
 spec:
     metadata:
         Body: |
