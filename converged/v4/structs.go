@@ -40,6 +40,7 @@ type Client struct {
 		clusterModels.Host,
 		prismModels.Category,
 		imageModels.Image,
+		imageModels.FileDetail,
 		clusterModels.StorageContainer,
 		subnetModels.Subnet,
 		networkingprismapi.TaskReference,
@@ -50,6 +51,9 @@ type Client struct {
 		volumeModels.VmAttachment,
 		prismModels.DomainManager,
 		iamModels.User,
+		imageModels.Template,
+		imageModels.Ova,
+		imageModels.FileDetail,
 	]
 
 	client *v4prismGoClient.Client
@@ -76,6 +80,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			clusterModels.Host,
 			prismModels.Category,
 			imageModels.Image,
+			imageModels.FileDetail,
 			clusterModels.StorageContainer,
 			subnetModels.Subnet,
 			networkingprismapi.TaskReference,
@@ -86,6 +91,9 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			volumeModels.VmAttachment,
 			prismModels.DomainManager,
 			iamModels.User,
+			imageModels.Template,
+			imageModels.Ova,
+			imageModels.FileDetail,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -98,6 +106,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
 			DomainManager:        NewDomainManagerService(v4sdkClient),
 			Users:                NewUsersService(v4sdkClient),
+			Templates:            NewTemplatesService(v4sdkClient),
+			Ovas:                 NewOvasService(v4sdkClient),
 		},
 		client: v4sdkClient,
 	}
