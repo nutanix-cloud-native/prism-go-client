@@ -15,6 +15,7 @@ type Credentials struct {
 	FoundationEndpoint string              // Required field for connecting to foundation VM APIs
 	FoundationPort     string              // Port for connecting to foundation VM APIs
 	RequiredFields     map[string][]string // RequiredFields is client to its required fields mapping for validations and usage in every client
+	ReadTimeoutMinutes int                 // Read timeout in minutes for large file operations (OVA/image downloads). Default is 30 minutes if not set.
 }
 
 // AdditionalFilter specification for client side filters
