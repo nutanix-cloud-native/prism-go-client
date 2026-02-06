@@ -244,8 +244,8 @@ func (s *ImagesService) imageFromObjectsLite(objectKey, sourcePath string) (*ima
 func (s *ImagesService) awsConfig(ctx context.Context) (aws.Config, string, error) {
 	apiClient := s.client.ImagesApiInstance.ApiClient
 
-	// Use ApiClient's host and port for the endpoint
-	endpoint := fmt.Sprintf("https://%s:%d", apiClient.Host, apiClient.Port)
+	// Objects Lite S3 endpoint
+	endpoint := fmt.Sprintf("https://%s:%d/api/prism/v4.0/objects/", apiClient.Host, apiClient.Port)
 
 	// Use ApiClient's username and password
 	username := strings.TrimSpace(apiClient.Username)
