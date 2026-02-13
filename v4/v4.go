@@ -59,10 +59,12 @@ type Client struct {
 	ClustersApiInstance               *clusterApi.ClustersApi
 	DomainManagerApiInstance          *prismApi.DomainManagerApi
 	ImagesApiInstance                 *vmApi.ImagesApi
+	OvasApiInstance                   *vmApi.OvasApi
 	StorageContainerAPI               *clusterApi.StorageContainersApi
 	SubnetsApiInstance                *networkingApi.SubnetsApi
 	SubnetIPReservationApi            *networkingApi.SubnetIPReservationApi
 	TasksApiInstance                  *prismApi.TasksApi
+	TemplatesApiInstance              *vmApi.TemplatesApi
 	VolumeGroupsApiInstance           *volumesApi.VolumeGroupsApi
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
@@ -131,6 +133,8 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
+	v4Client.OvasApiInstance = vmApi.NewOvasApi(apiClientInstance)
+	v4Client.TemplatesApiInstance = vmApi.NewTemplatesApi(apiClientInstance)
 	v4Client.VmAntiAffinityPoliciesApiInstance = vmApi.NewVmAntiAffinityPoliciesApi(apiClientInstance)
 	return nil
 }
