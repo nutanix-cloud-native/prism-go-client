@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
@@ -69,6 +70,17 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
+	readTimeout                       time.Duration
+}
+
+// WithReadTimeout sets the read timeout in minutes for large transfers (e.g. OVA/image). Zero keeps SDK default.
+func WithReadTimeout(minutes int) types.ClientOption[Client] {
+	return func(c *Client) error {
+		if minutes > 0 {
+			c.readTimeout = time.Duration(minutes) * time.Minute
+		}
+		return nil
+	}
 }
 
 type endpointInfo struct {
@@ -89,6 +101,12 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 	}
 
 	v4Client := &Client{}
+
+	for _, opt := range opts {
+		if err := opt(v4Client); err != nil {
+			return nil, fmt.Errorf("failed to apply client option: %v", err)
+		}
+	}
 
 	if err := initVmApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create VM API instance: %v", err)
@@ -130,6 +148,11 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 	apiClientInstance.VerifySSL = !credentials.Insecure
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
+	apiClientInstance.SetUserName(credentials.Username)
+	apiClientInstance.SetPassword(credentials.Password)
+	if v4Client.readTimeout > 0 {
+		apiClientInstance.ReadTimeout = v4Client.readTimeout
+	}
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.VmApiInstance = vmApi.NewVmApi(apiClientInstance)
 	v4Client.ImagesApiInstance = vmApi.NewImagesApi(apiClientInstance)
