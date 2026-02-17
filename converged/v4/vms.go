@@ -302,10 +302,20 @@ func (s *VMsService) PowerOffVM(uuid string) (converged.Operation[vmmModels.Vm],
 }
 
 // AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
-func (s *VMsService) AddVmCustomAttributes(uuid string, body *vmmModels.UpdateCustomAttributesParams) (converged.Operation[vmmModels.Vm], error) {
+// The body parameter must be of type *vmmModels.UpdateCustomAttributesParams.
+func (s *VMsService) AddVmCustomAttributes(uuid string, body *any) (converged.Operation[vmmModels.Vm], error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
+	if body == nil {
+		return nil, errors.New("body is required and must be specified")
+	}
+
+	params, ok := (*body).(*vmmModels.UpdateCustomAttributesParams)
+	if !ok {
+		return nil, fmt.Errorf("body must be of type *UpdateCustomAttributesParams, got %T", *body)
+	}
+
 	_, args, err := GetEntityAndEtag(
 		s.client.VmApiInstance.GetVmById(&uuid),
 	)
@@ -314,7 +324,7 @@ func (s *VMsService) AddVmCustomAttributes(uuid string, body *vmmModels.UpdateCu
 	}
 
 	taskRef, err := CallAPI[*vmmModels.AddVmCustomAttributesApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.AddVmCustomAttributes(&uuid, body, args),
+		s.client.VmApiInstance.AddVmCustomAttributes(&uuid, params, args),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)

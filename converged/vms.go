@@ -32,5 +32,8 @@ type VMs[VM any] interface {
 	// PowerOffVM powers off the VM with the given UUID.
 	PowerOffVM(uuid string) (Operation[VM], error)
 
+	// AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
+	AddVmCustomAttributes(uuid string, body *any) (Operation[VM], error)
+
 	// Additional methods can be added here as needed.
 }
