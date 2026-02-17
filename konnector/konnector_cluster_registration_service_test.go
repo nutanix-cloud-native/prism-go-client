@@ -281,13 +281,8 @@ func TestKonnectorUpdateClusterRegistration(t *testing.T) {
 		Kubeconfig: &base64EncodedKubeconfig,
 	}
 
-	updateReq := &PatchK8sClusterRegistrationParams{
-		ID:   test_cluster_uuid,
-		Body: kubeConfig,
-	}
-
-	// Call the Update (PATCH) operation
-	responseUpdate, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistration(kctx, updateReq)
+	// Call the Update (PATCH) operation - UUID is now in URL path
+	responseUpdate, err := konnectorClient.ClusterRegistrationOperations.UpdateK8sRegistration(kctx, test_cluster_uuid, kubeConfig)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, *responseUpdate.TaskUUID)
 	require.NotNil(t, responseUpdate.TaskUUID)
