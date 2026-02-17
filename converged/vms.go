@@ -1,5 +1,7 @@
 package converged
 
+import "context"
+
 // VMs is the interface for the VMs service.
 type VMs[VM any] interface {
 	// Getter is the interface for Get operations.
@@ -33,7 +35,16 @@ type VMs[VM any] interface {
 	PowerOffVM(uuid string) (Operation[VM], error)
 
 	// AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
-	AddVmCustomAttributes(uuid string, body *any) (Operation[VM], error)
+	AddVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*VM, error)
+
+	// AddVmCustomAttributesAsync adds custom attributes to the VM asynchronously.
+	AddVmCustomAttributesAsync(uuid string, customAttributes []string) (Operation[VM], error)
+
+	// RemoveVmCustomAttributes removes custom attributes from the VM with the given UUID.
+	RemoveVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*VM, error)
+
+	// RemoveVmCustomAttributesAsync removes custom attributes from the VM asynchronously.
+	RemoveVmCustomAttributesAsync(uuid string, customAttributes []string) (Operation[VM], error)
 
 	// Additional methods can be added here as needed.
 }
