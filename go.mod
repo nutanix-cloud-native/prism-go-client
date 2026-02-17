@@ -8,6 +8,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/aws/aws-sdk-go-v2 v1.41.1
 	github.com/aws/aws-sdk-go-v2/config v1.31.10
+	github.com/aws/aws-sdk-go-v2/credentials v1.18.14
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.19.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.0
 	github.com/go-logr/logr v1.4.3
@@ -43,7 +44,6 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.1 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.18.14 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.8 // indirect

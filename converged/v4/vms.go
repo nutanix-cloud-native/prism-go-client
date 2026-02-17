@@ -300,3 +300,33 @@ func (s *VMsService) PowerOffVM(uuid string) (converged.Operation[vmmModels.Vm],
 		s.Get,
 	), nil
 }
+
+// AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
+func (s *VMsService) AddVmCustomAttributes(uuid string, body *vmmModels.UpdateCustomAttributesParams) (converged.Operation[vmmModels.Vm], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	_, args, err := GetEntityAndEtag(
+		s.client.VmApiInstance.GetVmById(&uuid),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for adding custom attributes: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.AddVmCustomAttributesApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.AddVmCustomAttributes(&uuid, body, args),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM custom attributes addition")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
