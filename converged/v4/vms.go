@@ -300,3 +300,117 @@ func (s *VMsService) PowerOffVM(uuid string) (converged.Operation[vmmModels.Vm],
 		s.Get,
 	), nil
 }
+
+// AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
+func (s *VMsService) AddVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*vmmModels.Vm, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	operation, err := s.AddVmCustomAttributesAsync(uuid, customAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)
+	}
+
+	result, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("failed to add custom attributes to VM: operation completed but no VM returned")
+	}
+
+	return result[0], nil
+}
+
+// AddVmCustomAttributesAsync adds custom attributes to the VM asynchronously.
+func (s *VMsService) AddVmCustomAttributesAsync(uuid string, customAttributes []string) (converged.Operation[vmmModels.Vm], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	body := &vmmModels.UpdateCustomAttributesParams{
+		CustomAttributes: customAttributes,
+	}
+
+	_, args, err := GetEntityAndEtag(
+		s.client.VmApiInstance.GetVmById(&uuid),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for adding custom attributes: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.AddVmCustomAttributesApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.AddVmCustomAttributes(&uuid, body, args),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM custom attributes addition")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
+
+// RemoveVmCustomAttributes removes custom attributes from the VM with the given UUID.
+func (s *VMsService) RemoveVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*vmmModels.Vm, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	operation, err := s.RemoveVmCustomAttributesAsync(uuid, customAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove custom attributes from VM: %w", err)
+	}
+
+	result, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove custom attributes from VM: %w", err)
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("failed to remove custom attributes from VM: operation completed but no VM returned")
+	}
+
+	return result[0], nil
+}
+
+// RemoveVmCustomAttributesAsync removes custom attributes from the VM asynchronously.
+func (s *VMsService) RemoveVmCustomAttributesAsync(uuid string, customAttributes []string) (converged.Operation[vmmModels.Vm], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	body := &vmmModels.UpdateCustomAttributesParams{
+		CustomAttributes: customAttributes,
+	}
+
+	_, args, err := GetEntityAndEtag(
+		s.client.VmApiInstance.GetVmById(&uuid),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for removing custom attributes: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.RemoveVmCustomAttributesApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.RemoveVmCustomAttributes(&uuid, body, args),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove custom attributes from VM: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM custom attributes removal")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
