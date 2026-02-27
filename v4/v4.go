@@ -20,6 +20,8 @@ import (
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
 	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
+	datapoliciesApi "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/api"
+	datapoliciesClient "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/client"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
@@ -70,7 +72,9 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
-	readTimeout                       time.Duration
+	ProtectionPoliciesApiInstance *datapoliciesApi.ProtectionPoliciesApi
+	RecoveryPlansApiInstance     *datapoliciesApi.RecoveryPlansApi
+	readTimeout                   time.Duration
 }
 
 // WithReadTimeout sets the read timeout in minutes for large transfers (e.g. OVA/image). Zero keeps SDK default.
@@ -136,7 +140,31 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
 	}
 
+	if err := initDataPoliciesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Data Policies API instance: %v", err)
+	}
+
 	return v4Client, nil
+}
+
+func initDataPoliciesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := datapoliciesClient.NewApiClient()
+	apiClientInstance.VerifySSL = !credentials.Insecure
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	apiClientInstance.SetUserName(credentials.Username)
+	apiClientInstance.SetPassword(credentials.Password)
+	if v4Client.readTimeout > 0 {
+		apiClientInstance.ReadTimeout = v4Client.readTimeout
+	}
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.ProtectionPoliciesApiInstance = datapoliciesApi.NewProtectionPoliciesApi(apiClientInstance)
+	v4Client.RecoveryPlansApiInstance = datapoliciesApi.NewRecoveryPlansApi(apiClientInstance)
+	return nil
 }
 
 func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {

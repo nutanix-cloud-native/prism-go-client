@@ -35,7 +35,9 @@ type Client[
 	User,
 	Template,
 	Ova,
-	OvaFile any] struct {
+	OvaFile,
+	ProtectionPolicy,
+	RecoveryPlan any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
@@ -49,7 +51,7 @@ type Client[
 	Users                Users[User]
 	Templates            Templates[Template]
 	Ovas                 Ovas[Ova, OvaFile]
-	// Additional service interfaces can be added here as needed.
+	DataPolicies         DataPolicies[ProtectionPolicy, RecoveryPlan]
 }
 
 // Getter is the interface for Get operations.
