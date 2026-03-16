@@ -7,8 +7,14 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
+	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	vmmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+)
+
+const (
+	consoleTokenKey = "VmConsoleToken"
+	consoleWsUriKey = "WsUri"
 )
 
 // VMsService provides default "not implemented" implementation for all VMs interface methods.
@@ -412,5 +418,155 @@ func (s *VMsService) RemoveVmCustomAttributesAsync(uuid string, customAttributes
 		*taskRef.ExtId,
 		s.client,
 		s.Get,
+	), nil
+}
+
+// DeleteCdRom deletes a CD-ROM device from the VM identified by uuid.
+// It fetches the VM's current ETag, issues the delete, and waits for the
+// asynchronous task to complete before returning.
+func (s *VMsService) DeleteCdRom(ctx context.Context, uuid string, cdRomUUID string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+	operation, err := s.DeleteCdRomAsync(uuid, cdRomUUID)
+	if err != nil {
+		return fmt.Errorf("failed to delete CD-ROM from VM: %w", err)
+	}
+	_, err = operation.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete CD-ROM from VM: %w", err)
+	}
+	return nil
+}
+
+// DeleteCdRomAsync starts an asynchronous CD-ROM deletion on the VM.
+// The caller receives an Operation that can be polled or waited on.
+func (s *VMsService) DeleteCdRomAsync(uuid string, cdRomUUID string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	_, args, err := GetEntityAndEtag(
+		s.client.VmApiInstance.GetVmById(&uuid),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for CD-ROM deletion: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.DeleteCdRomApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.DeleteCdRomById(&uuid, &cdRomUUID, args),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete CD-ROM from VM: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for CD-ROM deletion")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
+			return converged.NoEntityGetter(ctx, uuid)
+		},
+	), nil
+}
+
+// GenerateConsoleToken obtains a JWT token and WebSocket URI for VNC console
+// access to the VM identified by uuid. It calls the generate-console-token API,
+// waits for the asynchronous task to complete, then extracts VmConsoleToken and
+// WsUri from the task's CompletionDetails.
+func (s *VMsService) GenerateConsoleToken(ctx context.Context, uuid string) (*converged.VMConsoleToken, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	operation, err := s.GenerateConsoleTokenAsync(uuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate console token: %w", err)
+	}
+
+	_, err = operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("console token task failed: %w", err)
+	}
+
+	taskID := operation.UUID()
+	taskResp, err := CallAPI[*prismModels.GetTaskApiResponse, prismModels.Task](
+		s.client.TasksApiInstance.GetTaskById(&taskID, nil),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get completed task: %w", err)
+	}
+
+	var token, wsUri string
+	for _, kv := range taskResp.CompletionDetails {
+		if kv.Name == nil {
+			continue
+		}
+		switch *kv.Name {
+		case consoleTokenKey:
+			if kv.Value != nil {
+				if v := kv.Value.GetValue(); v != nil {
+					if str, ok := v.(string); ok {
+						token = str
+					}
+				}
+			}
+		case consoleWsUriKey:
+			if kv.Value != nil {
+				if v := kv.Value.GetValue(); v != nil {
+					if str, ok := v.(string); ok {
+						wsUri = str
+					}
+				}
+			}
+		}
+	}
+
+	if token == "" || wsUri == "" {
+		return nil, fmt.Errorf("task completionDetails missing VmConsoleToken or WsUri")
+	}
+
+	return &converged.VMConsoleToken{Token: token, WsUri: wsUri}, nil
+}
+
+// GenerateConsoleTokenAsync starts the generate-console-token API call for the
+// VM identified by uuid. The caller receives an Operation that can be polled or
+// waited on; use GenerateConsoleToken for the synchronous convenience wrapper
+// that also extracts the token and WsUri from the completed task.
+func (s *VMsService) GenerateConsoleTokenAsync(uuid string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	resp, err := s.client.VmApiInstance.GenerateConsoleTokenById(&uuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate console token: %w", err)
+	}
+	if resp == nil || resp.Data == nil {
+		return nil, fmt.Errorf("generate-console-token returned empty response")
+	}
+
+	dataVal := resp.Data.GetValue()
+	if dataVal == nil {
+		return nil, fmt.Errorf("generate-console-token response data is nil")
+	}
+
+	taskRef, ok := dataVal.(vmmConfig.TaskReference)
+	if !ok {
+		return nil, fmt.Errorf("generate-console-token returned unexpected type: %T", dataVal)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
+			return converged.NoEntityGetter(ctx, uuid)
+		},
 	), nil
 }

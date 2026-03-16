@@ -46,5 +46,18 @@ type VMs[VM any] interface {
 	// RemoveVmCustomAttributesAsync removes custom attributes from the VM asynchronously.
 	RemoveVmCustomAttributesAsync(uuid string, customAttributes []string) (Operation[VM], error)
 
-	// Additional methods can be added here as needed.
+	// DeleteCdRom deletes a CD-ROM device from the VM identified by uuid
+	// and waits for the asynchronous task to complete.
+	DeleteCdRom(ctx context.Context, uuid string, cdRomUUID string) error
+
+	// DeleteCdRomAsync starts an asynchronous CD-ROM deletion on the VM.
+	DeleteCdRomAsync(uuid string, cdRomUUID string) (Operation[NoEntity], error)
+
+	// GenerateConsoleToken obtains a JWT token and WebSocket URI for VNC
+	// console access to the VM identified by uuid.
+	GenerateConsoleToken(ctx context.Context, uuid string) (*VMConsoleToken, error)
+
+	// GenerateConsoleTokenAsync starts the generate-console-token API call
+	// asynchronously and returns an Operation to track the task.
+	GenerateConsoleTokenAsync(uuid string) (Operation[NoEntity], error)
 }
