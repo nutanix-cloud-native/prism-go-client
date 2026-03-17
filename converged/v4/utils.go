@@ -193,7 +193,7 @@ type APIResponse interface {
 func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 	var zero, result T
 	if err != nil {
-		return zero, fmt.Errorf("API call failed: %w", err)
+		return zero, CategoriseFromOpenAPI(err)
 	}
 
 	data := response.GetData()
@@ -237,7 +237,7 @@ func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
 	var zero []T
 	if err != nil {
-		return zero, 0, fmt.Errorf("API call failed: %w", err)
+		return zero, 0, CategoriseFromOpenAPI(err)
 	}
 
 	totalCount, err := GetMetadataTotalResults(response)
@@ -264,7 +264,7 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	var zero T
 
 	if err != nil {
-		return zero, nil, fmt.Errorf("failed to get entity: %w", err)
+		return zero, nil, CategoriseFromOpenAPI(err)
 	}
 
 	etag := GetEtag(entity)
