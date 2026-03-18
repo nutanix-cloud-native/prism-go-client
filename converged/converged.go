@@ -202,6 +202,14 @@ type Operation[T any] interface {
 	Errors() []error
 }
 
+// VMConsoleToken holds the VNC console access credentials returned by
+// GenerateConsoleToken. Token is a JWT used for authentication and WsUri is the
+// relative WebSocket path to connect to the VM's VNC console.
+type VMConsoleToken struct {
+	Token string
+	WsUri string
+}
+
 // NoEntity is a placeholder for cases where no entity is returned (e.g. delete operations).
 type NoEntity any
 
