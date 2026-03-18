@@ -135,8 +135,8 @@ generate-v3-models: ## Generate V3 models using go-swagger
 
 generate-insights-client: ## Generate Nusights client & models using go-swagger
 	swagger generate client \
-		--spec=nusights-api/swagger.json \
-		--target=nusights-api
+		--spec=nusights/swagger.json \
+		--target=nusights
 
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
