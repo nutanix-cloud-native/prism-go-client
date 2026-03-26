@@ -18,7 +18,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"nusights-api/models"
+	"github.com/nutanix-cloud-native/prism-go-client/nusights/models"
 )
 
 // PutConfigDataReader is a Reader for the PutConfigData structure.

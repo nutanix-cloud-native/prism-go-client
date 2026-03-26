@@ -10,7 +10,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"nusights-api/client/config"
+	"github.com/nutanix-cloud-native/prism-go-client/nusights/client/config"
 )
 
 // Default nutanix insights r e s t a p is HTTP client.
