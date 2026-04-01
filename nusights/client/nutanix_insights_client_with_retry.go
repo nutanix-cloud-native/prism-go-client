@@ -7,13 +7,13 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-retryablehttp"
 
-	"nusights-api/client/config"
+	"github.com/nutanix-cloud-native/prism-go-client/nusights/client/config"
 )
 
 const (
 	defaultRetryMax     = 4
-	defaultRetryWaitMin = 1 * time.Second
-	defaultRetryWaitMax = 30 * time.Second
+	defaultRetryWaitMin = 10 * time.Second
+	defaultRetryWaitMax = 300 * time.Second
 )
 
 // RetryConfig holds retry and exponential backoff settings.

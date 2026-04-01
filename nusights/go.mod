@@ -1,4 +1,4 @@
-module nusights-api
+module github.com/nutanix-cloud-native/prism-go-client/nusights
 
 go 1.24.0
 

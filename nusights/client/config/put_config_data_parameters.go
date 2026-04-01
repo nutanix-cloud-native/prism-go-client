@@ -15,7 +15,7 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"nusights-api/models"
+	"github.com/nutanix-cloud-native/prism-go-client/nusights/models"
 )
 
 // NewPutConfigDataParams creates a new PutConfigDataParams object,
