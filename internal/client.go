@@ -475,6 +475,12 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}, retry
 			if err := c.refreshCookies(ctx); err != nil {
 				return err
 			}
+			if req.Body != nil && req.GetBody != nil {
+				req.Body, err = req.GetBody()
+				if err != nil {
+					return err
+				}
+			}
 			clearCookiesInRequest(req)
 			decorateRequestWithCookies(req, c.cookies)
 			return c.do(ctx, req, v, retryCount+1, maxRetries)
