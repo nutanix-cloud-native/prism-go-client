@@ -133,6 +133,11 @@ generate-v3-models: ## Generate V3 models using go-swagger
 		--model=idempotence_identifiers_response \
 		--model=idempotence_identifiers_status
 
+generate-insights-client: ## Generate Nusights client & models using go-swagger
+	swagger generate client \
+		--spec=nusights/swagger.json \
+		--target=nusights
+
 clean: ## Remove build related file
 	rm -fr ./bin vendor hack/tools/bin
 	rm -f checkstyle-report.xml ./coverage.out ./profile.cov yamllint-checkstyle.xml

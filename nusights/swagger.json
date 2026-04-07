@@ -1,0 +1,217 @@
+{
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Nutanix Insights REST API Services.",
+    "title": "Nutanix Insights REST APIs",
+    "contact": {
+      "email": "nutanix-insights-dev@nutanix.com"
+    },
+    "version": "1.0.0"
+  },
+  "host": "insights.nutanix.com",
+  "basePath": "/api/nutanix/insights/v1",
+  "paths": {
+    "/entities": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "config",
+          "put"
+        ],
+        "summary": "Send Config Entities to Nutanix Insights Telemetry platform.",
+        "operationId": "put_config_data",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/entities_collection"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Config data added successfully.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "All entities added to Kinesis/S3 successfully"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Failed to config data.",
+            "schema": {
+              "type": "object",
+              "allOf": [
+                {
+                  "required": [
+                    "config_list"
+                  ],
+                  "properties": {
+                    "entities": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/entity_error_object"
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "entities_collection": {
+      "description": "Details for input object for sending entities.",
+      "type": "object",
+      "title": "Input for  Entities API call.",
+      "required": [
+        "entities"
+      ],
+      "properties": {
+        "entities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/entity"
+          },
+          "x-go-name": "entities_list"
+        }
+      },
+      "additionalProperties": {
+        "description": "Additional attributes thats applicable to all entities can\nbe specified at top level. All those attributes will be added to every\nentity's attribute data Map. A max of 850 key, value pairs including\nglobal and per entity key-value pairs can be added.\n",
+        "type": "object",
+        "maxItems": 850
+      }
+    },
+    "entity": {
+      "description": "Details for each entity input object.",
+      "type": "object",
+      "title": "Input for Entities API call.",
+      "required": [
+        "entity_id",
+        "entity_type",
+        "timestamp_usecs"
+      ],
+      "properties": {
+        "created_timestamp_usecs": {
+          "description": "Timestamp in usecs when the entity was created.",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0,
+          "example": 1553721422000000
+        },
+        "deleted_timestamp_usecs": {
+          "description": "Timestamp in usecs when the entity was deleted.",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0,
+          "example": 1553721622000000
+        },
+        "entity_id": {
+          "description": "Entity Id of the entity being consumed.",
+          "type": "string",
+          "minLength": 1,
+          "example": "14cbe61c2-182e-43d6-bd4a-b04e8c02e5c1:1"
+        },
+        "entity_type": {
+          "description": "Type of the entity being consumed.",
+          "type": "string",
+          "minLength": 1,
+          "example": "vmms_taskstep"
+        },
+        "namespace": {
+          "description": "Entity Namespace. If not specified, 'default' namespace\nwill be used for entity.\n",
+          "type": "string",
+          "example": "vcenter"
+        },
+        "timestamp_usecs": {
+          "description": "Timestamp when the the entity is modified. This timestamp can be no\nmore than 5 minutes into future. If the client clock is incorrectly\nconfigured to a future time, the updates will be rejected by the API\n",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1468425246000000,
+          "example": 1553721622000000
+        }
+      },
+      "additionalProperties": {
+        "description": "Additional attributes thats applicable to a particular\nentity can be specified. These will be copied to entity\nattribute's data map.A max of 850 key, value pairs including\nglobal and per entity key-value pairs can be added.\n",
+        "type": "object",
+        "maxItems": 850
+      }
+    },
+    "entity_error_object": {
+      "description": "Details on which entities failed and error reason for each\nof them.\n",
+      "type": "object",
+      "title": "Error info for failed entity.",
+      "allOf": [
+        {
+          "required": [
+            "entity_type",
+            "entity_id"
+          ],
+          "properties": {
+            "entity_id": {
+              "type": "string"
+            },
+            "entity_type": {
+              "type": "string",
+              "example": "vmms_taskstep"
+            },
+            "namespace": {
+              "type": "string",
+              "example": "vcenter"
+            }
+          }
+        },
+        {
+          "$ref": "#/definitions/error"
+        }
+      ]
+    },
+    "error": {
+      "description": "Error object details for RPC failures",
+      "type": "object",
+      "properties": {
+        "error_details": {
+          "description": "Error string",
+          "type": "string"
+        },
+        "error_type": {
+          "description": "Error code for failure",
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "authorization",
+      "in": "header"
+    },
+    "X-Ntnx-Nusightsgui-Auth-Cookie": {
+      "type": "apiKey",
+      "name": "Cookie",
+      "in": "header"
+    }
+  }
+}

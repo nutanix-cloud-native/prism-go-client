@@ -23,6 +23,7 @@ import (
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
+	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
 	"k8s.io/utils/ptr"
 )
 
@@ -54,6 +55,8 @@ type Client struct {
 		imageModels.Template,
 		imageModels.Ova,
 		imageModels.FileDetail,
+		dpModels.ProtectionPolicy,
+		dpModels.RecoveryPlan,
 	]
 
 	client *v4prismGoClient.Client
@@ -94,6 +97,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			imageModels.Template,
 			imageModels.Ova,
 			imageModels.FileDetail,
+			dpModels.ProtectionPolicy,
+			dpModels.RecoveryPlan,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -108,6 +113,10 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			Users:                NewUsersService(v4sdkClient),
 			Templates:            NewTemplatesService(v4sdkClient),
 			Ovas:                 NewOvasService(v4sdkClient),
+			DataPolicies: converged.DataPolicies[dpModels.ProtectionPolicy, dpModels.RecoveryPlan]{
+				ProtectionPolicies: NewProtectionPoliciesService(v4sdkClient),
+				RecoveryPlans:      NewRecoveryPlansService(v4sdkClient),
+			},
 		},
 		client: v4sdkClient,
 	}

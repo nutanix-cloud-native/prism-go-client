@@ -222,7 +222,7 @@ type PatchK8sClusterRegistrationParams struct {
 	  Required: true
 	  In: body
 	*/
-	Body *K8sClusterKubeconfigUpdateRequest
+	Body *K8sClusterUpdateRequest
 	/*Kubernetes cluster registration UUID.
 	  Required: true
 	  In: path
@@ -230,13 +230,15 @@ type PatchK8sClusterRegistrationParams struct {
 	ID string
 }
 
-type K8sClusterKubeconfigUpdateRequest struct {
+// K8sClusterUpdateRequest k8s cluster update request
+type K8sClusterUpdateRequest struct {
 	// Base64 encoded kubeconfig YAML content
 	// Required: true
 	Kubeconfig *string `json:"kubeconfig"`
 }
 
-type K8sClusterKubeconfigUpdateResponse struct {
+// K8sClusterUpdateResponse k8s cluster update response
+type K8sClusterUpdateResponse struct {
 	// task uuid
 	// Required: true
 	TaskUUID *string `json:"task_uuid"`

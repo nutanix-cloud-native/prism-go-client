@@ -35,7 +35,9 @@ type Client[
 	User,
 	Template,
 	Ova,
-	OvaFile any] struct {
+	OvaFile,
+	ProtectionPolicy,
+	RecoveryPlan any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
@@ -49,7 +51,7 @@ type Client[
 	Users                Users[User]
 	Templates            Templates[Template]
 	Ovas                 Ovas[Ova, OvaFile]
-	// Additional service interfaces can be added here as needed.
+	DataPolicies         DataPolicies[ProtectionPolicy, RecoveryPlan]
 }
 
 // Getter is the interface for Get operations.
@@ -200,6 +202,14 @@ type Operation[T any] interface {
 	UUID() string
 	Status() TaskStatus
 	Errors() []error
+}
+
+// VMConsoleToken holds the VNC console access credentials returned by
+// GenerateConsoleToken. Token is a JWT used for authentication and WsUri is the
+// relative WebSocket path to connect to the VM's VNC console.
+type VMConsoleToken struct {
+	Token string
+	WsUri string
 }
 
 // NoEntity is a placeholder for cases where no entity is returned (e.g. delete operations).
