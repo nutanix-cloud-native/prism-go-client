@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/go-logr/logr/testr"
@@ -507,6 +508,62 @@ func TestDo_redirectLoop(t *testing.T) {
 	if err, ok := err.(*url.Error); !ok {
 		t.Errorf("Expected a URL error; got %#v.", err)
 	}
+}
+
+func TestDo_SessionAuthRetryResetsBodyBeforeRetry(t *testing.T) {
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	var projectCalls atomic.Int32
+	var usersMeCalls atomic.Int32
+
+	mux.HandleFunc("/api/nutanix/v3/users/me", func(w http.ResponseWriter, r *http.Request) {
+		call := usersMeCalls.Add(1)
+		w.Header().Add("Set-Cookie", fmt.Sprintf("session-id=%d; Path=/", call))
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprint(w, `{}`)
+	})
+
+	mux.HandleFunc("/api/nutanix/v3/projects/list", func(w http.ResponseWriter, r *http.Request) {
+		call := projectCalls.Add(1)
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		assert.Equal(t, 30, len(body))
+		if call == 1 {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = fmt.Fprint(w, `{"message":"unauthorized"}`)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprint(w, `{"metadata":{"total_matches":0,"offset":0},"entities":[]}`)
+	})
+
+	creds := &prismgoclient.Credentials{
+		URL:         server.URL,
+		Username:    "username",
+		Password:    "password",
+		Insecure:    true,
+		SessionAuth: true,
+	}
+	client, err := NewClient(
+		WithCredentials(creds),
+		WithUserAgent(testUserAgent),
+		WithAbsolutePath(testAbsolutePath),
+		WithBaseURL(creds.URL))
+	require.NoError(t, err)
+
+	req, err := client.NewRequest(http.MethodPost, "/projects/list", map[string]any{
+		"kind":   "project",
+		"length": 1,
+	})
+	require.NoError(t, err)
+
+	var result map[string]any
+	err = client.Do(context.Background(), req, &result)
+	require.NoError(t, err)
+	assert.Equal(t, int32(2), projectCalls.Load(), "second POST should reach server after body reset")
+	assert.GreaterOrEqual(t, usersMeCalls.Load(), int32(2), "cookie refresh should occur before retry")
 }
 
 // func TestDo_completion_callback(t *testing.T) {
