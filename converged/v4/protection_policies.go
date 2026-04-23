@@ -125,8 +125,8 @@ func (s *ProtectionPoliciesService) CreateAsync(ctx context.Context, policy *dpM
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.CreateProtectionPolicyApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.CreateProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {
@@ -163,8 +163,8 @@ func (s *ProtectionPoliciesService) UpdateAsync(ctx context.Context, uuid string
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.UpdateProtectionPolicyApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.UpdateProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {
@@ -191,12 +191,18 @@ func (s *ProtectionPoliciesService) DeleteAsync(ctx context.Context, uuid string
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.DeleteProtectionPolicyById(&uuid, nil)
+	_, args, err := GetEntityAndEtag(
+		s.client.ProtectionPoliciesApiInstance.GetProtectionPolicyById(&uuid, nil),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
+	}
+	resp, err := s.client.ProtectionPoliciesApiInstance.DeleteProtectionPolicyById(&uuid, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.DeleteProtectionPolicyApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.DeleteProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {

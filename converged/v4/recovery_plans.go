@@ -125,8 +125,8 @@ func (s *RecoveryPlansService) CreateAsync(ctx context.Context, plan *dpModels.R
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.CreateRecoveryPlanApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.CreateRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {
@@ -163,8 +163,8 @@ func (s *RecoveryPlansService) UpdateAsync(ctx context.Context, uuid string, pla
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.UpdateRecoveryPlanApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.UpdateRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {
@@ -191,12 +191,18 @@ func (s *RecoveryPlansService) DeleteAsync(ctx context.Context, uuid string) (co
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.DeleteRecoveryPlanById(&uuid, nil)
+	_, args, err := GetEntityAndEtag(
+		s.client.RecoveryPlansApiInstance.GetRecoveryPlanById(&uuid, nil),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
+	}
+	resp, err := s.client.RecoveryPlansApiInstance.DeleteRecoveryPlanById(&uuid, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
-	taskRef, err := CallAPI[*dpModels.DeleteRecoveryPlanApiResponse, *dpPrism.TaskReference](resp, err)
-	if err != nil || taskRef == nil {
+	taskRef, err := CallAPI[*dpModels.DeleteRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
+	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
 	if taskRef.ExtId == nil {
