@@ -23,6 +23,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
 )
@@ -157,39 +158,32 @@ func TestRecoveryPlansService_ErrorHandling(t *testing.T) {
 
 // TestRecoveryPlansService_UnsupportedODataOptions tests that apply and expand options are rejected.
 func TestRecoveryPlansService_UnsupportedODataOptions(t *testing.T) {
-	creds := testhelpers.CredentialsFromEnvironment(t)
-	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
-		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
-	}
-
-	client, err := NewClient(creds)
-	require.NoError(t, err)
-	require.NotNil(t, client)
-
+	service := NewRecoveryPlansService(&v4prismGoClient.Client{})
+	require.NotNil(t, service)
 	ctx := context.Background()
 
 	t.Run("List_WithExpand", func(t *testing.T) {
-		_, err := client.DataPolicies.RecoveryPlans.List(ctx, converged.WithExpand("config"))
+		_, err := service.List(ctx, converged.WithExpand("config"))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "apply and expand options are not supported for listing")
 		assert.Contains(t, err.Error(), "recovery plan")
 	})
 
 	t.Run("List_WithApply", func(t *testing.T) {
-		_, err := client.DataPolicies.RecoveryPlans.List(ctx, converged.WithApply("groupby((extId))"))
+		_, err := service.List(ctx, converged.WithApply("groupby((extId))"))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "apply and expand options are not supported for listing")
 		assert.Contains(t, err.Error(), "recovery plan")
 	})
 
 	t.Run("List_WithExpandAndLimit", func(t *testing.T) {
-		_, err := client.DataPolicies.RecoveryPlans.List(ctx, converged.WithExpand("config"), converged.WithLimit(5))
+		_, err := service.List(ctx, converged.WithExpand("config"), converged.WithLimit(5))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "apply and expand options are not supported for listing")
 	})
 
 	t.Run("NewIterator_WithExpand", func(t *testing.T) {
-		iter := client.DataPolicies.RecoveryPlans.NewIterator(ctx, converged.WithExpand("config"))
+		iter := service.NewIterator(ctx, converged.WithExpand("config"))
 		require.NotNil(t, iter)
 
 		var gotError error
@@ -202,7 +196,7 @@ func TestRecoveryPlansService_UnsupportedODataOptions(t *testing.T) {
 	})
 
 	t.Run("NewIterator_WithApply", func(t *testing.T) {
-		iter := client.DataPolicies.RecoveryPlans.NewIterator(ctx, converged.WithApply("groupby((extId))"))
+		iter := service.NewIterator(ctx, converged.WithApply("groupby((extId))"))
 		require.NotNil(t, iter)
 
 		var gotError error
