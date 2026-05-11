@@ -570,3 +570,38 @@ func (s *VMsService) GenerateConsoleTokenAsync(uuid string) (converged.Operation
 		},
 	), nil
 }
+
+// ListNicsByVmId lists the NICs attached to the VM with the given UUID.
+// The dedicated NIC listing endpoint reliably returns network info including
+// learned IP addresses, which may not be populated in the VM GET response.
+func (s *VMsService) ListNicsByVmId(ctx context.Context, vmUUID string) ([]vmmModels.Nic, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	resp, err := s.client.VmApiInstance.ListNicsByVmId(&vmUUID, nil, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list NICs for VM %s: %w", vmUUID, err)
+	}
+	if resp == nil || resp.Data == nil {
+		return nil, nil
+	}
+	data := resp.Data.GetValue()
+	if data == nil {
+		return nil, nil
+	}
+	nics, ok := data.([]vmmModels.Nic)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for ListNicsByVmId response data: %T", data)
+	}
+	return nics, nil
+}
+
+// ListNicsByVmId lists the NICs attached to the VM with the given UUID.
+// This is a convenience method that delegates to the underlying VMsService.
+func (c *Client) ListNicsByVmId(ctx context.Context, vmUUID string) ([]vmmModels.Nic, error) {
+	vmsService, ok := c.VMs.(*VMsService)
+	if !ok {
+		return nil, fmt.Errorf("VMs service does not support ListNicsByVmId")
+	}
+	return vmsService.ListNicsByVmId(ctx, vmUUID)
+}

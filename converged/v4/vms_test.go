@@ -397,3 +397,118 @@ func TestVMsGenerateConsoleTokenIntegration(t *testing.T) {
 		assert.True(t, operation.IsSuccess(), "operation should be successful")
 	})
 }
+
+// TestVMsListNicsByVmId_NilClient tests nil client error handling for ListNicsByVmId
+func TestVMsListNicsByVmId_NilClient(t *testing.T) {
+	service := NewVMsService(nil)
+	require.NotNil(t, service)
+	ctx := context.Background()
+
+	t.Run("ListNicsByVmId", func(t *testing.T) {
+		_, err := service.ListNicsByVmId(ctx, "test-vm-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+}
+
+// TestVMsListNicsByVmId_ClientConvenienceMethod tests the Client.ListNicsByVmId convenience method
+func TestVMsListNicsByVmId_ClientConvenienceMethod(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	t.Run("DelegatesToVMsService", func(t *testing.T) {
+		_, err := client.ListNicsByVmId(ctx, "00000000-0000-0000-0000-000000000000")
+		assert.Error(t, err)
+	})
+}
+
+// TestVMsListNicsByVmIdErrorScenarios tests ListNicsByVmId with invalid and non-existent UUIDs
+func TestVMsListNicsByVmIdErrorScenarios(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	t.Run("InvalidVMUUID", func(t *testing.T) {
+		_, err := client.ListNicsByVmId(ctx, "invalid-uuid")
+		assert.Error(t, err)
+	})
+
+	t.Run("NonExistentVMUUID", func(t *testing.T) {
+		nonExistentUUID := "00000000-0000-0000-0000-000000000000"
+		_, err := client.ListNicsByVmId(ctx, nonExistentUUID)
+		assert.Error(t, err)
+	})
+
+	t.Run("NoPanic", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			_, _ = client.ListNicsByVmId(ctx, "")
+		})
+	})
+}
+
+// TestVMsListNicsByVmIdIntegration tests ListNicsByVmId with real Nutanix API calls
+func TestVMsListNicsByVmIdIntegration(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	vms, err := client.VMs.List(ctx)
+	require.NoError(t, err)
+
+	var vmUUID string
+	for _, vm := range vms {
+		if vm.ExtId != nil && len(vm.Nics) > 0 {
+			vmUUID = *vm.ExtId
+			break
+		}
+	}
+
+	if vmUUID == "" {
+		t.Skip("No VM with NICs found for testing")
+	}
+
+	t.Logf("Testing ListNicsByVmId on VM %s", vmUUID)
+
+	t.Run("ListNicsByVmId_VMsService", func(t *testing.T) {
+		vmsService, ok := client.VMs.(*VMsService)
+		require.True(t, ok)
+
+		nics, err := vmsService.ListNicsByVmId(ctx, vmUUID)
+		if err != nil && strings.Contains(err.Error(), "not authorized") {
+			t.Skipf("Skipping: user not authorized for ListNicsByVmId on VM %s", vmUUID)
+		}
+		assert.NoError(t, err)
+		assert.NotEmpty(t, nics, "VM should have at least one NIC")
+	})
+
+	t.Run("ListNicsByVmId_Client", func(t *testing.T) {
+		nics, err := client.ListNicsByVmId(ctx, vmUUID)
+		if err != nil && strings.Contains(err.Error(), "not authorized") {
+			t.Skipf("Skipping: user not authorized for ListNicsByVmId on VM %s", vmUUID)
+		}
+		assert.NoError(t, err)
+		assert.NotEmpty(t, nics, "VM should have at least one NIC")
+	})
+}
