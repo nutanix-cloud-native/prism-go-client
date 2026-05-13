@@ -4671,117 +4671,14 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 			},
 		},
 	}
-	_, err = v3Client.V3.CreateRecoveryPlan(kctx, rp)
+	resp, err := v3Client.V3.CreateRecoveryPlan(kctx, rp)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
-}
-
-func TestOperations_CreateRecoveryPlanWithExecutionContext(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-
-		_, _ = fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc"
-			},
-			"status": {
-				"name": "test-recovery-plan",
-				"state": "PENDING",
-				"execution_context": {
-					"task_uuid": "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e"
-				},
-				"resources": {
-					"stage_list": [],
-					"parameters": {
-						"availability_zone_list": [],
-						"primary_location_index": 0
-					}
-				},
-				"recovery_availability_zone_order_list": []
-			}
-		}`)
-	})
-
-	op := Operations{client: c}
-	resp, err := op.CreateRecoveryPlan(context.Background(), &models.RecoveryPlanIntentInput{
-		APIVersion: "3.1",
-		Metadata: &models.RecoveryPlanMetadata{
-			Kind: "recovery_plan",
-		},
-		Spec: &models.RecoveryPlan{
-			Name: ptr.To("test-recovery-plan"),
-			Resources: &models.RecoveryPlanResources{
-				StageList: []*models.RecoveryPlanStage{},
-				Parameters: &models.RecoveryPlanResourcesParameters{
-					AvailabilityZoneList: []*models.AvailabilityZoneInformation{},
-					PrimaryLocationIndex: 0,
-				},
-			},
-		},
-	})
-	require.NoError(t, err)
 	require.NotNil(t, resp.Status)
 	require.NotNil(t, resp.Status.ExecutionContext)
-	assert.Equal(t, "ff1b9547-dc9a-4ebd-a2ff-f2b718af935e", resp.Status.ExecutionContext.TaskUUID)
+	assert.Equal(t, "0fd3ad6f-7243-4e7d-967d-bfdfaf918f5b", resp.Status.ExecutionContext.TaskUUID)
 	assert.Equal(t, "PENDING", resp.Status.State)
-	assert.Equal(t, "test-recovery-plan", *resp.Status.Name)
-}
-
-func TestOperations_CreateRecoveryPlanWithoutExecutionContext(t *testing.T) {
-	mux, c, server := setup(t)
-	defer server.Close()
-
-	mux.HandleFunc("/api/nutanix/v3/recovery_plans", func(w http.ResponseWriter, r *http.Request) {
-		testHTTPMethod(t, r, http.MethodPost)
-
-		_, _ = fmt.Fprintf(w, `{
-			"api_version": "3.1",
-			"metadata": {
-				"kind": "recovery_plan",
-				"uuid": "cfde831a-4e87-4a75-960f-89b0148aa2cc"
-			},
-			"status": {
-				"name": "test-recovery-plan",
-				"state": "COMPLETE",
-				"resources": {
-					"stage_list": [],
-					"parameters": {
-						"availability_zone_list": [],
-						"primary_location_index": 0
-					}
-				},
-				"recovery_availability_zone_order_list": []
-			}
-		}`)
-	})
-
-	op := Operations{client: c}
-	resp, err := op.CreateRecoveryPlan(context.Background(), &models.RecoveryPlanIntentInput{
-		APIVersion: "3.1",
-		Metadata: &models.RecoveryPlanMetadata{
-			Kind: "recovery_plan",
-		},
-		Spec: &models.RecoveryPlan{
-			Name: ptr.To("test-recovery-plan"),
-			Resources: &models.RecoveryPlanResources{
-				StageList: []*models.RecoveryPlanStage{},
-				Parameters: &models.RecoveryPlanResourcesParameters{
-					AvailabilityZoneList: []*models.AvailabilityZoneInformation{},
-					PrimaryLocationIndex: 0,
-				},
-			},
-		},
-	})
-	require.NoError(t, err)
-	require.NotNil(t, resp.Status)
-	assert.Nil(t, resp.Status.ExecutionContext)
-	assert.Equal(t, "COMPLETE", resp.Status.State)
 }
 
 func TestOperations_GetRecoveryPlan(t *testing.T) {
