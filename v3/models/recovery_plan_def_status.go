@@ -25,6 +25,9 @@ type RecoveryPlanDefStatus struct {
 	// A description or user annotation for the Recovery Plan.
 	Description string `json:"description,omitempty"`
 
+	// execution context
+	ExecutionContext *ExecutionContext `json:"execution_context,omitempty"`
+
 	// Time when latest test was done for Recovery Plan.
 	// Format: date-time
 	LatestTestTime strfmt.DateTime `json:"latest_test_time,omitempty"`
@@ -51,6 +54,11 @@ type RecoveryPlanDefStatus struct {
 
 	// The state of the Recovery Plan entity.
 	State string `json:"state,omitempty"`
+}
+
+// ExecutionContext represents the execution context returned by async V3 API operations.
+type ExecutionContext struct {
+	TaskUUID interface{} `json:"task_uuid,omitempty"`
 }
 
 // Validate validates this recovery plan def status

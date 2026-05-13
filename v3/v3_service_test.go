@@ -4671,10 +4671,14 @@ func TestOperations_CreateRecoveryPlan(t *testing.T) {
 			},
 		},
 	}
-	_, err = v3Client.V3.CreateRecoveryPlan(kctx, rp)
+	resp, err := v3Client.V3.CreateRecoveryPlan(kctx, rp)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
+	require.NotNil(t, resp.Status)
+	require.NotNil(t, resp.Status.ExecutionContext)
+	assert.Equal(t, "0fd3ad6f-7243-4e7d-967d-bfdfaf918f5b", resp.Status.ExecutionContext.TaskUUID)
+	assert.Equal(t, "PENDING", resp.Status.State)
 }
 
 func TestOperations_GetRecoveryPlan(t *testing.T) {
