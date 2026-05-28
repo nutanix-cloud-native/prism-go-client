@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
@@ -153,7 +154,7 @@ func TestGetOrCreateEmptyUsernameValidation(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, client)
-	assert.Contains(t, err.Error(), "API credentials username is empty for cachedClientParams with key test-client")
+	assert.Contains(t, err.Error(), "API credentials(either username and password or API key) is required for authentication")
 }
 
 func TestGetOrCreateEmptyPasswordValidation(t *testing.T) {
@@ -173,7 +174,7 @@ func TestGetOrCreateEmptyPasswordValidation(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, client)
-	assert.Contains(t, err.Error(), "API credentials password is empty for cachedClientParams with key test-client")
+	assert.Contains(t, err.Error(), "API credentials(either username and password or API key) is required for authentication")
 }
 
 func TestValidateManagementEndpoint(t *testing.T) {
@@ -222,32 +223,6 @@ func TestValidateManagementEndpoint(t *testing.T) {
 			key:     "test-key",
 			wantErr: true,
 			errMsg:  "management endpoint address host is empty for cachedClientParams with key test-key",
-		},
-		{
-			name: "empty username",
-			endpoint: types.ManagementEndpoint{
-				ApiCredentials: types.ApiCredentials{
-					Username: "",
-					Password: "testpass",
-				},
-				Address: &url.URL{Host: "test.com"},
-			},
-			key:     "test-key",
-			wantErr: true,
-			errMsg:  "API credentials username is empty for cachedClientParams with key test-key",
-		},
-		{
-			name: "empty password",
-			endpoint: types.ManagementEndpoint{
-				ApiCredentials: types.ApiCredentials{
-					Username: "testuser",
-					Password: "",
-				},
-				Address: &url.URL{Host: "test.com"},
-			},
-			key:     "test-key",
-			wantErr: true,
-			errMsg:  "API credentials password is empty for cachedClientParams with key test-key",
 		},
 	}
 
@@ -323,4 +298,58 @@ wFZUTKiL8IkyhtyTMr5NGvo1dbU=
 	assert.False(t, c.TasksApiInstance.ApiClient.VerifySSL)
 	assert.False(t, c.VolumeGroupsApiInstance.ApiClient.VerifySSL)
 	assert.False(t, c.VmApiInstance.ApiClient.VerifySSL)
+}
+
+func TestValidateCredentials(t *testing.T) {
+	tests := []struct {
+		name        string
+		credentials prismgoclient.Credentials
+		key         string
+		wantErr     string
+	}{
+		{
+			name: "valid basic auth credentials",
+			credentials: prismgoclient.Credentials{
+				Username: "testuser",
+				Password: "testpass",
+			},
+			key:     "test-key-basic",
+			wantErr: "",
+		},
+		{
+			name: "valid api key credentials",
+			credentials: prismgoclient.Credentials{
+				APIKey: "test-api-key",
+			},
+			key:     "test-key-api",
+			wantErr: "",
+		},
+		{
+			name: "missing username for basic auth",
+			credentials: prismgoclient.Credentials{
+				Password: "testpass",
+			},
+			key:     "test-key-missing-username",
+			wantErr: "API credentials(either username and password or API key) is required for authentication in cachedClientParams with key test-key-missing-username",
+		},
+		{
+			name: "missing password for basic auth",
+			credentials: prismgoclient.Credentials{
+				Username: "testuser",
+			},
+			key:     "test-key-missing-password",
+			wantErr: "API credentials(either username and password or API key) is required for authentication in cachedClientParams with key test-key-missing-password",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCredentials(tt.credentials, tt.key)
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tt.wantErr)
+			}
+		})
+	}
 }

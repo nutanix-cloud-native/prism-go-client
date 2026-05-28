@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 )
 
 func TestNewClientCacheReturnsNewCache(t *testing.T) {
@@ -156,7 +157,7 @@ func TestGetOrCreateEmptyUsernameValidation(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, client)
-	assert.Contains(t, err.Error(), "API credentials username is empty for cachedClientParams with key test-client")
+	assert.Contains(t, err.Error(), "API credentials(either username and password or API key) is required for authentication")
 }
 
 // Test GetOrCreate defensive programming - empty Password validation
@@ -177,7 +178,7 @@ func TestGetOrCreateEmptyPasswordValidation(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, client)
-	assert.Contains(t, err.Error(), "API credentials password is empty for cachedClientParams with key test-client")
+	assert.Contains(t, err.Error(), "API credentials(either username and password or API key) is required for authentication")
 }
 
 // Test GetOrCreate defensive programming - all validations pass
@@ -226,6 +227,18 @@ func TestValidateManagementEndpoint(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "valid endpoint with api key",
+			endpoint: types.ManagementEndpoint{
+				ApiCredentials: types.ApiCredentials{
+					APIKey: "test-api-key",
+				},
+				Address:  &url.URL{Host: "test.com"},
+				Insecure: true,
+			},
+			key:     "test-key",
+			wantErr: false,
+		},
+		{
 			name: "nil address",
 			endpoint: types.ManagementEndpoint{
 				ApiCredentials: types.ApiCredentials{
@@ -251,32 +264,6 @@ func TestValidateManagementEndpoint(t *testing.T) {
 			wantErr: true,
 			errMsg:  "management endpoint address host is empty for cachedClientParams with key test-key",
 		},
-		{
-			name: "empty username",
-			endpoint: types.ManagementEndpoint{
-				ApiCredentials: types.ApiCredentials{
-					Username: "",
-					Password: "testpass",
-				},
-				Address: &url.URL{Host: "test.com"},
-			},
-			key:     "test-key",
-			wantErr: true,
-			errMsg:  "API credentials username is empty for cachedClientParams with key test-key",
-		},
-		{
-			name: "empty password",
-			endpoint: types.ManagementEndpoint{
-				ApiCredentials: types.ApiCredentials{
-					Username: "testuser",
-					Password: "",
-				},
-				Address: &url.URL{Host: "test.com"},
-			},
-			key:     "test-key",
-			wantErr: true,
-			errMsg:  "API credentials password is empty for cachedClientParams with key test-key",
-		},
 	}
 
 	for _, tt := range tests {
@@ -287,6 +274,60 @@ func TestValidateManagementEndpoint(t *testing.T) {
 				assert.Equal(t, tt.errMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateCredentials(t *testing.T) {
+	tests := []struct {
+		name        string
+		credentials prismgoclient.Credentials
+		key         string
+		wantErr     string
+	}{
+		{
+			name: "valid basic auth credentials",
+			credentials: prismgoclient.Credentials{
+				Username: "testuser",
+				Password: "testpass",
+			},
+			key:     "key1",
+			wantErr: "",
+		},
+		{
+			name: "valid api key credentials",
+			credentials: prismgoclient.Credentials{
+				APIKey: "test-api-key",
+			},
+			key:     "key2",
+			wantErr: "",
+		},
+		{
+			name: "missing username for basic auth",
+			credentials: prismgoclient.Credentials{
+				Password: "testpass",
+			},
+			key:     "key3",
+			wantErr: "API credentials(either username and password or API key) is required for authentication in cachedClientParams with key key3",
+		},
+		{
+			name: "missing password for basic auth",
+			credentials: prismgoclient.Credentials{
+				Username: "testuser",
+			},
+			key:     "key4",
+			wantErr: "API credentials(either username and password or API key) is required for authentication in cachedClientParams with key key4",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCredentials(tt.credentials, tt.key)
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tt.wantErr)
 			}
 		})
 	}

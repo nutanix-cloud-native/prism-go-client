@@ -15,6 +15,7 @@ func TestApiCredentials(t *testing.T) {
 			Username: "testuser",
 			Password: "testpass",
 			KeyPair:  "testkeypair",
+			APIKey:   "test-api-key",
 		}
 
 		data, err := json.Marshal(creds)
@@ -27,6 +28,7 @@ func TestApiCredentials(t *testing.T) {
 		assert.Equal(t, creds.Username, decoded.Username)
 		assert.Equal(t, creds.Password, decoded.Password)
 		assert.Equal(t, creds.KeyPair, decoded.KeyPair)
+		assert.Equal(t, creds.APIKey, decoded.APIKey)
 	})
 
 	t.Run("JSON serialization with empty fields", func(t *testing.T) {
@@ -42,6 +44,7 @@ func TestApiCredentials(t *testing.T) {
 		assert.Empty(t, decoded.Username)
 		assert.Empty(t, decoded.Password)
 		assert.Empty(t, decoded.KeyPair)
+		assert.Empty(t, decoded.APIKey)
 	})
 }
 

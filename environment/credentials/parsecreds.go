@@ -29,6 +29,17 @@ func ParseCredentials(credsData []byte) (*types.ApiCredentials, error) {
 				Username: pc.Username,
 				Password: pc.Password,
 			}, nil
+		case APIKeyCredentialType:
+			apiKeyCreds := APIKeyCredential{}
+			if err := json.Unmarshal(cred.Data, &apiKeyCreds); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal the api key data. %w", err)
+			}
+			if apiKeyCreds.PrismCentral.APIKey == "" {
+				return nil, fmt.Errorf("the PrismCentral api key data is not set")
+			}
+			return &types.ApiCredentials{
+				APIKey: apiKeyCreds.PrismCentral.APIKey,
+			}, nil
 		default:
 			return nil, fmt.Errorf("unsupported credentials type: %v", cred.Type)
 		}

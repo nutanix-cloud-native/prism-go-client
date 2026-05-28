@@ -25,6 +25,8 @@ type ApiCredentials struct {
 	Password string `json:"password,omitempty"`
 	// KeyPair is JSON-encoded key pair for TLS client authentication
 	KeyPair string `json:"keyPair,omitempty"`
+	// APIKey for API key authentication
+	APIKey string `json:"apiKey,omitempty"`
 }
 
 // ManagementEndpoint specifies API endpoint used for interacting with underlying
