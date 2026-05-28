@@ -24,7 +24,7 @@
             vendorHash = "sha256-LHRd8Q/v3ceFOqULsTtphfd4xBsz3XBG4Rkmn3Ty6CE=";
           };
 
-          keploy = buildGo121Module {
+          keploy = buildGoModule {
             name = "keploy-server";
             src = fetchFromGitHub {
               owner = "keploy";
@@ -43,7 +43,8 @@
               ./keploy/fix-go-version-error.patch
             ];
             buildPhase = ''
-                go build -o keploy-server ./cmd/server
+                # Force UUID load command in Mach-O binary for newer macOS dyld.
+                go build -ldflags="-linkmode=external" -o keploy-server ./cmd/server
             '';
             installPhase = ''
                 mkdir -p $out/bin
