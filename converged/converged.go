@@ -33,6 +33,9 @@ type Client[
 	VmAttachment,
 	DomainManagerEntity,
 	User,
+	Role,
+	AuthorizationPolicy,
+	AuthorizationPolicyProjection,
 	Template,
 	Ova,
 	OvaFile,
@@ -49,6 +52,8 @@ type Client[
 	VolumeGroups         VolumeGroups[VolumeGroup, VmAttachment]
 	DomainManager        DomainManager[DomainManagerEntity]
 	Users                Users[User]
+	Roles                Roles[Role]
+	AuthorizationPolicies AuthorizationPolicies[AuthorizationPolicy, AuthorizationPolicyProjection]
 	Templates            Templates[Template]
 	Ovas                 Ovas[Ova, OvaFile]
 	DataPolicies         DataPolicies[ProtectionPolicy, RecoveryPlan]

@@ -89,3 +89,19 @@ func (s *UsersService) NewIterator(ctx context.Context, opts ...converged.ODataO
 		s.entitiesName,
 	)
 }
+
+// Create creates a new user.
+func (s *UsersService) Create(ctx context.Context, entity *iamModels.User) (*iamModels.User, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	newUser, err := CallAPI[*iamModels.CreateUserApiResponse, iamModels.User](
+		s.client.UsersApiInstance.CreateUser(entity),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return &newUser, nil
+}

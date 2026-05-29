@@ -22,6 +22,8 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+
+	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
 )
 
 // TestUsersIntegration tests the client.Users with real Nutanix API calls
@@ -82,6 +84,13 @@ func TestUsersService_ErrorHandling(t *testing.T) {
 
 	t.Run("List_NilClient", func(t *testing.T) {
 		_, err := service.List(ctx)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("Create_ValidUser_NilClient", func(t *testing.T) {
+		user := iamModels.NewUser()
+		_, err := service.Create(ctx, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})

@@ -15,6 +15,7 @@ import (
 
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
+	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
@@ -52,6 +53,9 @@ type Client struct {
 		volumeModels.VmAttachment,
 		prismModels.DomainManager,
 		iamModels.User,
+		iamAuthzModels.Role,
+		iamAuthzModels.AuthorizationPolicy,
+		iamAuthzModels.AuthorizationPolicyProjection,
 		imageModels.Template,
 		imageModels.Ova,
 		imageModels.FileDetail,
@@ -94,25 +98,30 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			volumeModels.VmAttachment,
 			prismModels.DomainManager,
 			iamModels.User,
+			iamAuthzModels.Role,
+			iamAuthzModels.AuthorizationPolicy,
+			iamAuthzModels.AuthorizationPolicyProjection,
 			imageModels.Template,
 			imageModels.Ova,
 			imageModels.FileDetail,
 			dpModels.ProtectionPolicy,
 			dpModels.RecoveryPlan,
 		]{
-			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
-			Clusters:             NewClustersService(v4sdkClient),
-			Categories:           NewCategoriesService(v4sdkClient),
-			Images:               NewImagesService(v4sdkClient),
-			StorageContainers:    NewStorageContainersService(v4sdkClient),
-			Subnets:              NewSubnetsService(v4sdkClient),
-			VMs:                  NewVMsService(v4sdkClient),
-			Tasks:                NewTasksService(v4sdkClient),
-			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
-			DomainManager:        NewDomainManagerService(v4sdkClient),
-			Users:                NewUsersService(v4sdkClient),
-			Templates:            NewTemplatesService(v4sdkClient),
-			Ovas:                 NewOvasService(v4sdkClient),
+			AntiAffinityPolicies:  NewAntiAffinityPoliciesService(v4sdkClient),
+			Clusters:              NewClustersService(v4sdkClient),
+			Categories:            NewCategoriesService(v4sdkClient),
+			Images:                NewImagesService(v4sdkClient),
+			StorageContainers:     NewStorageContainersService(v4sdkClient),
+			Subnets:               NewSubnetsService(v4sdkClient),
+			VMs:                   NewVMsService(v4sdkClient),
+			Tasks:                 NewTasksService(v4sdkClient),
+			VolumeGroups:          NewVolumeGroupsService(v4sdkClient),
+			DomainManager:         NewDomainManagerService(v4sdkClient),
+			Users:                 NewUsersService(v4sdkClient),
+			Roles:                 NewRolesService(v4sdkClient),
+			AuthorizationPolicies: NewAuthorizationPoliciesService(v4sdkClient),
+			Templates:             NewTemplatesService(v4sdkClient),
+			Ovas:                  NewOvasService(v4sdkClient),
 			DataPolicies: converged.DataPolicies[dpModels.ProtectionPolicy, dpModels.RecoveryPlan]{
 				ProtectionPolicies: NewProtectionPoliciesService(v4sdkClient),
 				RecoveryPlans:      NewRecoveryPlansService(v4sdkClient),

@@ -7,4 +7,7 @@ type Users[User any] interface {
 
 	// Lister is the interface for List operations.
 	Lister[User]
+
+	// Creator is the interface for Create operations.
+	Creator[User]
 }

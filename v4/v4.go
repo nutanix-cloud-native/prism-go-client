@@ -72,6 +72,8 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
+	RolesApiInstance                  *iamApi.RolesApi
+	AuthorizationPoliciesApiInstance  *iamApi.AuthorizationPoliciesApi
 	ProtectionPoliciesApiInstance *datapoliciesApi.ProtectionPoliciesApi
 	RecoveryPlansApiInstance     *datapoliciesApi.RecoveryPlansApi
 	readTimeout                   time.Duration
@@ -138,6 +140,14 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 
 	if err := initUsersApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
+	}
+
+	if err := initRolesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Roles API instance: %v", err)
+	}
+
+	if err := initAuthorizationPoliciesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Authorization Policies API instance: %v", err)
 	}
 
 	if err := initDataPoliciesApiInstance(v4Client, credentials); err != nil {
@@ -274,6 +284,34 @@ func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
+	return nil
+}
+
+func initRolesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.RolesApiInstance = iamApi.NewRolesApi(apiClientInstance)
+	return nil
+}
+
+func initAuthorizationPoliciesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.AuthorizationPoliciesApiInstance = iamApi.NewAuthorizationPoliciesApi(apiClientInstance)
 	return nil
 }
 

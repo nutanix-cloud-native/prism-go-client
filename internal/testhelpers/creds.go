@@ -26,11 +26,12 @@ const (
 )
 
 type prismCentral struct {
-	Endpoint              string `yaml:"endpoint"`
-	Port                  string `yaml:"port"`
-	Username              string `yaml:"username"`
-	Password              string `yaml:"password"`
-	Insecure              bool   `yaml:"insecure"`
+	Endpoint           string `yaml:"endpoint"`
+	Port               string `yaml:"port"`
+	Username           string `yaml:"username"`
+	Password           string `yaml:"password"`
+	APIKey             string `yaml:"apiKey"`
+	Insecure           bool   `yaml:"insecure"`
 	AdditionalTrustBundle string `yaml:"additionalTrustBundle"`
 }
 
@@ -104,6 +105,7 @@ func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
 		Endpoint: endpoint.Address.Host,
 		Port:     endpoint.Address.Port(),
 		URL:      endpoint.Address.String(),
+		APIKey:   endpoint.APIKey,
 		Username: endpoint.Username,
 		Password: endpoint.Password,
 		Insecure: endpoint.Insecure,
@@ -123,6 +125,7 @@ func ManagementEndpointFromEnvironment(t *testing.T) *types.ManagementEndpoint {
 	t.Setenv("NUTANIX_PORT", conf.PrismCentral.Port)
 	t.Setenv("NUTANIX_USERNAME", conf.PrismCentral.Username)
 	t.Setenv("NUTANIX_PASSWORD", conf.PrismCentral.Password)
+	t.Setenv("NUTANIX_API_KEY", conf.PrismCentral.APIKey)
 	t.Setenv("NUTANIX_INSECURE", strconv.FormatBool(conf.PrismCentral.Insecure))
 	endpoint, err := local.NewProvider().GetManagementEndpoint(nil)
 	require.NoError(t, err)
