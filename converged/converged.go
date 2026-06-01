@@ -36,6 +36,7 @@ type Client[
 	Role,
 	AuthorizationPolicy,
 	AuthorizationPolicyProjection,
+	Operation,
 	Template,
 	Ova,
 	OvaFile,
@@ -54,6 +55,7 @@ type Client[
 	Users                Users[User]
 	Roles                Roles[Role]
 	AuthorizationPolicies AuthorizationPolicies[AuthorizationPolicy, AuthorizationPolicyProjection]
+	Operations           Operations[Operation]
 	Templates            Templates[Template]
 	Ovas                 Ovas[Ova, OvaFile]
 	DataPolicies         DataPolicies[ProtectionPolicy, RecoveryPlan]

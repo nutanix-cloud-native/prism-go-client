@@ -114,7 +114,14 @@ func (s *AuthorizationPoliciesService) Delete(ctx context.Context, uuid string) 
 		return errors.New("client is not initialized")
 	}
 
-	_, err := s.client.AuthorizationPoliciesApiInstance.DeleteAuthorizationPolicyById(&uuid, nil)
+	_, args, err := GetEntityAndEtag(
+		s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(&uuid),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get authorization policy with UUID %s: %w", uuid, err)
+	}
+
+	_, err = s.client.AuthorizationPoliciesApiInstance.DeleteAuthorizationPolicyById(&uuid, args)
 	if err != nil {
 		return fmt.Errorf("failed to delete authorization policy with UUID %s: %w", uuid, err)
 	}

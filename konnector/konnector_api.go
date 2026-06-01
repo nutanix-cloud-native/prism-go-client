@@ -5,7 +5,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"net/http"
-	"strings"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal"
@@ -67,11 +66,17 @@ func WithPEMEncodedCertBundle(certBundle []byte) ClientOption {
 
 // NewKonnectorAPIClient return a internal to operate Konnector resources
 func NewKonnectorAPIClient(credentials prismgoclient.Credentials, opts ...ClientOption) (*Client, error) {
-	if credentials.URL == "" || credentials.Username == "" || credentials.Password == "" {
-		return nil, fmt.Errorf("konnector Client is missing: %s %s",
-			"Please provide required details - %s in provider configuration",
-			strings.Join(credentials.RequiredFields[clientName], ", "))
+	if credentials.URL == "" {
+		return nil, fmt.Errorf("konnector client creation failed: " +
+			"Please provide required details - Prism Central URL in provider configuration")
 	}
+	
+
+	if credentials.APIKey == "" && (credentials.Username == "" || credentials.Password == "") {
+		return nil, fmt.Errorf("konnector client creation failed: " +
+			"Please provide required details - either API Key or Username and Password in provider configuration")
+	}
+
 	kc := &Client{
 		clientOpts: []internal.ClientOption{
 			internal.WithCredentials(&credentials),

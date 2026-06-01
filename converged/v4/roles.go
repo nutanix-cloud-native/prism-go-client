@@ -111,11 +111,13 @@ func (s *RolesService) Delete(ctx context.Context, uuid string) error {
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
-
-	_, err := s.client.RolesApiInstance.DeleteRoleById(&uuid, nil)
+	_, args, err := GetEntityAndEtag(
+		s.client.RolesApiInstance.GetRoleById(&uuid),
+	)
 	if err != nil {
-		return fmt.Errorf("failed to delete role with UUID %s: %w", uuid, err)
+		return fmt.Errorf("failed to get role with UUID %s: %w", uuid, err)
 	}
 
-	return nil
+	_, err = s.client.RolesApiInstance.DeleteRoleById(&uuid, args)
+	return err
 }
