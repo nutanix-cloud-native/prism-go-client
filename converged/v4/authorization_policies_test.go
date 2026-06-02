@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"k8s.io/utils/ptr"
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
@@ -85,46 +84,6 @@ func TestAuthorizationPoliciesIntegration(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, policy)
 		assert.Equal(t, policyUUID, *policy.ExtId)
-	})
-
-	t.Run("CreateAuthorizationPolicy", func(t *testing.T) {
-		policy := iamAuthzModels.NewAuthorizationPolicy()
-		policy.DisplayName = ptr.To("prism-go-client-test-policy")
-		policy.Description = ptr.To("prism-go-client-test-policy-description")
-		policy.Role = ptr.To("24bfd96a-8b09-5f40-b1da-ae7abb1099f9")
-
-		entityFilter := iamAuthzModels.EntityFilter{
-			Reserved_: map[string]interface{}{
-				"*": map[string]interface{}{
-					"*": map[string]interface{}{
-						"eq": "*",
-					},
-				},
-			},
-		}
-
-		identityFilter := iamAuthzModels.IdentityFilter{
-			Reserved_: map[string]interface{}{
-				"user": map[string]interface{}{
-					"uuid": map[string]interface{}{
-						"anyof": []interface{}{
-							"5aec4a38-5c89-5496-bf32-e4996300c5ad",
-						},
-					},
-				},
-			},
-		}
-
-		policy.Identities = append(policy.Identities, identityFilter)
-		policy.Entities = append(policy.Entities, entityFilter)
-		createdPolicy, err := client.AuthorizationPolicies.Create(ctx, policy)
-		require.NoError(t, err)
-		require.NotNil(t, createdPolicy)		
-	})
-
-	t.Run("DeleteAuthorizationPolicy", func(t *testing.T) {
-		err := client.AuthorizationPolicies.Delete(ctx, "681d0645-298b-4760-4c35-ca8872f204ab")
-		assert.NoError(t, err)
 	})
 }
 

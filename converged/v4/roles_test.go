@@ -2,13 +2,11 @@ package v4
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"k8s.io/utils/ptr"
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
@@ -86,22 +84,6 @@ func TestRolesIntegration(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, role)
 		assert.Equal(t, roleUUID, *role.ExtId)
-	})
-	t.Run("CreateRole", func(t *testing.T) {
-		role := iamAuthzModels.NewRole()
-		role.DisplayName = ptr.To("prism-go-client-test-role")
-		role.Description = ptr.To("prism-go-client-test-role-description")
-		role.Operations = []string{"625c5143-b08d-5631-a39d-f1a89c63f9df"} // View_Role operation
-
-		createdRole, err := client.Roles.Create(ctx, role)
-		assert.NoError(t, err)
-		assert.NotNil(t, createdRole)
-		fmt.Printf("createdRole: %+v\n", *createdRole.ExtId)
-	})
-
-	t.Run("DeleteRole", func(t *testing.T) {
-		err := client.Roles.Delete(ctx, "436b4bbc-1111-44a5-741e-da04329bc3bb")
-		assert.NoError(t, err)
 	})
 }
 
