@@ -48,6 +48,9 @@ type UploadOption func(*UploadOptions)
 // signs the request, so they do not invalidate the AWS V4 signature. If a
 // header is set both here and by the AWS SDK, the value supplied here wins.
 //
+// If called multiple times, values are merged; duplicate keys accumulate
+// across calls.
+//
 // Calling WithExtraHeaders with a nil or empty map is a no-op.
 func WithExtraHeaders(h http.Header) UploadOption {
 	return func(o *UploadOptions) {
