@@ -68,6 +68,44 @@ func TestUsersIntegration(t *testing.T) {
 		assert.NotNil(t, user)
 		assert.Equal(t, userUUID, *user.ExtId)
 	})
+
+	t.Run("ListUserKeys", func(t *testing.T) {
+		filter := "userType eq Iam.Authn.UserType'SERVICE_ACCOUNT'"
+		users, err := client.Users.List(ctx, converged.WithLimit(1), converged.WithFilter(filter))
+		require.NoError(t, err)
+		if len(users) == 0 {
+			t.Skip("No users available for testing user keys")
+		}
+		userUUID := *users[0].ExtId
+		require.NotEmpty(t, userUUID)
+
+		keys, err := client.Users.ListUserKeys(ctx, userUUID, converged.WithLimit(10))
+		assert.NoError(t, err)
+		assert.NotNil(t, keys)
+		assert.GreaterOrEqual(t, len(keys), 0)
+	})
+
+	t.Run("GetUserKeyById", func(t *testing.T) {
+		filter := "userType eq Iam.Authn.UserType'SERVICE_ACCOUNT'"
+		users, err := client.Users.List(ctx, converged.WithLimit(1), converged.WithFilter(filter))
+		require.NoError(t, err)
+		userUUID := *users[0].ExtId
+		require.NotEmpty(t, userUUID)
+
+		keys, err := client.Users.ListUserKeys(ctx, userUUID, converged.WithLimit(1))
+		require.NoError(t, err)
+		if len(keys) == 0 || keys[0].ExtId == nil {
+			t.Skip("No user keys available for testing")
+		}
+		keyID := *keys[0].ExtId
+		require.NotEmpty(t, keyID)
+
+		key, err := client.Users.GetUserKeyById(ctx, userUUID, keyID)
+		assert.NoError(t, err)
+		assert.NotNil(t, key)
+		assert.Equal(t, keyID, *key.ExtId)
+	})
+
 }
 
 // TestUsersService_ErrorHandling tests error handling for nil client
@@ -91,6 +129,37 @@ func TestUsersService_ErrorHandling(t *testing.T) {
 	t.Run("Create_ValidUser_NilClient", func(t *testing.T) {
 		user := iamModels.NewUser()
 		_, err := service.Create(ctx, user)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("ListUserKeys_NilClient", func(t *testing.T) {
+		_, err := service.ListUserKeys(ctx, "user-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("CreateUserKey_NilClient", func(t *testing.T) {
+		key := iamModels.NewKey()
+		_, err := service.CreateUserKey(ctx, "user-id", key)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("GetUserKeyById_NilClient", func(t *testing.T) {
+		_, err := service.GetUserKeyById(ctx, "user-id", "key-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("DeleteUserKeyById_NilClient", func(t *testing.T) {
+		err := service.DeleteUserKeyById(ctx, "user-id", "key-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("RevokeUserKey_NilClient", func(t *testing.T) {
+		err := service.RevokeUserKey(ctx, "user-id", "key-id")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})
