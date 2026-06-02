@@ -46,9 +46,7 @@ func (t *headerInjectingTransport) RoundTrip(req *http.Request) (*http.Response,
 	// not modify the request the caller passed in.
 	clone := req.Clone(req.Context())
 	for k, vs := range t.headers {
-		for _, v := range vs {
-			clone.Header.Set(k, v)
-		}
+		clone.Header[k] = vs
 	}
 	return t.base.RoundTrip(clone)
 }

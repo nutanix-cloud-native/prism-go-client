@@ -520,8 +520,7 @@ func TestHeaderInjectingTransport(t *testing.T) {
 
 		assert.Equal(t, "token-123", rec.seen.Header.Get("X-Auth"))
 		assert.Equal(t, "acme", rec.seen.Header.Get("X-Tenant"))
-		// Set semantics: last write wins, only the final value survives.
-		assert.Equal(t, []string{"second"}, rec.seen.Header.Values("X-Multiple"))
+		assert.Equal(t, []string{"first", "second"}, rec.seen.Header.Values("X-Multiple"))
 	})
 
 	t.Run("OverwritesExistingHeader", func(t *testing.T) {
