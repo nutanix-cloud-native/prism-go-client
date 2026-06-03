@@ -146,7 +146,7 @@ func (s *UsersService) ListUserKeys(ctx context.Context, userExtId string, opts 
 
 	return GenericListEntities[*iamModels.ListUserKeysApiResponse, iamModels.Key](
 		func(reqParams *V4ODataParams) (*iamModels.ListUserKeysApiResponse, error) {
-			return s.client.UsersApiInstance.ListUserKeys(&userExtId, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Select, nil)
+			return s.client.UsersApiInstance.ListUserKeys(&userExtId, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Select)
 		},
 		opts,
 		"user_key",
@@ -154,12 +154,12 @@ func (s *UsersService) ListUserKeys(ctx context.Context, userExtId string, opts 
 }
 
 // CreateUserKey creates a new user key.
-func (s *UsersService) CreateUserKey(ctx context.Context, userExtId string, key *iamModels.Key) (*iamModels.ApiKeyDetails, error) {
+func (s *UsersService) CreateUserKey(ctx context.Context, userExtId string, key *iamModels.Key) (*iamModels.Key, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	apiKeyDetails, err := CallAPI[*iamModels.CreateKeyApiResponse, iamModels.ApiKeyDetails](
+	apiKeyDetails, err := CallAPI[*iamModels.CreateKeyApiResponse, iamModels.Key](
 		s.client.UsersApiInstance.CreateUserKey(&userExtId, key, nil),
 	)
 	if err != nil {
@@ -188,8 +188,15 @@ func (s *UsersService) DeleteUserKeyById(ctx context.Context, userExtId string, 
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
+	
+	_, args, err := GetEntityAndEtag(
+		s.client.UsersApiInstance.GetUserKeyById(&userExtId, &keyID),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get user key %s for user %s: %w", keyID, userExtId, err)
+	}
 
-	_, err := s.client.UsersApiInstance.DeleteUserKeyById(&userExtId, &keyID, nil)
+	_, err = s.client.UsersApiInstance.DeleteUserKeyById(&userExtId, &keyID, args)
 	if err != nil {
 		return fmt.Errorf("failed to delete user key %s for user %s: %w", keyID, userExtId, err)
 	}

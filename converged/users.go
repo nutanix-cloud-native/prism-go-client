@@ -24,7 +24,7 @@ type Users[User any] interface {
 	ListUserKeys(ctx context.Context, userExtId string, opts ...ODataOption) ([]authn.Key, error)
 
 	// CreateUserKey is the interface for creating user keys operations.
-	CreateUserKey(ctx context.Context, userExtId string, key *authn.Key) (*authn.ApiKeyDetails, error)
+	CreateUserKey(ctx context.Context, userExtId string, key *authn.Key) (*authn.Key, error)
 	
 	// GetUserKeyById is the interface for getting user keys operations.
 	GetUserKeyById(ctx context.Context, userExtId string, keyID string) (*authn.Key, error)
