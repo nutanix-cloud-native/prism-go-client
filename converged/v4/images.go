@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -241,43 +240,36 @@ func (s *ImagesService) imageFromObjectsLite(objectKey, sourcePath string) (*ima
 	return image, nil
 }
 
-func (s *ImagesService) awsConfig(ctx context.Context) (aws.Config, string, error) {
+func (s *ImagesService) awsConfig(_ context.Context) (aws.Config, string, error) {
 	apiClient := s.client.ImagesApiInstance.ApiClient
 
 	// Objects Lite S3 endpoint
 	endpoint := fmt.Sprintf("https://%s:%d/api/prism/v4.0/objects/", apiClient.Host, apiClient.Port)
 
-	// Use ApiClient's username and password
 	username := strings.TrimSpace(apiClient.Username)
 	password := strings.TrimSpace(apiClient.Password)
 	if username == "" || password == "" {
 		return aws.Config{}, "", fmt.Errorf("username and password are required for Objects Lite auth")
 	}
 
-	// AWS region from environment variable, defaults to us-east-1
-	region := os.Getenv("AWS_REGION")
-	if region == "" {
-		region = defaultAWSRegion
-	}
-
 	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", username, password)))
-	loadOptions := []func(*config.LoadOptions) error{
-		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(encoded, encoded, "")),
-	}
-	if !apiClient.VerifySSL {
-		loadOptions = append(loadOptions, config.WithHTTPClient(&http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
-		}))
+
+	// Construct config directly — do not use config.LoadDefaultConfig which
+	// leaks host AWS env vars/config and breaks Objects Lite (always us-east-1).
+	awsCfg := aws.Config{
+		Region:      defaultAWSRegion,
+		Credentials: credentials.NewStaticCredentialsProvider(encoded, encoded, ""),
 	}
 
-	awsConfig, err := config.LoadDefaultConfig(ctx, loadOptions...)
-	if err != nil {
-		return aws.Config{}, "", fmt.Errorf("failed to load AWS config: %w", err)
+	if !apiClient.VerifySSL {
+		awsCfg.HTTPClient = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
+			},
+		}
 	}
-	return awsConfig, endpoint, nil
+
+	return awsCfg, endpoint, nil
 }
 
 // CreateAsync creates a new image asynchronously.

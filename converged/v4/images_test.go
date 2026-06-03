@@ -24,9 +24,27 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
+	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
+	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 )
+
+// newFakeV4Client creates a minimal V4 client with the given parameters for unit testing.
+// The insecureSkipVerify parameter controls whether VerifySSL is false (i.e., insecure=true means VerifySSL=false).
+func newFakeV4Client(host string, port int, username, password string, insecureSkipVerify bool) *v4prismGoClient.Client {
+	apiClientInstance := vmClient.NewApiClient()
+	apiClientInstance.Host = host
+	apiClientInstance.Port = port
+	apiClientInstance.Username = username
+	apiClientInstance.Password = password
+	apiClientInstance.VerifySSL = !insecureSkipVerify
+
+	return &v4prismGoClient.Client{
+		ImagesApiInstance: vmApi.NewImagesApi(apiClientInstance),
+	}
+}
 
 // TestImagesService_ErrorHandling tests error handling for nil client
 func TestImagesService_ErrorHandling(t *testing.T) {
@@ -311,17 +329,44 @@ func TestImageFromObjectsLite(t *testing.T) {
 // TestDefaultAWSRegion tests the AWS region default behavior
 func TestDefaultAWSRegion(t *testing.T) {
 	t.Run("DefaultRegion", func(t *testing.T) {
-		// Verify the default constant is set correctly
 		assert.Equal(t, "us-east-1", defaultAWSRegion)
 	})
 
-	t.Run("EnvVarOverride", func(t *testing.T) {
-		// Test that AWS_REGION env var is read
-		// Using t.Setenv which automatically cleans up after test
+	t.Run("IgnoresAWSRegionEnvVar", func(t *testing.T) {
 		t.Setenv("AWS_REGION", "eu-west-1")
+		t.Setenv("AWS_DEFAULT_REGION", "ap-southeast-1")
 
-		region := os.Getenv("AWS_REGION")
-		assert.Equal(t, "eu-west-1", region)
+		service := &ImagesService{
+			client: newFakeV4Client("pc.example.com", 9440, "admin", "password", false),
+		}
+		awsCfg, endpoint, err := service.awsConfig(context.Background())
+		require.NoError(t, err)
+
+		assert.Equal(t, defaultAWSRegion, awsCfg.Region,
+			"awsConfig must always use us-east-1 regardless of AWS_REGION env var")
+		assert.Equal(t, "https://pc.example.com:9440/api/prism/v4.0/objects/", endpoint)
+
+		creds, err := awsCfg.Credentials.Retrieve(context.Background())
+		require.NoError(t, err)
+		assert.NotEmpty(t, creds.AccessKeyID)
+	})
+
+	t.Run("InsecureSSL", func(t *testing.T) {
+		service := &ImagesService{
+			client: newFakeV4Client("pc.example.com", 9440, "admin", "password", true),
+		}
+		awsCfg, _, err := service.awsConfig(context.Background())
+		require.NoError(t, err)
+		assert.NotNil(t, awsCfg.HTTPClient, "HTTPClient should be set when VerifySSL is false")
+	})
+
+	t.Run("MissingCredentials", func(t *testing.T) {
+		service := &ImagesService{
+			client: newFakeV4Client("pc.example.com", 9440, "", "", false),
+		}
+		_, _, err := service.awsConfig(context.Background())
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "username and password are required")
 	})
 }
 
