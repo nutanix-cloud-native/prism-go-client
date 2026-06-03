@@ -14,8 +14,12 @@ package v4
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
+
+	"k8s.io/utils/ptr"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,7 +90,7 @@ func TestUsersIntegration(t *testing.T) {
 	})
 
 	t.Run("GetUserKeyById", func(t *testing.T) {
-		filter := "userType eq Iam.Authn.UserType'SERVICE_ACCOUNT'"
+		filter := "username eq 'prism-go-client-test-user'"
 		users, err := client.Users.List(ctx, converged.WithLimit(1), converged.WithFilter(filter))
 		require.NoError(t, err)
 		userUUID := *users[0].ExtId
@@ -100,12 +104,60 @@ func TestUsersIntegration(t *testing.T) {
 		keyID := *keys[0].ExtId
 		require.NotEmpty(t, keyID)
 
-		key, err := client.Users.GetUserKeyById(ctx, userUUID, keyID)
+		key, err := client.Users.GetUserKeyById(ctx, userUUID, "acf6c546-2e2a-56a0-83d5-c07733f9772f")
 		assert.NoError(t, err)
 		assert.NotNil(t, key)
 		assert.Equal(t, keyID, *key.ExtId)
+		fmt.Printf("test key: %+v\n", *key.ExtId)
 	})
 
+	// test for creating user with service account type
+	t.Run("CreateUserWithServiceAccountType", func(t *testing.T) {
+		user := iamModels.NewUser()
+		user.Username = ptr.To("prism-go-client-test-user")
+		user.UserType = ptr.To(iamModels.USERTYPE_SERVICE_ACCOUNT)
+		createdUser, err := client.Users.Create(ctx, user)
+		require.NoError(t, err)
+		require.NotNil(t, createdUser)
+		assert.Equal(t, user.Username, *createdUser.Username)
+		assert.Equal(t, user.UserType, *createdUser.UserType)
+		fmt.Printf("test user: %+v\n", createdUser.ExtId)
+	})
+
+	t.Run("CreateUserKey", func(t *testing.T) {
+		key := iamModels.NewKey()
+		userExtId := "ae7ed369-8642-53f2-ae76-a566de392c6c"
+		key.Name = ptr.To("prism-go-client-test-key-1")
+		key.KeyType = ptr.To(iamModels.KEYKIND_API_KEY)
+		expiryTime := time.Now().Add(1 * time.Hour)
+		key.ExpiryTime = &expiryTime
+		key.Description = ptr.To("prism-go-client-test-key-description")
+
+		createdKey, err := client.Users.CreateUserKey(ctx, userExtId, key)
+		require.NoError(t, err)
+		require.NotNil(t, createdKey)
+		keyDetails, err := createdKey.KeyDetails.MarshalJSON()
+		require.NoError(t, err)
+		require.NotNil(t, keyDetails)
+
+		fmt.Printf("test key details: %+v\n", string(keyDetails))
+		fmt.Printf("test key expiry time: %+v\n", *createdKey.ExpiryTime)
+		fmt.Printf("test key description: %+v\n", *createdKey.ExtId)
+	})
+
+	t.Run("DeleteUserKey", func(t *testing.T) {
+		userExtId := "ae7ed369-8642-53f2-ae76-a566de392c6c"
+		keyID := "fde67989-003a-59ab-8eb9-949e981621ce"
+		err := client.Users.DeleteUserKeyById(ctx, userExtId, keyID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("RevokeUserKey", func(t *testing.T) {
+		userExtId := "ae7ed369-8642-53f2-ae76-a566de392c6c"
+		keyID := "fde67989-003a-59ab-8eb9-949e981621ce"
+		err := client.Users.RevokeUserKey(ctx, userExtId, keyID)
+		assert.NoError(t, err)
+	})
 }
 
 // TestUsersService_ErrorHandling tests error handling for nil client
