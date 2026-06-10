@@ -605,3 +605,39 @@ func (c *Client) ListNicsByVmId(ctx context.Context, vmUUID string) ([]vmmModels
 	}
 	return vmsService.ListNicsByVmId(ctx, vmUUID)
 }
+
+// GetVMByBiosUUID returns the VM matching the given BIOS UUID. When multiple VMs share
+// the same BIOS UUID (e.g. due to cloning), it resolves the chain by returning the leaf
+// VM that is not referenced as a source by any other VM.
+func (c *Client) GetVMByBiosUUID(ctx context.Context, biosUUID string) (*vmmModels.Vm, error) {
+	if c.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	vms, err := c.VMs.List(ctx, converged.WithFilter("biosUuid eq '"+biosUUID+"'"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list VMs: %w", err)
+	}
+	if len(vms) == 0 {
+		return nil, fmt.Errorf("no VM found with bios UUID: %s", biosUUID)
+	}
+	if len(vms) == 1 {
+		return &vms[0], nil
+	}
+
+	referenced := map[string]bool{}
+	for i := range vms {
+		if vms[i].Source != nil && vms[i].Source.ExtId != nil {
+			referenced[*vms[i].Source.ExtId] = true
+		}
+	}
+	var heads []*vmmModels.Vm
+	for i := range vms {
+		if vms[i].ExtId != nil && !referenced[*vms[i].ExtId] {
+			heads = append(heads, &vms[i])
+		}
+	}
+	if len(heads) == 1 {
+		return heads[0], nil
+	}
+	return nil, fmt.Errorf("found %d VMs with bios UUID %s but could not resolve to a single VM", len(vms), biosUUID)
+}
