@@ -30,6 +30,8 @@ func TestNewV4ClientBasicAuth(t *testing.T) {
 	assert.NotNil(t, v4Client.ClustersApiInstance)
 	assert.NotNil(t, v4Client.TasksApiInstance)
 	assert.NotNil(t, v4Client.StorageContainerAPI)
+	assert.NotNil(t, v4Client.DisksServiceApiInstance)
+	assert.NotNil(t, v4Client.AlertsServiceApiInstance)
 	assert.NotNil(t, v4Client.CategoriesApiInstance)
 	assert.NotNil(t, v4Client.VolumeGroupsApiInstance)
 
@@ -69,6 +71,8 @@ func TestNewV4Client(t *testing.T) {
 	assert.NotNil(t, v4Client.ClustersApiInstance)
 	assert.NotNil(t, v4Client.TasksApiInstance)
 	assert.NotNil(t, v4Client.StorageContainerAPI)
+	assert.NotNil(t, v4Client.DisksServiceApiInstance)
+	assert.NotNil(t, v4Client.AlertsServiceApiInstance)
 	assert.NotNil(t, v4Client.CategoriesApiInstance)
 	assert.NotNil(t, v4Client.VolumeGroupsApiInstance)
 
