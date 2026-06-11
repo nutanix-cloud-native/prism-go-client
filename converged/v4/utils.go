@@ -336,21 +336,24 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 		for len(result) < totalCount {
 			page++
 			reqParams.Page = ptr.To(page)
-			moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
+			moreItems, latestTotalCount, err := CallListAPI[R, T](apiCall(reqParams))
 			if err != nil {
 				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
 			}
-			// Guard against an unbounded loop. totalCount is a snapshot of
-			// metadata.TotalAvailableResults from the first page, while the
-			// underlying data set can shrink between requests (entities being
-			// deleted) and the count and page data are only eventually
-			// consistent. If we ever get a page with no items, the server has
-			// nothing more to return, so stop instead of paging forever past
+			// Guard against an unbounded loop. metadata.TotalAvailableResults
+			// and the page data are only eventually consistent, so the data set
+			// can shrink between requests (entities being deleted) and the count
+			// can lag behind it. If we ever get a page with no items, the server
+			// has nothing more to return, so stop instead of paging forever past
 			// the last page of data.
 			if len(moreItems) == 0 {
 				break
 			}
 			result = append(result, moreItems...)
+			// Re-read the total from each page so that entities added while we
+			// paginate are still collected, rather than stopping at the (now
+			// stale) total observed on the first page.
+			totalCount = latestTotalCount
 		}
 	}
 
