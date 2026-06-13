@@ -37,7 +37,9 @@ type Client[
 	Ova,
 	OvaFile,
 	ProtectionPolicy,
-	RecoveryPlan any] struct {
+	RecoveryPlan,
+	Disk,
+	Alert any] struct {
 	AntiAffinityPolicies AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters             Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
 	Categories           Categories[Category]
@@ -52,6 +54,8 @@ type Client[
 	Templates            Templates[Template]
 	Ovas                 Ovas[Ova, OvaFile]
 	DataPolicies         DataPolicies[ProtectionPolicy, RecoveryPlan]
+	Disks                Disks[Disk]
+	Alerts               Alerts[Alert]
 }
 
 // Getter is the interface for Get operations.
