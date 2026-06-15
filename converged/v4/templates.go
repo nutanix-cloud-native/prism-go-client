@@ -133,3 +133,152 @@ func (s *TemplatesService) CreateAsync(ctx context.Context, template *templateMo
 		s.Get,
 	), nil
 }
+
+// InitiateGuestUpdate starts a guest OS update for the given template.
+// A temporary VM is created from the active version (or the version specified
+// by versionID if non-empty). The returned Template contains
+// GuestUpdateStatus.DeployedVmReference with the temporary VM ext ID.
+func (s *TemplatesService) InitiateGuestUpdate(ctx context.Context, templateExtID string, versionID string) (*templateModels.Template, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	operation, err := s.InitiateGuestUpdateAsync(templateExtID, versionID)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate guest update: %w", err)
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("initiate guest update completed but no template returned")
+	}
+
+	return result[0], nil
+}
+
+// InitiateGuestUpdateAsync is the non-blocking variant of InitiateGuestUpdate.
+func (s *TemplatesService) InitiateGuestUpdateAsync(templateExtID string, versionID string) (converged.Operation[templateModels.Template], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	spec := templateModels.NewInitiateGuestUpdateSpec()
+	if versionID != "" {
+		spec.VersionId = &versionID
+	}
+
+	taskRef, err := CallAPI[*templateModels.InitiateGuestUpdateApiResponse, vmmPrismModels.TaskReference](
+		s.client.TemplatesApiInstance.InitiateGuestUpdate(&templateExtID, spec),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate guest update: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for initiate guest update")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
+
+// CompleteGuestUpdate finalizes an in-progress guest OS update on the template.
+// A new version is created from the temporary VM and the temporary VM is deleted.
+func (s *TemplatesService) CompleteGuestUpdate(ctx context.Context, templateExtID string, versionName string, versionDescription string, isActiveVersion bool) (*templateModels.Template, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	operation, err := s.CompleteGuestUpdateAsync(templateExtID, versionName, versionDescription, isActiveVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := operation.Wait(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to complete guest update: %w", err)
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("complete guest update completed but no template returned")
+	}
+
+	return result[0], nil
+}
+
+// CompleteGuestUpdateAsync is the non-blocking variant of CompleteGuestUpdate.
+func (s *TemplatesService) CompleteGuestUpdateAsync(templateExtID string, versionName string, versionDescription string, isActiveVersion bool) (converged.Operation[templateModels.Template], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	spec := templateModels.NewCompleteGuestUpdateSpec()
+	spec.VersionName = &versionName
+	spec.VersionDescription = &versionDescription
+	spec.IsActiveVersion = &isActiveVersion
+
+	taskRef, err := CallAPI[*templateModels.CompleteGuestUpdateApiResponse, vmmPrismModels.TaskReference](
+		s.client.TemplatesApiInstance.CompleteGuestUpdate(&templateExtID, spec),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to complete guest update: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for complete guest update")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
+}
+
+// CancelGuestUpdate aborts an in-progress guest OS update on the template.
+// The temporary VM is deleted and the pending update status is cleared.
+func (s *TemplatesService) CancelGuestUpdate(ctx context.Context, templateExtID string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+	operation, err := s.CancelGuestUpdateAsync(templateExtID)
+	if err != nil {
+		return err
+	}
+
+	_, err = operation.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to cancel guest update: %w", err)
+	}
+
+	return nil
+}
+
+// CancelGuestUpdateAsync is the non-blocking variant of CancelGuestUpdate.
+func (s *TemplatesService) CancelGuestUpdateAsync(templateExtID string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	taskRef, err := CallAPI[*templateModels.CancelGuestUpdateApiResponse, vmmPrismModels.TaskReference](
+		s.client.TemplatesApiInstance.CancelGuestUpdate(&templateExtID),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to cancel guest update: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for cancel guest update")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		converged.NoEntityGetter,
+	), nil
+}
