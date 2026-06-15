@@ -110,6 +110,17 @@ func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
 	}
 }
 
+// GetEnvOrSkip returns the value of the environment variable or skips the test
+// if the variable is not set or empty.
+func GetEnvOrSkip(t *testing.T, key string) string {
+	t.Helper()
+	val := os.Getenv(key)
+	if val == "" {
+		t.Skipf("Skipping: environment variable %s not set", key)
+	}
+	return val
+}
+
 // ManagementEndpointFromEnvironment returns a ManagementEndpoint object from the developer environment
 func ManagementEndpointFromEnvironment(t *testing.T) *types.ManagementEndpoint {
 	confFile, err := prismDevConfigFilePath()
