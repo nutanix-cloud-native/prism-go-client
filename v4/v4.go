@@ -12,8 +12,6 @@ import (
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
 	iamApi "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/api"
 	iamClient "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/client"
-	monitoringApi "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/api"
-	monitoringClient "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/client"
 	networkingApi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/api"
 	networkingClient "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/client"
 	prismApi "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/api"
@@ -60,10 +58,8 @@ func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
 
 // Client manages the V4 API
 type Client struct {
-	AlertsServiceApiInstance          *monitoringApi.AlertsServiceApi
 	CategoriesApiInstance             *prismApi.CategoriesApi
 	ClustersApiInstance               *clusterApi.ClustersApi
-	DisksServiceApiInstance           *clusterApi.DisksServiceApi
 	DomainManagerApiInstance          *prismApi.DomainManagerApi
 	ImagesApiInstance                 *vmApi.ImagesApi
 	OvasApiInstance                   *vmApi.OvasApi
@@ -76,6 +72,9 @@ type Client struct {
 	VmApiInstance                     *vmApi.VmApi
 	VmAntiAffinityPoliciesApiInstance *vmApi.VmAntiAffinityPoliciesApi
 	UsersApiInstance                  *iamApi.UsersApi
+	RolesApiInstance                  *iamApi.RolesApi
+	OperationsApiInstance             *iamApi.OperationsApi
+	AuthorizationPoliciesApiInstance  *iamApi.AuthorizationPoliciesApi
 	ProtectionPoliciesApiInstance *datapoliciesApi.ProtectionPoliciesApi
 	RecoveryPlansApiInstance     *datapoliciesApi.RecoveryPlansApi
 	readTimeout                   time.Duration
@@ -136,10 +135,6 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 		return nil, fmt.Errorf("failed to create Storage API instance: %v", err)
 	}
 
-	if err := initDisksServiceApiInstance(v4Client, credentials); err != nil {
-		return nil, fmt.Errorf("failed to create Disks API instance: %v", err)
-	}
-
 	if err := initVolumesApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Volumes API instance: %v", err)
 	}
@@ -148,12 +143,20 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 		return nil, fmt.Errorf("failed to create Users API instance: %v", err)
 	}
 
-	if err := initDataPoliciesApiInstance(v4Client, credentials); err != nil {
-		return nil, fmt.Errorf("failed to create Data Policies API instance: %v", err)
+	if err := initRolesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Roles API instance: %v", err)
 	}
 
-	if err := initAlertsServiceApiInstance(v4Client, credentials); err != nil {
-		return nil, fmt.Errorf("failed to create Alerts API instance: %v", err)
+	if err := initOperationsApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Operations API instance: %v", err)
+	}
+
+	if err := initAuthorizationPoliciesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Authorization Policies API instance: %v", err)
+	}
+
+	if err := initDataPoliciesApiInstance(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Data Policies API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -261,34 +264,6 @@ func initStorageApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	return nil
 }
 
-func initDisksServiceApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
-	ep, err := getEndpointInfo(credentials)
-	if err != nil {
-		return err
-	}
-	apiClientInstance := clusterClient.NewApiClient()
-	apiClientInstance.SetVerifySSL(!credentials.Insecure)
-	apiClientInstance.Host = ep.host
-	apiClientInstance.Port = ep.port
-	setAuthHeader(apiClientInstance, credentials)
-	v4Client.DisksServiceApiInstance = clusterApi.NewDisksServiceApi(apiClientInstance)
-	return nil
-}
-
-func initAlertsServiceApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
-	ep, err := getEndpointInfo(credentials)
-	if err != nil {
-		return err
-	}
-	apiClientInstance := monitoringClient.NewApiClient()
-	apiClientInstance.SetVerifySSL(!credentials.Insecure)
-	apiClientInstance.Host = ep.host
-	apiClientInstance.Port = ep.port
-	setAuthHeader(apiClientInstance, credentials)
-	v4Client.AlertsServiceApiInstance = monitoringApi.NewAlertsServiceApi(apiClientInstance)
-	return nil
-}
-
 func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
 	ep, err := getEndpointInfo(credentials)
 	if err != nil {
@@ -314,6 +289,48 @@ func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.UsersApiInstance = iamApi.NewUsersApi(apiClientInstance)
+	return nil
+}
+
+func initRolesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.RolesApiInstance = iamApi.NewRolesApi(apiClientInstance)
+	return nil
+}
+
+func initOperationsApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.OperationsApiInstance = iamApi.NewOperationsApi(apiClientInstance)
+	return nil
+}
+
+func initAuthorizationPoliciesApiInstance(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := iamClient.NewApiClient()
+	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	setAuthHeader(apiClientInstance, credentials)
+	v4Client.AuthorizationPoliciesApiInstance = iamApi.NewAuthorizationPoliciesApi(apiClientInstance)
 	return nil
 }
 

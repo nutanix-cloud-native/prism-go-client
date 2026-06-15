@@ -211,25 +211,26 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 // GetMetadataTotalResults gets the total results from the API response metadata
 // It returns the total results if the metadata is valid, otherwise it returns an error
-func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
+func GetMetadataTotalResults[R APIResponse](response R) int {
+	// Do not return an error if any of the fields are not found as these are optional fields.
 	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
 	if !hasMetadataField.IsValid() {
-		return 0, fmt.Errorf("response does not have Metadata field")
+		return 0
 	}
 	metadata := hasMetadataField.Interface()
 	if reflect.ValueOf(metadata).IsNil() {
-		return 0, fmt.Errorf("no metadata found in response")
+		return 0
 	}
-
 	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
 	if !totalCountField.IsValid() || totalCountField.IsNil() {
-		return 0, fmt.Errorf("metadata does not have TotalAvailableResults field")
+		return 0
 	}
 	totalCount := totalCountField.Interface().(*int)
 	if totalCount == nil || *totalCount < 0 {
-		return 0, fmt.Errorf("invalid total count: %v", totalCount)
+		return 0
 	}
-	return int(*totalCount), nil
+
+	return int(*totalCount)
 }
 
 // CallListAPI calls the list API and returns the result
@@ -240,10 +241,7 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 		return zero, 0, CategoriseFromOpenAPI(err)
 	}
 
-	totalCount, err := GetMetadataTotalResults(response)
-	if err != nil {
-		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
-	}
+	totalCount := GetMetadataTotalResults(response)
 
 	data := response.GetData()
 	if data == nil {
@@ -336,24 +334,11 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 		for len(result) < totalCount {
 			page++
 			reqParams.Page = ptr.To(page)
-			moreItems, latestTotalCount, err := CallListAPI[R, T](apiCall(reqParams))
+			moreItems, _, err := CallListAPI[R, T](apiCall(reqParams))
 			if err != nil {
 				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
 			}
-			// Guard against an unbounded loop. metadata.TotalAvailableResults
-			// and the page data are only eventually consistent, so the data set
-			// can shrink between requests (entities being deleted) and the count
-			// can lag behind it. If we ever get a page with no items, the server
-			// has nothing more to return, so stop instead of paging forever past
-			// the last page of data.
-			if len(moreItems) == 0 {
-				break
-			}
 			result = append(result, moreItems...)
-			// Re-read the total from each page so that entities added while we
-			// paginate are still collected, rather than stopping at the (now
-			// stale) total observed on the first page.
-			totalCount = latestTotalCount
 		}
 	}
 
