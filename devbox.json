@@ -5,6 +5,7 @@
     "coreutils@latest",
     "gnumake@latest",
     "go@latest",
+    "git@latest",
     "ginkgo@latest",
     "go-swagger@0.31.0",
     "golangci-lint@latest",

@@ -130,3 +130,49 @@ func TestNutanixAuth(t *testing.T) {
 		Address:  addr,
 	}))
 }
+
+func TestNutanixAPIKeyAuth(t *testing.T) {
+	g := NewWithT(t)
+	path, err := os.MkdirTemp(".", "nutanix-api-key-auth")
+	g.Expect(err).To(Succeed())
+	defer func() {
+		if !t.Failed() {
+			_ = os.RemoveAll(path)
+		}
+	}()
+	ip := rand.String(10)
+	apiKey := rand.String(32)
+	creds := fmt.Sprintf(`
+		[
+			{
+			  "type": "api_key",
+			  "data": {
+				"prismCentral":{
+				  "apiKey": "%s"
+				}
+			  }
+			}
+		]
+	`, apiKey)
+	endpoint := fmt.Sprintf("%s:9440", ip)
+	t.Logf("Temporary directory %s", path)
+	_ = os.Setenv(envSecretDir, path)
+
+	// Write three keys
+	g.Expect(writeParam(t, path, secretKeyCredentials, creds)).To(Succeed())
+	g.Expect(writeParam(t, path, secretKeyInsecure, "true")).To(Succeed())
+	g.Expect(writeParam(t, path, secretKeyEndpoint, endpoint)).To(Succeed())
+
+	prov := &provider{}
+	me, err := prov.GetManagementEndpoint(nil)
+	g.Expect(err).To(Succeed())
+	addr, err := url.Parse(fmt.Sprintf("https://%s:9440", ip))
+	g.Expect(err).To(Succeed())
+	g.Expect(me).To(BeEquivalentTo(&types.ManagementEndpoint{
+		ApiCredentials: types.ApiCredentials{
+			APIKey: apiKey,
+		},
+		Insecure: true,
+		Address:  addr,
+	}))
+}
