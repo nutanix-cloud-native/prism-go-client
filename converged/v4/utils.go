@@ -211,51 +211,49 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 
 // GetMetadataTotalResults gets the total results from the API response metadata
 // It returns the total results if the metadata is valid, otherwise it returns an error
-func GetMetadataTotalResults[R APIResponse](response R) (int, error) {
-	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
-	if !hasMetadataField.IsValid() {
-		return 0, fmt.Errorf("response does not have Metadata field")
-	}
-	metadata := hasMetadataField.Interface()
-	if reflect.ValueOf(metadata).IsNil() {
-		return 0, fmt.Errorf("no metadata found in response")
-	}
+func GetMetadataTotalResults[R APIResponse](response R) int {
+    // Do not return an error if any of the fields are not found as these are optional fields.
+    hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
+    if !hasMetadataField.IsValid() {
+        return 0
+    }
+    metadata := hasMetadataField.Interface()
+    if reflect.ValueOf(metadata).IsNil() {
+        return 0
+    }
+    totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
+    if !totalCountField.IsValid() || totalCountField.IsNil() {
+        return 0
+    }
+    totalCount := totalCountField.Interface().(*int)
+    if totalCount == nil || *totalCount < 0 {
+        return 0
+    }
 
-	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
-	if !totalCountField.IsValid() || totalCountField.IsNil() {
-		return 0, fmt.Errorf("metadata does not have TotalAvailableResults field")
-	}
-	totalCount := totalCountField.Interface().(*int)
-	if totalCount == nil || *totalCount < 0 {
-		return 0, fmt.Errorf("invalid total count: %v", totalCount)
-	}
-	return int(*totalCount), nil
+    return int(*totalCount)
 }
 
 // CallListAPI calls the list API and returns the result
 // It returns the result if the API call is successful, otherwise it returns an error
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
-	var zero []T
-	if err != nil {
-		return zero, 0, CategoriseFromOpenAPI(err)
-	}
+    var zero []T
+    if err != nil {
+        return zero, 0, CategoriseFromOpenAPI(err)
+    }
 
-	totalCount, err := GetMetadataTotalResults(response)
-	if err != nil {
-		return zero, 0, fmt.Errorf("failed to get total results from response metadata: %w", err)
-	}
+    totalCount := GetMetadataTotalResults(response)
 
-	data := response.GetData()
-	if data == nil {
-		return zero, totalCount, nil
-	}
+    data := response.GetData()
+    if data == nil {
+        return zero, totalCount, nil
+    }
 
-	result, ok := data.([]T)
-	if !ok {
-		return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
-	}
+    result, ok := data.([]T)
+    if !ok {
+        return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
+    }
 
-	return result, totalCount, nil
+    return result, totalCount, nil
 }
 
 // GetEntityAndEtag gets the entity and etag from the API response
