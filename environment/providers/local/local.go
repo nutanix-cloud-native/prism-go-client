@@ -21,6 +21,7 @@ const (
 	portEnv        = "NUTANIX_PORT"
 	userEnv        = "NUTANIX_USERNAME"
 	passwordEnv    = "NUTANIX_PASSWORD"
+	apiKeyEnv      = "NUTANIX_API_KEY"
 	insecureEnv    = "NUTANIX_INSECURE"
 	trustBundleEnv = "NUTANIX_ADDITIONAL_TRUST_BUNDLE"
 	categoriesEnv  = "NUTANIX_CATEGORIES"
@@ -56,6 +57,7 @@ func (prov *provider) GetManagementEndpoint(
 		ApiCredentials: types.ApiCredentials{
 			Username: os.Getenv(userEnv),
 			Password: os.Getenv(passwordEnv),
+			APIKey:   os.Getenv(apiKeyEnv),
 		},
 		Insecure:              insecureTLS,
 		AdditionalTrustBundle: trustBundle,

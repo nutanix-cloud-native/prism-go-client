@@ -157,6 +157,68 @@ binaryData:
 	})
 })
 
+var _ = Describe("Kubernetes Environment Provider with API key credentials", Ordered, func() {
+	var (
+		namespace      = "kube-system"
+		secretName     = "nutanix-api-key-credentials"
+		secretInformer coreinformers.SecretInformer
+		cmInformer     coreinformers.ConfigMapInformer
+		prov           types.Provider
+		ip             = krand.String(10)
+		apiKey         = krand.String(32)
+
+		fakeSecret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: namespace,
+			},
+			Data: map[string][]byte{
+				"credentials": []byte(fmt.Sprintf(`
+				[
+					{
+					  "type": "api_key",
+					  "data": {
+						"prismCentral":{
+						  "apiKey": "%s"
+						}
+					  }
+					}
+				]
+			`, apiKey)),
+			},
+		}
+	)
+
+	fakeClientset := fake.NewSimpleClientset(fakeSecret)
+	prismEndpoint := credentials.NutanixPrismEndpoint{
+		Address:  ip,
+		Port:     9440,
+		Insecure: true,
+		CredentialRef: &credentials.NutanixCredentialReference{
+			Kind:      credentials.SecretKind,
+			Name:      secretName,
+			Namespace: namespace,
+		},
+	}
+	BeforeAll(func() {
+		secretInformer = runSecretInformer(context.TODO(), fakeClientset)
+		cmInformer = runCMInformer(context.TODO(), fakeClientset)
+		prov = NewProvider(prismEndpoint, secretInformer, cmInformer)
+	})
+	It("must get management endpoint with api key credentials", func() {
+		me, err := prov.GetManagementEndpoint(nil)
+		Expect(err).To(Succeed())
+		addr, _ := url.Parse(fmt.Sprintf("https://%s:9440", ip))
+		Expect(me).To(BeEquivalentTo(&types.ManagementEndpoint{
+			ApiCredentials: types.ApiCredentials{
+				APIKey: apiKey,
+			},
+			Insecure: true,
+			Address:  addr,
+		}))
+	})
+})
+
 func TestSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Kubernetes Environment Provider Suite")

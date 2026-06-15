@@ -15,6 +15,7 @@ func TestApiCredentials(t *testing.T) {
 			Username: "testuser",
 			Password: "testpass",
 			KeyPair:  "testkeypair",
+			APIKey:   "test-api-key",
 		}
 
 		data, err := json.Marshal(creds)
@@ -27,6 +28,7 @@ func TestApiCredentials(t *testing.T) {
 		assert.Equal(t, creds.Username, decoded.Username)
 		assert.Equal(t, creds.Password, decoded.Password)
 		assert.Equal(t, creds.KeyPair, decoded.KeyPair)
+		assert.Equal(t, creds.APIKey, decoded.APIKey)
 	})
 
 	t.Run("JSON serialization with empty fields", func(t *testing.T) {
@@ -42,6 +44,7 @@ func TestApiCredentials(t *testing.T) {
 		assert.Empty(t, decoded.Username)
 		assert.Empty(t, decoded.Password)
 		assert.Empty(t, decoded.KeyPair)
+		assert.Empty(t, decoded.APIKey)
 	})
 }
 
@@ -93,6 +96,34 @@ func TestManagementEndpoint(t *testing.T) {
 		assert.Equal(t, endpoint.Username, decoded.Username)
 		assert.Nil(t, decoded.Address)
 		assert.Equal(t, endpoint.Insecure, decoded.Insecure)
+	})
+
+	t.Run("JSON serialization with API key authentication", func(t *testing.T) {
+		testURL, err := url.Parse("https://test.example.com")
+		require.NoError(t, err)
+
+		endpoint := ManagementEndpoint{
+			ApiCredentials: ApiCredentials{
+				APIKey: "test-api-key",
+			},
+			Address:               testURL,
+			Insecure:              false,
+			AdditionalTrustBundle: "test-bundle",
+		}
+
+		data, err := json.Marshal(endpoint)
+		require.NoError(t, err)
+
+		var decoded ManagementEndpoint
+		err = json.Unmarshal(data, &decoded)
+		require.NoError(t, err)
+
+		assert.Equal(t, endpoint.APIKey, decoded.APIKey)
+		assert.Empty(t, decoded.Username)
+		assert.Empty(t, decoded.Password)
+		assert.Equal(t, endpoint.Address.String(), decoded.Address.String())
+		assert.Equal(t, endpoint.Insecure, decoded.Insecure)
+		assert.Equal(t, endpoint.AdditionalTrustBundle, decoded.AdditionalTrustBundle)
 	})
 }
 
@@ -227,6 +258,61 @@ func TestGetManagementEndpointHash(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotEqual(t, hash1, hash2)
+	})
+
+	t.Run("hash changes with API key changes", func(t *testing.T) {
+		testURL, err := url.Parse("https://test.example.com")
+		require.NoError(t, err)
+
+		endpoint1 := ManagementEndpoint{
+			ApiCredentials: ApiCredentials{
+				APIKey: "api-key-1",
+			},
+			Address: testURL,
+		}
+
+		endpoint2 := ManagementEndpoint{
+			ApiCredentials: ApiCredentials{
+				APIKey: "api-key-2",
+			},
+			Address: testURL,
+		}
+
+		hash1, err := endpoint1.GetHash()
+		require.NoError(t, err)
+
+		hash2, err := endpoint2.GetHash()
+		require.NoError(t, err)
+
+		assert.NotEqual(t, hash1, hash2)
+	})
+
+	t.Run("hash differs between basic auth and API key auth", func(t *testing.T) {
+		testURL, err := url.Parse("https://test.example.com")
+		require.NoError(t, err)
+
+		basicAuthEndpoint := ManagementEndpoint{
+			ApiCredentials: ApiCredentials{
+				Username: "testuser",
+				Password: "testpass",
+			},
+			Address: testURL,
+		}
+
+		apiKeyEndpoint := ManagementEndpoint{
+			ApiCredentials: ApiCredentials{
+				APIKey: "test-api-key",
+			},
+			Address: testURL,
+		}
+
+		basicHash, err := basicAuthEndpoint.GetHash()
+		require.NoError(t, err)
+
+		apiKeyHash, err := apiKeyEndpoint.GetHash()
+		require.NoError(t, err)
+
+		assert.NotEqual(t, basicHash, apiKeyHash)
 	})
 
 	t.Run("hash changes with insecure flag", func(t *testing.T) {
@@ -368,7 +454,7 @@ func (t *testProvider) GetManagementEndpoint(topology Topology) (*ManagementEndp
 	return &ManagementEndpoint{
 		ApiCredentials: ApiCredentials{
 			Username: "testuser",
-			Password: "testpass",
+			Password: "testpass",			
 		},
 		Address: testURL,
 	}, nil
