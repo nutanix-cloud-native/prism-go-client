@@ -56,9 +56,9 @@ func (s *DisksService) List(
 			"failed to convert options to V4ODataParams: %w", err)
 	}
 
-	if myParams.Expand != nil || myParams.Apply != nil {
+	if myParams.Expand != nil {
 		return nil, fmt.Errorf(
-			"expand and apply are not supported for listing Disks")
+			"expand is not supported for listing Disks")
 	}
 
 	return GenericListEntities[
@@ -72,6 +72,7 @@ func (s *DisksService) List(
 					Filter_:  reqParams.Filter,
 					Orderby_: reqParams.OrderBy,
 					Select_:  reqParams.Select,
+					Apply_:   reqParams.Apply,
 				})
 		},
 		opts,
@@ -98,6 +99,7 @@ func (s *DisksService) NewIterator(ctx context.Context,
 					Filter_:  reqParams.Filter,
 					Orderby_: reqParams.OrderBy,
 					Select_:  reqParams.Select,
+					Apply_:   reqParams.Apply,
 				})
 		},
 		opts,
