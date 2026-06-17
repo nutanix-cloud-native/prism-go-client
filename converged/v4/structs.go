@@ -15,6 +15,7 @@ import (
 
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
+	alertModels "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/serviceability"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
@@ -57,6 +58,8 @@ type Client struct {
 		imageModels.FileDetail,
 		dpModels.ProtectionPolicy,
 		dpModels.RecoveryPlan,
+		clusterModels.Disk,
+		alertModels.Alert,
 	]
 
 	client *v4prismGoClient.Client
@@ -99,6 +102,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			imageModels.FileDetail,
 			dpModels.ProtectionPolicy,
 			dpModels.RecoveryPlan,
+			clusterModels.Disk,
+			alertModels.Alert,
 		]{
 			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:             NewClustersService(v4sdkClient),
@@ -117,6 +122,8 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 				ProtectionPolicies: NewProtectionPoliciesService(v4sdkClient),
 				RecoveryPlans:      NewRecoveryPlansService(v4sdkClient),
 			},
+			Disks:  NewDisksService(v4sdkClient),
+			Alerts: NewAlertsService(v4sdkClient),
 		},
 		client: v4sdkClient,
 	}
