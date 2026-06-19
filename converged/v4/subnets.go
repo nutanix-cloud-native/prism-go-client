@@ -15,7 +15,16 @@ import (
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/common/v1/config"
 )
 
-const reservedIPsTaskKey = "reserved_ips"
+const (
+	// completionDetailsIPsKey is the name of the KVPair that Prism Central adds
+	// to a subnet IP reserve/unreserve task's completion details. PC reuses the
+	// same KVPair name for both operations.
+	completionDetailsIPsKey = "reserved_or_unreserved_ips"
+
+	// reservedIPsValueField is the field inside that KVPair's JSON value that
+	// lists the reserved IP addresses, e.g. {"reserved_ips": [...]}.
+	reservedIPsValueField = "reserved_ips"
+)
 
 // SubnetsService provides implementation for all Subnets interface methods.
 type SubnetsService struct {
@@ -272,12 +281,29 @@ func reservedIPsFromCompletionDetails(operation converged.Operation[converged.No
 		return nil, fmt.Errorf("failed to get task completion details: %w", err)
 	}
 
+	ips, found, err := reservedIPsFromDetails(details)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("task %s completion details missing reserved IPs", operation.UUID())
+	}
+
+	return ips, nil
+}
+
+// reservedIPsFromDetails extracts the reserved IP addresses from a subnet IP
+// reserve task's completion details. The IPs live in the KVPair named
+// completionDetailsIPsKey, whose value is a JSON document keyed by
+// reservedIPsValueField. The returned bool reports whether such a KVPair was
+// found.
+func reservedIPsFromDetails(details []any) ([]string, bool, error) {
 	for _, rawDetail := range details {
 		detail, ok := rawDetail.(*prismModels.KVPair)
 		if !ok || detail == nil {
 			continue
 		}
-		if detail.Name == nil || *detail.Name != reservedIPsTaskKey || detail.Value == nil {
+		if detail.Name == nil || *detail.Name != completionDetailsIPsKey || detail.Value == nil {
 			continue
 		}
 		value := detail.Value.GetValue()
@@ -288,18 +314,15 @@ func reservedIPsFromCompletionDetails(operation converged.Operation[converged.No
 		marshaledValue, _ := json.Marshal(value)
 		unquotedValue, err := strconv.Unquote(string(marshaledValue))
 		if err != nil {
-			return nil, fmt.Errorf("failed to unquote reserved IP response %s: %w", marshaledValue, err)
+			return nil, false, fmt.Errorf("failed to unquote reserved IP response %s: %w", marshaledValue, err)
 		}
 
-		type reservedIPs struct {
-			ReservedIPs []string `json:"reserved_ips"`
-		}
-		var response reservedIPs
+		var response map[string][]string
 		if err := json.Unmarshal([]byte(unquotedValue), &response); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal reserved IP response %s: %w", unquotedValue, err)
+			return nil, false, fmt.Errorf("failed to unmarshal reserved IP response %s: %w", unquotedValue, err)
 		}
-		return response.ReservedIPs, nil
+		return response[reservedIPsValueField], true, nil
 	}
 
-	return nil, fmt.Errorf("task %s completion details missing reserved IPs", operation.UUID())
+	return nil, false, nil
 }
