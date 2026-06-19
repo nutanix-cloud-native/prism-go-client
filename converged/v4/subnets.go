@@ -12,7 +12,7 @@ import (
 
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
-	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/common/v1/config"
 )
 
 const reservedIPsTaskKey = "reserved_ips"
@@ -112,7 +112,7 @@ func (s *SubnetsService) ReserveIpsBySubnetId(
 		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
 	}
 
-	return s.reservedIPsFromTask(ctx, operation.UUID())
+	return reservedIPsFromCompletionDetails(operation)
 }
 
 // ReserveIpsBySubnetIdAsync reserves IP addresses on a subnet.
@@ -266,15 +266,17 @@ func (s *SubnetsService) ListReservedIpsBySubnetId(
 	return resp, nil
 }
 
-func (s *SubnetsService) reservedIPsFromTask(ctx context.Context, taskID string) ([]string, error) {
-	task, err := CallAPI[*prismModels.GetTaskApiResponse, prismModels.Task](
-		s.client.TasksApiInstance.GetTaskById(&taskID, nil),
-	)
+func reservedIPsFromCompletionDetails(operation converged.Operation[converged.NoEntity]) ([]string, error) {
+	details, err := operation.GetCompletionDetails()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get completed task %s: %w", taskID, err)
+		return nil, fmt.Errorf("failed to get task completion details: %w", err)
 	}
 
-	for _, detail := range task.CompletionDetails {
+	for _, rawDetail := range details {
+		detail, ok := rawDetail.(*prismModels.KVPair)
+		if !ok || detail == nil {
+			continue
+		}
 		if detail.Name == nil || *detail.Name != reservedIPsTaskKey || detail.Value == nil {
 			continue
 		}
@@ -299,5 +301,5 @@ func (s *SubnetsService) reservedIPsFromTask(ctx context.Context, taskID string)
 		return response.ReservedIPs, nil
 	}
 
-	return nil, fmt.Errorf("task %s completion details missing reserved IPs", taskID)
+	return nil, fmt.Errorf("task %s completion details missing reserved IPs", operation.UUID())
 }
