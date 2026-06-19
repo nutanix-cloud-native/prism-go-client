@@ -2,15 +2,20 @@ package v4
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
+	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 )
+
+const reservedIPsTaskKey = "reserved_ips"
 
 // SubnetsService provides implementation for all Subnets interface methods.
 type SubnetsService struct {
@@ -91,13 +96,32 @@ func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODat
 	)
 }
 
-// ReserveIpsBySubnetId reserves IP addresses on a subnet.
-// It returns a TaskReference that can be used to track the async operation.
+// ReserveIpsBySubnetId reserves IP addresses on a subnet and waits for completion.
+// It returns the reserved IP addresses from the completed task.
 func (s *SubnetsService) ReserveIpsBySubnetId(
 	ctx context.Context,
 	subnetExtId string,
 	spec any,
-) (*networkingprismapi.TaskReference, error) {
+) ([]string, error) {
+	operation, err := s.ReserveIpsBySubnetIdAsync(ctx, subnetExtId, spec)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := operation.Wait(ctx); err != nil {
+		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
+	}
+
+	return s.reservedIPsFromTask(ctx, operation.UUID())
+}
+
+// ReserveIpsBySubnetIdAsync reserves IP addresses on a subnet.
+// It returns an Operation that can be used to wait for the async task completion.
+func (s *SubnetsService) ReserveIpsBySubnetIdAsync(
+	ctx context.Context,
+	subnetExtId string,
+	spec any,
+) (converged.Operation[converged.NoEntity], error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -123,16 +147,44 @@ func (s *SubnetsService) ReserveIpsBySubnetId(
 		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
 	}
 
-	return &taskRef, nil
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for reserved IPs")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
+			return converged.NoEntityGetter(ctx, uuid)
+		},
+	), nil
 }
 
-// UnreserveIpsBySubnetId unreserves IP addresses on a subnet.
-// It returns a TaskReference that can be used to track the async operation.
+// UnreserveIpsBySubnetId unreserves IP addresses on a subnet and waits for completion.
 func (s *SubnetsService) UnreserveIpsBySubnetId(
 	ctx context.Context,
 	subnetExtId string,
 	spec any,
-) (*networkingprismapi.TaskReference, error) {
+) error {
+	operation, err := s.UnreserveIpsBySubnetIdAsync(ctx, subnetExtId, spec)
+	if err != nil {
+		return err
+	}
+
+	if _, err := operation.Wait(ctx); err != nil {
+		return fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
+	}
+
+	return nil
+}
+
+// UnreserveIpsBySubnetIdAsync unreserves IP addresses on a subnet.
+// It returns an Operation that can be used to wait for the async task completion.
+func (s *SubnetsService) UnreserveIpsBySubnetIdAsync(
+	ctx context.Context,
+	subnetExtId string,
+	spec any,
+) (converged.Operation[converged.NoEntity], error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
@@ -158,7 +210,17 @@ func (s *SubnetsService) UnreserveIpsBySubnetId(
 		return nil, fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
 	}
 
-	return &taskRef, nil
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for unreserved IPs")
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
+			return converged.NoEntityGetter(ctx, uuid)
+		},
+	), nil
 }
 
 // ListReservedIpsBySubnetId fetches a list of reserved IP addresses on a particular managed subnet.
@@ -202,4 +264,40 @@ func (s *SubnetsService) ListReservedIpsBySubnetId(
 	}
 
 	return resp, nil
+}
+
+func (s *SubnetsService) reservedIPsFromTask(ctx context.Context, taskID string) ([]string, error) {
+	task, err := CallAPI[*prismModels.GetTaskApiResponse, prismModels.Task](
+		s.client.TasksApiInstance.GetTaskById(&taskID, nil),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get completed task %s: %w", taskID, err)
+	}
+
+	for _, detail := range task.CompletionDetails {
+		if detail.Name == nil || *detail.Name != reservedIPsTaskKey || detail.Value == nil {
+			continue
+		}
+		value := detail.Value.GetValue()
+		if value == nil {
+			continue
+		}
+
+		marshaledValue, _ := json.Marshal(value)
+		unquotedValue, err := strconv.Unquote(string(marshaledValue))
+		if err != nil {
+			return nil, fmt.Errorf("failed to unquote reserved IP response %s: %w", marshaledValue, err)
+		}
+
+		type reservedIPs struct {
+			ReservedIPs []string `json:"reserved_ips"`
+		}
+		var response reservedIPs
+		if err := json.Unmarshal([]byte(unquotedValue), &response); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal reserved IP response %s: %w", unquotedValue, err)
+		}
+		return response.ReservedIPs, nil
+	}
+
+	return nil, fmt.Errorf("task %s completion details missing reserved IPs", taskID)
 }
