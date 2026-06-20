@@ -21,8 +21,12 @@ type Subnets[Subnet, TaskReference any] interface {
 	ReserveIpsBySubnetIdAsync(ctx context.Context, subnetExtId string, spec any) (Operation[NoEntity], error)
 
 	// UnreserveIpsBySubnetId unreserves IP addresses on a subnet and waits for completion.
+	// Returns the IP addresses that were unreserved, as reported by the completed task.
+	// This is primarily useful when unreserving by client context, where the caller does
+	// not know up front which IPs the server will release. The slice may be empty if the
+	// task does not report the unreserved IPs.
 	// spec should be of type *subnetModels.IpUnreserveSpec (for v4 implementation).
-	UnreserveIpsBySubnetId(ctx context.Context, subnetExtId string, spec any) error
+	UnreserveIpsBySubnetId(ctx context.Context, subnetExtId string, spec any) ([]string, error)
 
 	// UnreserveIpsBySubnetIdAsync unreserves IP addresses on a subnet and returns an Operation that can wait for completion.
 	// spec should be of type *subnetModels.IpUnreserveSpec (for v4 implementation).

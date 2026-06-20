@@ -22,8 +22,12 @@ const (
 	completionDetailsIPsKey = "reserved_or_unreserved_ips"
 
 	// reservedIPsValueField is the field inside that KVPair's JSON value that
-	// lists the reserved IP addresses, e.g. {"reserved_ips": [...]}.
+	// lists the IPs of a reserve task, e.g. {"reserved_ips": [...]}.
 	reservedIPsValueField = "reserved_ips"
+
+	// unreservedIPsValueField is the field inside that KVPair's JSON value that
+	// lists the IPs of an unreserve task, e.g. {"unreserved_ips": [...]}.
+	unreservedIPsValueField = "unreserved_ips"
 )
 
 // SubnetsService provides implementation for all Subnets interface methods.
@@ -121,7 +125,15 @@ func (s *SubnetsService) ReserveIpsBySubnetId(
 		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
 	}
 
-	return reservedIPsFromCompletionDetails(operation)
+	ips, found, err := ipsFromCompletionDetails(operation, reservedIPsValueField)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("task %s completion details missing reserved IPs", operation.UUID())
+	}
+
+	return ips, nil
 }
 
 // ReserveIpsBySubnetIdAsync reserves IP addresses on a subnet.
@@ -169,22 +181,32 @@ func (s *SubnetsService) ReserveIpsBySubnetIdAsync(
 	), nil
 }
 
-// UnreserveIpsBySubnetId unreserves IP addresses on a subnet and waits for completion.
+// UnreserveIpsBySubnetId unreserves IP addresses on a subnet and waits for
+// completion. It returns the IP addresses that were unreserved, as reported by
+// the completed task. This is primarily useful when unreserving by client
+// context, where the caller does not know up front which IPs the server will
+// release. The returned slice may be empty if the task does not report the
+// unreserved IPs; a missing list is not treated as an error.
 func (s *SubnetsService) UnreserveIpsBySubnetId(
 	ctx context.Context,
 	subnetExtId string,
 	spec any,
-) error {
+) ([]string, error) {
 	operation, err := s.UnreserveIpsBySubnetIdAsync(ctx, subnetExtId, spec)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if _, err := operation.Wait(ctx); err != nil {
-		return fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
+		return nil, fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
 	}
 
-	return nil
+	ips, _, err := ipsFromCompletionDetails(operation, unreservedIPsValueField)
+	if err != nil {
+		return nil, err
+	}
+
+	return ips, nil
 }
 
 // UnreserveIpsBySubnetIdAsync unreserves IP addresses on a subnet.
@@ -275,29 +297,24 @@ func (s *SubnetsService) ListReservedIpsBySubnetId(
 	return resp, nil
 }
 
-func reservedIPsFromCompletionDetails(operation converged.Operation[converged.NoEntity]) ([]string, error) {
+func ipsFromCompletionDetails(
+	operation converged.Operation[converged.NoEntity],
+	valueField string,
+) ([]string, bool, error) {
 	details, err := operation.GetCompletionDetails()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get task completion details: %w", err)
+		return nil, false, fmt.Errorf("failed to get task completion details: %w", err)
 	}
 
-	ips, found, err := reservedIPsFromDetails(details)
-	if err != nil {
-		return nil, err
-	}
-	if !found {
-		return nil, fmt.Errorf("task %s completion details missing reserved IPs", operation.UUID())
-	}
-
-	return ips, nil
+	return ipsFromDetails(details, valueField)
 }
 
-// reservedIPsFromDetails extracts the reserved IP addresses from a subnet IP
-// reserve task's completion details. The IPs live in the KVPair named
-// completionDetailsIPsKey, whose value is a JSON document keyed by
-// reservedIPsValueField. The returned bool reports whether such a KVPair was
-// found.
-func reservedIPsFromDetails(details []any) ([]string, bool, error) {
+// ipsFromDetails extracts IP addresses from a subnet IP reserve/unreserve task's
+// completion details. The IPs live in the KVPair named completionDetailsIPsKey,
+// whose value is a JSON document keyed by valueField (reservedIPsValueField for
+// reserve tasks, unreservedIPsValueField for unreserve tasks). The returned bool
+// reports whether the KVPair carrying valueField was found.
+func ipsFromDetails(details []any, valueField string) ([]string, bool, error) {
 	for _, rawDetail := range details {
 		detail, ok := rawDetail.(*prismModels.KVPair)
 		if !ok || detail == nil {
@@ -314,14 +331,18 @@ func reservedIPsFromDetails(details []any) ([]string, bool, error) {
 		marshaledValue, _ := json.Marshal(value)
 		unquotedValue, err := strconv.Unquote(string(marshaledValue))
 		if err != nil {
-			return nil, false, fmt.Errorf("failed to unquote reserved IP response %s: %w", marshaledValue, err)
+			return nil, false, fmt.Errorf("failed to unquote IP response %s: %w", marshaledValue, err)
 		}
 
 		var response map[string][]string
 		if err := json.Unmarshal([]byte(unquotedValue), &response); err != nil {
-			return nil, false, fmt.Errorf("failed to unmarshal reserved IP response %s: %w", unquotedValue, err)
+			return nil, false, fmt.Errorf("failed to unmarshal IP response %s: %w", unquotedValue, err)
 		}
-		return response[reservedIPsValueField], true, nil
+		ips, ok := response[valueField]
+		if !ok {
+			continue
+		}
+		return ips, true, nil
 	}
 
 	return nil, false, nil

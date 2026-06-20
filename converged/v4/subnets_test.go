@@ -20,45 +20,68 @@ func kvPair(t *testing.T, name, value string) *prismModels.KVPair {
 	return kv
 }
 
-func TestReservedIPsFromDetails(t *testing.T) {
+func TestIPsFromDetails(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		details   []any
-		wantIPs   []string
-		wantFound bool
-		wantErr   bool
+		name       string
+		details    []any
+		valueField string
+		wantIPs    []string
+		wantFound  bool
+		wantErr    bool
 	}{
 		{
 			name: "reserve task completion details",
 			details: []any{
-				// Prism Central uses the key "reserved_or_unreserved_ips" for both
-				// reserve and unreserve tasks; the value is a JSON document.
+				// Prism Central uses the KVPair name "reserved_or_unreserved_ips"
+				// for both reserve and unreserve tasks; only the inner JSON key
+				// differs (reserved_ips vs unreserved_ips).
 				kvPair(t, completionDetailsIPsKey, `{"reserved_ips": ["10.23.132.71"]}`),
 			},
-			wantIPs:   []string{"10.23.132.71"},
-			wantFound: true,
+			valueField: reservedIPsValueField,
+			wantIPs:    []string{"10.23.132.71"},
+			wantFound:  true,
 		},
 		{
 			name: "multiple reserved IPs",
 			details: []any{
 				kvPair(t, completionDetailsIPsKey, `{"reserved_ips": ["10.0.0.1", "10.0.0.2"]}`),
 			},
-			wantIPs:   []string{"10.0.0.1", "10.0.0.2"},
-			wantFound: true,
+			valueField: reservedIPsValueField,
+			wantIPs:    []string{"10.0.0.1", "10.0.0.2"},
+			wantFound:  true,
+		},
+		{
+			name: "unreserve task completion details",
+			details: []any{
+				kvPair(t, completionDetailsIPsKey, `{"unreserved_ips": ["10.23.132.6"]}`),
+			},
+			valueField: unreservedIPsValueField,
+			wantIPs:    []string{"10.23.132.6"},
+			wantFound:  true,
+		},
+		{
+			name: "reserve value field absent for unreserve lookup",
+			details: []any{
+				kvPair(t, completionDetailsIPsKey, `{"reserved_ips": ["10.0.0.1"]}`),
+			},
+			valueField: unreservedIPsValueField,
+			wantFound:  false,
 		},
 		{
 			name: "unrelated KVPair is ignored",
 			details: []any{
 				kvPair(t, "some_other_key", `{"reserved_ips": ["10.0.0.1"]}`),
 			},
-			wantFound: false,
+			valueField: reservedIPsValueField,
+			wantFound:  false,
 		},
 		{
-			name:      "no completion details",
-			details:   nil,
-			wantFound: false,
+			name:       "no completion details",
+			details:    nil,
+			valueField: reservedIPsValueField,
+			wantFound:  false,
 		},
 	}
 
@@ -66,7 +89,7 @@ func TestReservedIPsFromDetails(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ips, found, err := reservedIPsFromDetails(tt.details)
+			ips, found, err := ipsFromDetails(tt.details, tt.valueField)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
