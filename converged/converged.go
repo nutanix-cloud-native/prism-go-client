@@ -196,6 +196,7 @@ type Operation[T any] interface {
 	// Non-blocking results
 	Results() ([]*T, error)                // Returns results if complete, error if not ready
 	GetAffectedEntityRefs() ([]any, error) // Returns the affected entity references
+	GetCompletionDetails() ([]any, error)  // Returns the task completion details
 
 	// Non-blocking task states
 	IsDone() bool
