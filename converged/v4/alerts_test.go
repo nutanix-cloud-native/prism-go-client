@@ -49,10 +49,10 @@ func TestAlertsIntegration(t *testing.T) {
 	})
 
 	t.Run("ListAlertsWithFilter", func(t *testing.T) {
-		// Filter on unacknowledged alerts; an empty result is acceptable, the
-		// call must simply succeed and propagate the filter without error.
+		// Filter on a severity value; an empty result is acceptable, the call
+		// must simply succeed and propagate the filter without error.
 		alerts, err := client.Alerts.List(ctx, converged.WithFilter(
-			"acknowledged eq false"))
+			"severity eq Monitoring.Alert.AlertSeverity'kCritical'"))
 		assert.NoError(t, err)
 		assert.GreaterOrEqual(t, len(alerts), 0)
 	})
