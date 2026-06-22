@@ -8,7 +8,10 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
+	monitoringApi "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/api"
 	alertsReq "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/request/alerts"
+	manageAlertsReq "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/request/managealerts"
+	monitoringPrismConfig "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/prism/v4/config"
 	alertModels "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/serviceability"
 )
 
@@ -76,6 +79,60 @@ func (s *AlertsService) List(ctx context.Context,
 		opts,
 		s.entitiesName,
 	)
+}
+
+// Acknowledge acknowledges the alert identified by the given external
+// identifier. It returns an asynchronous operation tracking the resulting task.
+func (s *AlertsService) Acknowledge(ctx context.Context, uuid string) (
+	converged.Operation[alertModels.Alert], error) {
+
+	return s.manageAlert(ctx, uuid, alertModels.ACTIONTYPE_ACKNOWLEDGE)
+}
+
+// Resolve resolves the alert identified by the given external identifier.
+// It returns an asynchronous operation tracking the resulting task.
+func (s *AlertsService) Resolve(ctx context.Context, uuid string) (
+	converged.Operation[alertModels.Alert], error) {
+
+	return s.manageAlert(ctx, uuid, alertModels.ACTIONTYPE_RESOLVE)
+}
+
+// manageAlert performs the requested action (acknowledge or resolve) on the
+// alert identified by the given external identifier.
+func (s *AlertsService) manageAlert(ctx context.Context, uuid string,
+	action alertModels.ActionType) (converged.Operation[alertModels.Alert], error) {
+
+	if s.client == nil || s.client.AlertsServiceApiInstance == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	spec := alertModels.NewAlertActionSpec()
+	spec.ActionType = &action
+
+	// The acknowledge/resolve operations live on a separate generated API
+	// (ManageAlertsServiceApi). Build it from the alerts API's underlying
+	// client so we don't need to thread an extra instance through the SDK.
+	manageAlertsApi := monitoringApi.NewManageAlertsServiceApi(s.client.AlertsServiceApiInstance.ApiClient)
+
+	taskRef, err := CallAPI[*alertModels.ManageAlertApiResponse, monitoringPrismConfig.TaskReference](
+		manageAlertsApi.ManageAlert(ctx, &manageAlertsReq.ManageAlertRequest{
+			ExtId: &uuid,
+			Body:  spec,
+		}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to manage %s: %w", s.entitiesName, err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for managed %s", s.entitiesName)
+	}
+
+	return NewOperation(
+		*taskRef.ExtId,
+		s.client,
+		s.Get,
+	), nil
 }
 
 // NewIterator returns an iterator for listing alerts.
