@@ -11,8 +11,8 @@ import (
 	monitoringApi "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/api"
 	alertsReq "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/request/alerts"
 	manageAlertsReq "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/request/managealerts"
-	monitoringPrismConfig "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/prism/v4/config"
 	alertModels "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/serviceability"
+	monitoringPrismConfig "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/prism/v4/config"
 )
 
 // AlertsService provides implementation for all Alerts interface methods.
@@ -126,6 +126,16 @@ func (s *AlertsService) ManageAlertAsync(ctx context.Context, uuid string,
 		return nil, fmt.Errorf("unsupported %s action: %q", s.entitiesName, action)
 	}
 
+	// The manage-alert endpoint requires an If-Match ETag header to guard
+	// against concurrent modifications.
+	_, args, err := GetEntityAndEtag(
+		s.client.AlertsServiceApiInstance.GetAlertById(ctx,
+			&alertsReq.GetAlertByIdRequest{ExtId: &uuid}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get %s for manage: %w", s.entitiesName, err)
+	}
+
 	spec := alertModels.NewAlertActionSpec()
 	spec.ActionType = &actionType
 
@@ -138,7 +148,7 @@ func (s *AlertsService) ManageAlertAsync(ctx context.Context, uuid string,
 		manageAlertsApi.ManageAlert(ctx, &manageAlertsReq.ManageAlertRequest{
 			ExtId: &uuid,
 			Body:  spec,
-		}),
+		}, args),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to manage %s: %w", s.entitiesName, err)
