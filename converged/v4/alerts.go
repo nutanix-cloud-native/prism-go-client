@@ -81,35 +81,55 @@ func (s *AlertsService) List(ctx context.Context,
 	)
 }
 
-// Acknowledge acknowledges the alert identified by the given external
-// identifier. It returns an asynchronous operation tracking the resulting task.
-func (s *AlertsService) Acknowledge(ctx context.Context, uuid string) (
-	converged.Operation[alertModels.Alert], error) {
-
-	return s.manageAlert(ctx, uuid, alertModels.ACTIONTYPE_ACKNOWLEDGE)
+// alertActionMap maps the service-agnostic converged.AlertAction values to the
+// V4 SDK ActionType enum used by the manage-alert API.
+var alertActionMap = map[converged.AlertAction]alertModels.ActionType{
+	converged.AlertActionResolve:     alertModels.ACTIONTYPE_RESOLVE,
+	converged.AlertActionAcknowledge: alertModels.ACTIONTYPE_ACKNOWLEDGE,
+	converged.AlertActionUnknown:     alertModels.ACTIONTYPE_UNKNOWN,
+	converged.AlertActionRedacted:    alertModels.ACTIONTYPE_REDACTED,
 }
 
-// Resolve resolves the alert identified by the given external identifier.
-// It returns an asynchronous operation tracking the resulting task.
-func (s *AlertsService) Resolve(ctx context.Context, uuid string) (
-	converged.Operation[alertModels.Alert], error) {
+// ManageAlert performs the given action on the alert identified by the given
+// external identifier, waits for the resulting task to finish, and re-reads the
+// entity by its external identifier so the returned value reflects the new state.
+func (s *AlertsService) ManageAlert(ctx context.Context, uuid string,
+	action converged.AlertAction) (*alertModels.Alert, error) {
 
-	return s.manageAlert(ctx, uuid, alertModels.ACTIONTYPE_RESOLVE)
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	operation, err := s.ManageAlertAsync(ctx, uuid, action)
+	if err != nil {
+		return nil, fmt.Errorf("failed to manage %s: %w", s.entitiesName, err)
+	}
+
+	if _, err := operation.Wait(ctx); err != nil {
+		return nil, fmt.Errorf("failed to manage %s: %w", s.entitiesName, err)
+	}
+
+	return s.Get(ctx, uuid)
 }
 
-// manageAlert performs the requested action (acknowledge or resolve) on the
-// alert identified by the given external identifier.
-func (s *AlertsService) manageAlert(ctx context.Context, uuid string,
-	action alertModels.ActionType) (converged.Operation[alertModels.Alert], error) {
+// ManageAlertAsync performs the given action on the alert identified by the
+// given external identifier and returns an Operation to track the task.
+func (s *AlertsService) ManageAlertAsync(ctx context.Context, uuid string,
+	action converged.AlertAction) (converged.Operation[alertModels.Alert], error) {
 
 	if s.client == nil || s.client.AlertsServiceApiInstance == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
-	spec := alertModels.NewAlertActionSpec()
-	spec.ActionType = &action
+	actionType, ok := alertActionMap[action]
+	if !ok {
+		return nil, fmt.Errorf("unsupported %s action: %q", s.entitiesName, action)
+	}
 
-	// The acknowledge/resolve operations live on a separate generated API
+	spec := alertModels.NewAlertActionSpec()
+	spec.ActionType = &actionType
+
+	// The manage-alert operation lives on a separate generated API
 	// (ManageAlertsServiceApi). Build it from the alerts API's underlying
 	// client so we don't need to thread an extra instance through the SDK.
 	manageAlertsApi := monitoringApi.NewManageAlertsServiceApi(s.client.AlertsServiceApiInstance.ApiClient)
