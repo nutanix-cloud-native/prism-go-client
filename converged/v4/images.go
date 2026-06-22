@@ -32,6 +32,25 @@ const (
 	defaultAWSRegion = "us-east-1"
 )
 
+// headerInjectingTransport wraps an http.RoundTripper to set a fixed set of
+// headers on every outgoing request. Used so that the AWS HTTP client's S3
+// PutObject requests carry the same gateway credentials as the rest of the
+// Prism client.
+type headerInjectingTransport struct {
+	base    http.RoundTripper
+	headers http.Header
+}
+
+func (t *headerInjectingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Clone before mutating: per the RoundTripper contract, RoundTrip must
+	// not modify the request the caller passed in.
+	clone := req.Clone(req.Context())
+	for k, vs := range t.headers {
+		clone.Header[k] = vs
+	}
+	return t.base.RoundTrip(clone)
+}
+
 // ImagesService provides implementation for all Images interface methods.
 type ImagesService struct {
 	client       *v4prismGoClient.Client
@@ -166,9 +185,18 @@ func (s *ImagesService) GetFile(ctx context.Context, uuid string) (*imageModels.
 }
 
 // Upload uploads the image file to the given UUID.
-func (s *ImagesService) Upload(ctx context.Context, uuid, filepath string) error {
+//
+// Optional UploadOptions configure the upload — see converged.WithExtraHeaders
+// for the only currently supported option. Calling Upload with no options
+// preserves the pre-options behaviour exactly.
+func (s *ImagesService) Upload(ctx context.Context, uuid, filepath string, opts ...converged.UploadOption) error {
 	if s.client == nil {
 		return errors.New("client is not initialized")
+	}
+
+	uo := &converged.UploadOptions{}
+	for _, opt := range opts {
+		opt(uo)
 	}
 
 	file, err := os.Open(filepath)
@@ -177,7 +205,7 @@ func (s *ImagesService) Upload(ctx context.Context, uuid, filepath string) error
 	}
 	defer func() { _ = file.Close() }()
 
-	if err := s.uploadToObjects(ctx, uuid, file); err != nil {
+	if err := s.uploadToObjects(ctx, uuid, file, uo); err != nil {
 		return err
 	}
 
@@ -194,8 +222,8 @@ func (s *ImagesService) Upload(ctx context.Context, uuid, filepath string) error
 }
 
 // uploadToObjects uploads a file to Objects Lite S3 storage
-func (s *ImagesService) uploadToObjects(ctx context.Context, uuid string, file *os.File) error {
-	awsConfig, endpoint, err := s.awsConfig(ctx)
+func (s *ImagesService) uploadToObjects(ctx context.Context, uuid string, file *os.File, uo *converged.UploadOptions) error {
+	awsConfig, endpoint, err := s.awsConfig(ctx, uo)
 	if err != nil {
 		return err
 	}
@@ -240,7 +268,7 @@ func (s *ImagesService) imageFromObjectsLite(objectKey, sourcePath string) (*ima
 	return image, nil
 }
 
-func (s *ImagesService) awsConfig(_ context.Context) (aws.Config, string, error) {
+func (s *ImagesService) awsConfig(_ context.Context, uo *converged.UploadOptions) (aws.Config, string, error) {
 	apiClient := s.client.ImagesApiInstance.ApiClient
 
 	// Objects Lite S3 endpoint
@@ -261,12 +289,21 @@ func (s *ImagesService) awsConfig(_ context.Context) (aws.Config, string, error)
 		Credentials: credentials.NewStaticCredentialsProvider(encoded, encoded, ""),
 	}
 
-	if !apiClient.VerifySSL {
-		awsCfg.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
-			},
+	// Build a custom HTTP client only when needed: either to skip TLS
+	// verification, or to inject extra headers supplied by the caller.
+	// When neither applies, the AWS SDK's default client is used — preserving
+	// pre-options behaviour exactly.
+	if !apiClient.VerifySSL || (uo != nil && len(uo.ExtraHeaders) > 0) {
+		var transport http.RoundTripper = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: !apiClient.VerifySSL}, //nolint:gosec
 		}
+		if uo != nil && len(uo.ExtraHeaders) > 0 {
+			transport = &headerInjectingTransport{
+				base:    transport,
+				headers: uo.ExtraHeaders,
+			}
+		}
+		awsCfg.HTTPClient = &http.Client{Transport: transport}
 	}
 
 	return awsCfg, endpoint, nil
