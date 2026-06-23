@@ -46,6 +46,81 @@ func TestApiCredentials(t *testing.T) {
 		assert.Empty(t, decoded.KeyPair)
 		assert.Empty(t, decoded.APIKey)
 	})
+
+	t.Run("Validate", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			creds       *ApiCredentials
+			wantErr     bool
+			errContains string
+		}{
+			{
+				name:    "nil credentials",
+				creds:   nil,
+				wantErr: true,
+				errContains: "credentials must not be nil",
+			},
+			{
+				name: "valid basic auth",
+				creds: &ApiCredentials{
+					Username: "test-user",
+					Password: "test-password",
+				},
+				wantErr: false,
+			},
+			{
+				name: "valid API key",
+				creds: &ApiCredentials{
+					APIKey: "test-api-key",
+				},
+				wantErr: false,
+			},
+			{
+				name: "rejects API key and basic auth together",
+				creds: &ApiCredentials{
+					Username: "test-user",
+					Password: "test-password",
+					APIKey:   "test-api-key",
+				},
+				wantErr:     true,
+				errContains: "basic auth (username/password) and API key cannot be set simultaneously",
+			},
+			{
+				name: "rejects empty credentials",
+				creds: &ApiCredentials{},
+				wantErr: true,
+				errContains: "either username and password, or an API key must be set in provider configuration",
+			},
+			{
+				name: "rejects username without password",
+				creds: &ApiCredentials{
+					Username: "test-user",
+				},
+				wantErr: true,
+				errContains: "either username and password, or an API key must be set in provider configuration",
+			},
+			{
+				name: "rejects password without username",
+				creds: &ApiCredentials{
+					Password: "test-password",
+				},
+				wantErr: true,
+				errContains: "either username and password, or an API key must be set in provider configuration",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := tt.creds.Validate()
+				if tt.wantErr {
+					require.Error(t, err)
+					assert.ErrorContains(t, err, tt.errContains)
+					return
+				}
+				require.NoError(t, err)
+			})
+		}
+	})
 }
 
 func TestManagementEndpoint(t *testing.T) {
