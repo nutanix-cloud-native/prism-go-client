@@ -7,15 +7,19 @@ import (
 	"slices"
 	"sync"
 	"time"
+	
+	"k8s.io/utils/ptr"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
-
+	
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
 	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
 	alertModels "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/serviceability"
+	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
@@ -24,8 +28,6 @@ import (
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
-	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
-	"k8s.io/utils/ptr"
 )
 
 // EntityReferenceGetterKey is the key for the entity reference getter in the context
@@ -53,6 +55,10 @@ type Client struct {
 		volumeModels.VmAttachment,
 		prismModels.DomainManager,
 		iamModels.User,
+		iamAuthzModels.Role,
+		iamAuthzModels.AuthorizationPolicy,
+		iamAuthzModels.AuthorizationPolicyProjection,
+		iamAuthzModels.Operation,
 		imageModels.Template,
 		imageModels.Ova,
 		imageModels.FileDetail,
@@ -97,6 +103,10 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			volumeModels.VmAttachment,
 			prismModels.DomainManager,
 			iamModels.User,
+			iamAuthzModels.Role,
+			iamAuthzModels.AuthorizationPolicy,
+			iamAuthzModels.AuthorizationPolicyProjection,
+			iamAuthzModels.Operation,
 			imageModels.Template,
 			imageModels.Ova,
 			imageModels.FileDetail,
@@ -105,19 +115,22 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			clusterModels.Disk,
 			alertModels.Alert,
 		]{
-			AntiAffinityPolicies: NewAntiAffinityPoliciesService(v4sdkClient),
-			Clusters:             NewClustersService(v4sdkClient),
-			Categories:           NewCategoriesService(v4sdkClient),
-			Images:               NewImagesService(v4sdkClient),
-			StorageContainers:    NewStorageContainersService(v4sdkClient),
-			Subnets:              NewSubnetsService(v4sdkClient),
-			VMs:                  NewVMsService(v4sdkClient),
-			Tasks:                NewTasksService(v4sdkClient),
-			VolumeGroups:         NewVolumeGroupsService(v4sdkClient),
-			DomainManager:        NewDomainManagerService(v4sdkClient),
-			Users:                NewUsersService(v4sdkClient),
-			Templates:            NewTemplatesService(v4sdkClient),
-			Ovas:                 NewOvasService(v4sdkClient),
+			AntiAffinityPolicies:  NewAntiAffinityPoliciesService(v4sdkClient),
+			Clusters:              NewClustersService(v4sdkClient),
+			Categories:            NewCategoriesService(v4sdkClient),
+			Images:                NewImagesService(v4sdkClient),
+			StorageContainers:     NewStorageContainersService(v4sdkClient),
+			Subnets:               NewSubnetsService(v4sdkClient),
+			VMs:                   NewVMsService(v4sdkClient),
+			Tasks:                 NewTasksService(v4sdkClient),
+			VolumeGroups:          NewVolumeGroupsService(v4sdkClient),
+			DomainManager:         NewDomainManagerService(v4sdkClient),
+			Users:                 NewUsersService(v4sdkClient),
+			Roles:                 NewRolesService(v4sdkClient),
+			AuthorizationPolicies: NewAuthorizationPoliciesService(v4sdkClient),
+			Operations: NewOperationsService(v4sdkClient),
+			Templates:             NewTemplatesService(v4sdkClient),
+			Ovas:                  NewOvasService(v4sdkClient),
 			DataPolicies: converged.DataPolicies[dpModels.ProtectionPolicy, dpModels.RecoveryPlan]{
 				ProtectionPolicies: NewProtectionPoliciesService(v4sdkClient),
 				RecoveryPlans:      NewRecoveryPlansService(v4sdkClient),

@@ -354,6 +354,7 @@ func TestNewClient(t *testing.T) {
 			URL:      mgmtEndpoint.Address.String(),
 			Username: mgmtEndpoint.Username,
 			Password: mgmtEndpoint.Password,
+			APIKey:   mgmtEndpoint.APIKey,
 			Insecure: mgmtEndpoint.Insecure,
 		}
 
@@ -444,6 +445,7 @@ func TestNewClientFromV4SDKClient(t *testing.T) {
 			Endpoint: mgmtEndpoint.Address.Host,
 			Port:     mgmtEndpoint.Address.Port(),
 			URL:      mgmtEndpoint.Address.String(),
+			APIKey:   mgmtEndpoint.APIKey,
 			Username: mgmtEndpoint.Username,
 			Password: mgmtEndpoint.Password,
 			Insecure: mgmtEndpoint.Insecure,

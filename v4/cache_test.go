@@ -260,6 +260,8 @@ func TestGetOrCreateSetsVerifySSL(t *testing.T) {
 	assert.True(t, c.VolumeGroupsApiInstance.ApiClient.VerifySSL)
 	assert.True(t, c.VmApiInstance.ApiClient.VerifySSL)
 	assert.True(t, c.UsersApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.RolesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.AuthorizationPoliciesApiInstance.ApiClient.VerifySSL)
 
 	cache.Delete(cp)
 
@@ -304,6 +306,8 @@ wFZUTKiL8IkyhtyTMr5NGvo1dbU=
 	assert.False(t, c.VolumeGroupsApiInstance.ApiClient.VerifySSL)
 	assert.False(t, c.VmApiInstance.ApiClient.VerifySSL)
 	assert.False(t, c.UsersApiInstance.ApiClient.VerifySSL)
+	assert.False(t, c.RolesApiInstance.ApiClient.VerifySSL)
+	assert.False(t, c.AuthorizationPoliciesApiInstance.ApiClient.VerifySSL)
 }
 
 func TestValidateCredentials(t *testing.T) {
