@@ -52,13 +52,19 @@ func (prov *provider) GetManagementEndpoint(
 
 	insecureTLS := os.Getenv(insecureEnv) == "true"
 	trustBundle := os.Getenv(trustBundleEnv)
+	
+	credentials := &types.ApiCredentials{
+		Username: os.Getenv(userEnv),
+		Password: os.Getenv(passwordEnv),
+		APIKey:   os.Getenv(apiKeyEnv),
+	}
+	if err := credentials.Validate(); err != nil {
+		return nil, err
+	}
+
 	return &types.ManagementEndpoint{
 		Address: addr,
-		ApiCredentials: types.ApiCredentials{
-			Username: os.Getenv(userEnv),
-			Password: os.Getenv(passwordEnv),
-			APIKey:   os.Getenv(apiKeyEnv),
-		},
+		ApiCredentials: *credentials,
 		Insecure:              insecureTLS,
 		AdditionalTrustBundle: trustBundle,
 	}, nil

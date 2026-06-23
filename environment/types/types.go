@@ -66,3 +66,28 @@ type Environment interface {
 type Provider interface {
 	Environment
 }
+
+func (c *ApiCredentials) Validate() error {
+	if c == nil {
+		return fmt.Errorf("credentials must not be nil")
+	}
+
+	hasUsername := c.Username != ""
+	hasPassword := c.Password != ""
+	hasAPIKey := c.APIKey != ""
+
+	hasAnyBasic := hasUsername || hasPassword
+	hasCompleteBasic := hasUsername && hasPassword
+
+	// 1) mutual exclusion
+	if hasAPIKey && hasAnyBasic {
+		return fmt.Errorf("basic auth (username/password) and API key cannot be set simultaneously")
+	}
+
+	// 2) required auth shape
+	if !hasAPIKey && !hasCompleteBasic {
+		return fmt.Errorf("either username and password, or an API key must be set in provider configuration")
+	}
+
+	return nil
+}

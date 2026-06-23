@@ -6,6 +6,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -44,4 +45,38 @@ func TestLocal(t *testing.T) {
 	val, err = prov.Get(nil, types.CategoriesKey)
 	g.Expect(err).To(BeNil())
 	g.Expect(val).To(BeEquivalentTo([]string{"k8s/foo", "project/bar"}))
+}
+
+func TestLocalRejectsMixedAuth(t *testing.T) {
+	g := NewWithT(t)
+	ip := rand.String(10)
+	username := rand.String(10)
+	password := rand.String(10)
+	apiKey := rand.String(32)
+	prov := &provider{}
+
+	t.Setenv(endpointEnv, ip)
+	t.Setenv(userEnv, username)
+	t.Setenv(passwordEnv, password)
+	t.Setenv(apiKeyEnv, apiKey)
+
+	_, err := prov.GetManagementEndpoint(nil)
+	g.Expect(err).NotTo(Succeed())
+	require.EqualError(t, err, "basic auth (username/password) and API key cannot be set simultaneously")
+}
+
+func TestLocalRejectsIncompleteBasicAuthWhenAPIKeyMissing(t *testing.T) {
+	g := NewWithT(t)
+	ip := rand.String(10)
+	username := rand.String(10)
+	prov := &provider{}
+
+	t.Setenv(endpointEnv, ip)
+	t.Setenv(userEnv, username)
+	t.Setenv(passwordEnv, "")
+	t.Setenv(apiKeyEnv, "")
+
+	_, err := prov.GetManagementEndpoint(nil)
+	g.Expect(err).NotTo(Succeed())
+	require.EqualError(t, err, "either username and password, or an API key must be set in provider configuration")
 }
