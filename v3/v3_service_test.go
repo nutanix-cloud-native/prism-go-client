@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/keploy/go-sdk/integrations/khttpclient"
@@ -5606,4 +5607,143 @@ func TestOperations_UpdateVM(t *testing.T) {
 	require.NotNil(t, uvm.Status.ExecutionContext)
 	require.NotNil(t, uvm.Status.ExecutionContext.TaskUUID)
 	assert.IsType(t, "", uvm.Status.ExecutionContext.TaskUUID)
+}
+
+func TestOperations_ListAvailabilityZones(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/availability_zones/list", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		_, _ = fmt.Fprint(w, `{
+			"api_version": "3.1",
+			"metadata": {"kind": "availability_zone", "length": 2, "offset": 0, "total_matches": 2},
+			"entities": [
+				{"metadata": {"kind": "availability_zone", "uuid": "a5ee5f7f-c4eb-4ba6-8926-8cb7c5b81855"}, "status": {"name": "Local AZ", "resources": {"management_plane_type": "Local", "management_url": "70381d7a-5226-47ee-96b6-d1d450e790f5"}}},
+				{"metadata": {"kind": "availability_zone", "uuid": "a1e195fb-a42d-463d-902f-cf8efb4f59e8"}, "status": {"name": "PC_10.33.19.169", "resources": {"management_plane_type": "PC", "management_url": "a1e195fb-a42d-463d-902f-cf8efb4f59e8"}}}
+			]
+		}`)
+	})
+
+	op := Operations{client: c}
+	got, err := op.ListAvailabilityZones(context.Background(), &DSMetadata{Kind: ptr.To("availability_zone")})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.NotNil(t, got.Metadata)
+	assert.Equal(t, int64(2), ptr.Deref(got.Metadata.TotalMatches, 0))
+	require.Len(t, got.Entities, 2)
+	assert.Equal(t, "Local AZ", ptr.Deref(got.Entities[0].Status.Name, ""))
+	assert.Equal(t, "a1e195fb-a42d-463d-902f-cf8efb4f59e8", ptr.Deref(got.Entities[1].Metadata.UUID, ""))
+}
+
+func TestOperations_ListAllAvailabilityZones(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	// Serve two pages so pagination is exercised: total_matches=150, with
+	// itemsPerPage (100) on the first page and 50 on the second.
+	mux.HandleFunc("/api/nutanix/v3/availability_zones/list", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+
+		var body DSMetadata
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		offset := ptr.Deref(body.Offset, 0)
+
+		count := int64(100)
+		if offset >= 100 {
+			count = 50
+		}
+
+		entities := make([]string, 0, count)
+		for i := int64(0); i < count; i++ {
+			entities = append(entities, fmt.Sprintf(
+				`{"metadata": {"kind": "availability_zone", "uuid": "uuid-%d-%d"}}`, offset, i))
+		}
+
+		_, _ = fmt.Fprintf(w, `{"api_version": "3.1", "metadata": {"kind": "availability_zone", "length": %d, "offset": %d, "total_matches": 150}, "entities": [%s]}`,
+			count, offset, strings.Join(entities, ","))
+	})
+
+	op := Operations{client: c}
+	got, err := op.ListAllAvailabilityZones(context.Background(), "")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Len(t, got.Entities, 150)
+}
+
+func TestOperations_ListAllAvailabilityZonesSinglePage(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/availability_zones/list", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+		_, _ = fmt.Fprint(w, `{
+			"api_version": "3.1",
+			"metadata": {"kind": "availability_zone", "length": 1, "offset": 0, "total_matches": 1},
+			"entities": [
+				{"metadata": {"kind": "availability_zone", "uuid": "a5ee5f7f-c4eb-4ba6-8926-8cb7c5b81855"}, "status": {"name": "Local AZ"}}
+			]
+		}`)
+	})
+
+	op := Operations{client: c}
+	got, err := op.ListAllAvailabilityZones(context.Background(), "")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Len(t, got.Entities, 1)
+	assert.Equal(t, "Local AZ", ptr.Deref(got.Entities[0].Status.Name, ""))
+}
+
+func TestOperations_GetSyncReplicationCapableClusters(t *testing.T) {
+	mux, c, server := setup(t)
+
+	defer server.Close()
+
+	mux.HandleFunc("/api/nutanix/v3/clusters/synchronous_replication_capable", func(w http.ResponseWriter, r *http.Request) {
+		testHTTPMethod(t, r, http.MethodPost)
+
+		expected := map[string]interface{}{
+			"remote_availability_zone_reference": map[string]interface{}{
+				"kind": "availability_zone",
+				"uuid": "a5ee5f7f-c4eb-4ba6-8926-8cb7c5b81855",
+			},
+			"remote_cluster_reference": map[string]interface{}{
+				"kind": "cluster",
+				"uuid": "00064ca8-05e8-56c6-2f37-7cc2558d16f0",
+			},
+		}
+
+		var v map[string]interface{}
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&v))
+		if !reflect.DeepEqual(v, expected) {
+			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
+		}
+
+		// Note: rtt_msecs is returned by PC as a JSON number, not a string.
+		_, _ = fmt.Fprint(w, `[{"rtt_msecs": 0.37, "cluster_reference": {"kind": "cluster", "name": "pe-1", "uuid": "00064ca8-0573-8976-1db0-7cc2558d1648"}}]`)
+	})
+
+	op := Operations{client: c}
+	got, err := op.GetSyncReplicationCapableClusters(context.Background(), &ClusterSyncReplicationCapableInput{
+		RemoteClusterReference: &Reference{
+			Kind: ptr.To("cluster"),
+			UUID: ptr.To("00064ca8-05e8-56c6-2f37-7cc2558d16f0"),
+		},
+		RemoteAvailabilityZoneReference: &Reference{
+			Kind: ptr.To("availability_zone"),
+			UUID: ptr.To("a5ee5f7f-c4eb-4ba6-8926-8cb7c5b81855"),
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Len(t, *got, 1)
+
+	entry := (*got)[0]
+	require.NotNil(t, entry.RttMsecs)
+	assert.Equal(t, "0.37", entry.RttMsecs.String())
+	require.NotNil(t, entry.ClusterReference)
+	assert.Equal(t, "00064ca8-0573-8976-1db0-7cc2558d1648", ptr.Deref(entry.ClusterReference.UUID, ""))
 }

@@ -2444,6 +2444,10 @@ func (op Operations) ListAllAvailabilityZones(ctx context.Context, filter string
 		return nil, err
 	}
 
+	if resp.Metadata == nil {
+		return resp, nil
+	}
+
 	totalEntities := ptr.Deref(resp.Metadata.TotalMatches, 0)
 	remaining := totalEntities
 	offset := ptr.Deref(resp.Metadata.Offset, 0)
