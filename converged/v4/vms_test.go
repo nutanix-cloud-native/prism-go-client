@@ -512,3 +512,79 @@ func TestVMsListNicsByVmIdIntegration(t *testing.T) {
 		assert.NotEmpty(t, nics, "VM should have at least one NIC")
 	})
 }
+
+// TestVMsGetVMByBiosUUID_NilClient tests nil client error handling for GetVMByBiosUUID
+func TestVMsGetVMByBiosUUID_NilClient(t *testing.T) {
+	service := NewVMsService(nil)
+	require.NotNil(t, service)
+	ctx := context.Background()
+
+	_, err := service.GetVMByBiosUUID(ctx, "00000000-0000-0000-0000-000000000000")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+}
+
+// TestResolveVMByBiosUUID exercises the pure leaf-resolution logic that
+// GetVMByBiosUUID applies to the VMs returned by the biosUuid filter.
+func TestResolveVMByBiosUUID(t *testing.T) {
+	strPtr := func(s string) *string { return &s }
+	biosUUID := "bios-uuid"
+
+	vmWithSource := func(extID, sourceExtID string) vmmModels.Vm {
+		vm := vmmModels.Vm{ExtId: strPtr(extID)}
+		if sourceExtID != "" {
+			vm.Source = &vmmModels.VmSourceReference{ExtId: strPtr(sourceExtID)}
+		}
+		return vm
+	}
+
+	tests := []struct {
+		name        string
+		vms         []vmmModels.Vm
+		wantExtID   string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:        "no VMs returns error",
+			vms:         nil,
+			wantErr:     true,
+			errContains: "no VM found with bios UUID",
+		},
+		{
+			name:      "single VM returned directly",
+			vms:       []vmmModels.Vm{vmWithSource("vm-a", "")},
+			wantExtID: "vm-a",
+		},
+		{
+			name: "clone chain resolves to leaf not referenced as a source",
+			// vm-b was cloned from vm-a; vm-a is referenced as vm-b's source, so
+			// the leaf vm-b is returned.
+			vms:       []vmmModels.Vm{vmWithSource("vm-a", ""), vmWithSource("vm-b", "vm-a")},
+			wantExtID: "vm-b",
+		},
+		{
+			name: "multiple leaves cannot be resolved",
+			// Two VMs share the bios UUID and neither is referenced as a source,
+			// so the chain is ambiguous.
+			vms:         []vmmModels.Vm{vmWithSource("vm-a", ""), vmWithSource("vm-b", "")},
+			wantErr:     true,
+			errContains: "could not resolve to a single VM",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vm, err := resolveVMByBiosUUID(tt.vms, biosUUID)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errContains)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, vm)
+			require.NotNil(t, vm.ExtId)
+			assert.Equal(t, tt.wantExtID, *vm.ExtId)
+		})
+	}
+}
