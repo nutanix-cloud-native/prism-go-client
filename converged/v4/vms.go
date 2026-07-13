@@ -610,9 +610,6 @@ func (c *Client) ListNicsByVmId(ctx context.Context, vmUUID string) ([]vmmModels
 // the same BIOS UUID (e.g. due to cloning), it resolves the chain by returning the leaf
 // VM that is not referenced as a source by any other VM.
 func (s *VMsService) GetVMByBiosUUID(ctx context.Context, biosUUID string) (*vmmModels.Vm, error) {
-	if s.client == nil {
-		return nil, errors.New("client is not initialized")
-	}
 	vms, err := s.List(ctx, converged.WithFilter(fmt.Sprintf("biosUuid eq '%s'", biosUUID)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list VMs: %w", err)
@@ -649,14 +646,4 @@ func resolveVMByBiosUUID(vms []vmmModels.Vm, biosUUID string) (*vmmModels.Vm, er
 		return heads[0], nil
 	}
 	return nil, fmt.Errorf("found %d VMs with bios UUID %s but could not resolve to a single VM", len(vms), biosUUID)
-}
-
-// GetVMByBiosUUID returns the VM matching the given BIOS UUID.
-// This is a convenience method that delegates to the underlying VMsService.
-func (c *Client) GetVMByBiosUUID(ctx context.Context, biosUUID string) (*vmmModels.Vm, error) {
-	vmsService, ok := c.VMs.(*VMsService)
-	if !ok {
-		return nil, fmt.Errorf("VMs service does not support GetVMByBiosUUID")
-	}
-	return vmsService.GetVMByBiosUUID(ctx, biosUUID)
 }

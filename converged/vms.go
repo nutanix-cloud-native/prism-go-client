@@ -60,4 +60,9 @@ type VMs[VM any] interface {
 	// GenerateConsoleTokenAsync starts the generate-console-token API call
 	// asynchronously and returns an Operation to track the task.
 	GenerateConsoleTokenAsync(uuid string) (Operation[NoEntity], error)
+
+	// GetVMByBiosUUID returns the VM matching the given BIOS UUID. When multiple VMs
+	// share the same BIOS UUID (e.g. due to cloning), it resolves the chain by returning
+	// the leaf VM that is not referenced as a source by any other VM.
+	GetVMByBiosUUID(ctx context.Context, biosUUID string) (*VM, error)
 }
