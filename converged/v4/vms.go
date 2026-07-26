@@ -158,7 +158,7 @@ func (s *VMsService) CreateAsync(ctx context.Context, vm *vmmModels.Vm) (converg
 		return nil, errors.New("client is not initialized")
 	}
 	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.CreateVm(vm),
+		s.client.VmApiInstance.CreateVm(vm, headerArgs(ctx)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VM: %w", err)
