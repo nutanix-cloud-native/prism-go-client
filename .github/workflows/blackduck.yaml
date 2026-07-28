@@ -1,23 +1,49 @@
 name: Black Duck Policy Check
 on:
+  schedule:
+    - cron: "0 0 * * *"
   push:
     branches:
       - main
       - 'release-*'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - '.github/**'
   pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
     paths-ignore:
       - '.github/**'
 
 jobs:
+  check_approvals:
+    runs-on:
+      - self-hosted-nutanix-docker-small
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
+    outputs:
+      check_approvals: ${{ github.event_name == 'pull_request_target' && steps.check_approvals.outputs.check_approvals || 'true' }}
+      external_pr: ${{ github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
+    steps:
+      - name: Check approval status
+        if: ${{ github.event_name == 'pull_request_target' }}
+        id: check_approvals
+        uses: nutanix-cloud-native/action-check-approvals@v1
+
   security:
-    if: github.repository == 'nutanix-cloud-native/prism-go-client'
-    runs-on: self-hosted-nutanix-docker-small
+    if: ${{ always() && github.repository == 'nutanix-cloud-native/prism-go-client' &&
+      (github.event_name == 'push' || github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && needs.check_approvals.outputs.external_pr == 'false') ||
+      (github.event_name == 'pull_request_target' && needs.check_approvals.outputs.external_pr == 'true' && needs.check_approvals.outputs.check_approvals == 'true')) }}
+    needs: check_approvals
+    runs-on:
+      - self-hosted-nutanix-docker-small
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.14.0
@@ -49,7 +75,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Black Duck Full Scan
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
         uses: blackduck-inc/black-duck-security-scan@v2.6.0
         with:
           blackducksca_url: ${{ secrets.BLACKDUCK_URL }}
@@ -59,7 +85,7 @@ jobs:
           blackducksca_scan_failure_severities: 'BLOCKER,CRITICAL'
 
       - name: Black Duck PR Scan
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
         uses: blackduck-inc/black-duck-security-scan@v2.6.0
         env:
           DETECT_PROJECT_VERSION_NAME: ${{ github.base_ref }}

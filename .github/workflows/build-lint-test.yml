@@ -1,50 +1,87 @@
 name: Build, Lint, and Test
-env:
-  EXPORT_RESULT: true
 on:
   push:
-    branches: ["main", "release-*"]
+    branches:
+      - main
+      - 'release-*'
   pull_request:
-    branches: ["main", "release-*"]
+    types: [opened, synchronize, reopened, labeled]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - main
+      - 'release-*'
 
 jobs:
-  build:
-
-    runs-on: self-hosted-nutanix-docker-small
-
+  check_approvals:
+    runs-on:
+      - self-hosted-nutanix-docker-small
+    # Run this job only if the following conditions are met:
+    # 1. The pull request has the 'integration-test' label.
+    # 2. The event is either:
+    #   a. A 'pull_request' event where the base and head repositories are the same (internal PR).
+    #   b. A 'pull_request_target' event where the base and head repositories are different (external PR).
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'integration-test') &&
+      (( github.event_name == 'pull_request' && github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url )) }}
+    outputs:
+      # Output the approval status for pull_request_target events, otherwise default to 'true'
+      check_approvals: ${{ github.event_name == 'pull_request_target' && steps.check_approvals.outputs.check_approvals || 'true' }}
+      # Output whether the PR is external
+      external_pr: ${{ github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
     steps:
-    - uses: actions/checkout@v4
+      - name: Check integration test allowance status
+        # Only run this step for pull_request_target events
+        if: ${{ github.event_name == 'pull_request_target' }}
+        id: check_approvals
+        # Use an external action to check if the PR has the necessary approvals
+        uses: nutanix-cloud-native/action-check-approvals@v1
 
-    - uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/golangci-lint
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+  build:
+    if: ${{ (github.event_name == 'push') ||
+      (github.event_name == 'pull_request' && needs.check_approvals.outputs.external_pr == 'false') ||
+      (github.event_name == 'pull_request_target' && needs.check_approvals.outputs.external_pr == 'true' && needs.check_approvals.outputs.check_approvals == 'true') }}
+    needs: check_approvals
+    runs-on:
+      - self-hosted-nutanix-docker-small
+    env:
+      EXPORT_RESULT: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.head.sha || github.sha }}"
 
-    - name: Install devbox
-      uses: jetify-com/devbox-install-action@v0.14.0
-      with:
-        enable-cache: "true"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/golangci-lint
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Run golangci-lint
-      run: devbox run -- make lint-go
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
+        with:
+          enable-cache: "true"
 
-    - name: Check YAML linting
-      run: devbox run -- make lint-yaml
+      - name: Run golangci-lint
+        run: devbox run -- make lint-go
 
-    - name: Check Kubebuilder Annotation linting
-      run: devbox run -- make lint-kubebuilder
+      - name: Check YAML linting
+        run: devbox run -- make lint-yaml
 
-    - name: Prepare coverage report
-      run: devbox run -- make coverage
+      - name: Check Kubebuilder Annotation linting
+        run: devbox run -- make lint-kubebuilder
 
-    - name: Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.out  # Replace with the path to your coverage report
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prepare coverage report
+        run: devbox run -- make coverage
+
+      - name: Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}

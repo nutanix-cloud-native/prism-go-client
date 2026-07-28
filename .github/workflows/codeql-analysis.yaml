@@ -5,13 +5,29 @@ on:
   push:
     branches: [main, release-*]
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [main, release-*]
   schedule:
     - cron: '30 1 * * 0'  # 1:30 on Sundays
 
+# NOTE: CodeQL runs on the `pull_request` event (not `pull_request_target`) so
+# that code-scanning results are uploaded against the pull request's own ref
+# (refs/pull/<n>/head). This is required for the "CodeQL" code-scanning check to
+# report on the PR. Running under `pull_request_target` uploaded results against
+# the base ref instead, so the check stayed "Expected — Waiting for status to be
+# reported" on external/fork PRs and blocked them from merging.
+#
+# `pull_request` runs untrusted fork code with a read-only GITHUB_TOKEN and no
+# access to secrets, so the "pwn request" risk that motivated the previous
+# pull_request_target + approval gating does not apply here. Code scanning is
+# explicitly allowed to upload results on the pull_request event even with a
+# read-only token.
+#
+# This job runs on GitHub-hosted runners so untrusted fork code is compiled in
+# an ephemeral sandbox rather than on self-hosted infrastructure.
 jobs:
   CodeQL-Build:
-    runs-on: self-hosted-nutanix-docker-small
+    runs-on: ubuntu-latest
 
     permissions:
       # required for all workflows
@@ -25,16 +41,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
-        # Override language selection by uncommenting this and choosing your
-        # languages with:
-        #   languages: go, javascript, csharp, python, cpp, java
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, or Java).
-      # If this step fails, then you should remove it and run the build manually
-      # (see below).
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
