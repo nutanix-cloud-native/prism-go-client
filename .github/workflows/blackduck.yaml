@@ -14,7 +14,7 @@ on:
 jobs:
   security:
     if: github.repository == 'nutanix-cloud-native/prism-go-client'
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted-nutanix-docker-small
     steps:
       - name: Checkout
         uses: actions/checkout@v4
