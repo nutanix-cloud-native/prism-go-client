@@ -62,6 +62,42 @@ func TestTemplatesService_ErrorHandling(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})
+
+	t.Run("InitiateGuestUpdate_NilClient", func(t *testing.T) {
+		_, err := service.InitiateGuestUpdate(ctx, "test-id", "")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("InitiateGuestUpdateAsync_NilClient", func(t *testing.T) {
+		_, err := service.InitiateGuestUpdateAsync("test-id", "")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("CompleteGuestUpdate_NilClient", func(t *testing.T) {
+		_, err := service.CompleteGuestUpdate(ctx, "test-id", "v2", "desc", true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("CompleteGuestUpdateAsync_NilClient", func(t *testing.T) {
+		_, err := service.CompleteGuestUpdateAsync("test-id", "v2", "desc", true)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("CancelGuestUpdate_NilClient", func(t *testing.T) {
+		err := service.CancelGuestUpdate(ctx, "test-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("CancelGuestUpdateAsync_NilClient", func(t *testing.T) {
+		_, err := service.CancelGuestUpdateAsync("test-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
 }
 
 // TestTemplatesIntegration tests the client.Templates with real Nutanix API calls
@@ -219,4 +255,81 @@ func TestTemplatesErrorScenarios(t *testing.T) {
 		_, err := client.Templates.List(ctx, converged.WithFilter("invalid filter syntax"))
 		assert.Error(t, err)
 	})
+}
+
+// TestTemplatesGuestUpdateErrorScenarios tests guest update error handling with invalid inputs
+func TestTemplatesGuestUpdateErrorScenarios(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	t.Run("InitiateGuestUpdate_NonExistentTemplate", func(t *testing.T) {
+		nonExistentUUID := "00000000-0000-0000-0000-000000000000"
+		_, err := client.Templates.InitiateGuestUpdate(ctx, nonExistentUUID, "")
+		assert.Error(t, err)
+	})
+
+	t.Run("CompleteGuestUpdate_NonExistentTemplate", func(t *testing.T) {
+		nonExistentUUID := "00000000-0000-0000-0000-000000000000"
+		_, err := client.Templates.CompleteGuestUpdate(ctx, nonExistentUUID, "v2", "test", true)
+		assert.Error(t, err)
+	})
+
+	t.Run("CancelGuestUpdate_NonExistentTemplate", func(t *testing.T) {
+		nonExistentUUID := "00000000-0000-0000-0000-000000000000"
+		err := client.Templates.CancelGuestUpdate(ctx, nonExistentUUID)
+		assert.Error(t, err)
+	})
+
+	t.Run("InitiateGuestUpdateAsync_NonExistentTemplate", func(t *testing.T) {
+		nonExistentUUID := "00000000-0000-0000-0000-000000000000"
+		_, err := client.Templates.InitiateGuestUpdateAsync(nonExistentUUID, "")
+		assert.Error(t, err)
+	})
+}
+
+// TestTemplatesGuestUpdateLifecycle tests the full guest update lifecycle:
+// initiate -> cancel. This requires a real template to exist on Prism Central.
+// Set NUTANIX_TEMPLATE_EXT_ID to the ext ID of a template to test against.
+func TestTemplatesGuestUpdateLifecycle(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	templateExtID := testhelpers.GetEnvOrSkip(t, "NUTANIX_TEMPLATE_EXT_ID")
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	// Initiate guest update (creates temporary VM)
+	template, err := client.Templates.InitiateGuestUpdate(ctx, templateExtID, "")
+	require.NoError(t, err)
+	require.NotNil(t, template)
+	require.NotNil(t, template.GuestUpdateStatus)
+	require.NotNil(t, template.GuestUpdateStatus.DeployedVmReference)
+
+	tempVMUUID := *template.GuestUpdateStatus.DeployedVmReference
+	t.Logf("Guest update initiated, temporary VM: %s", tempVMUUID)
+	assert.NotEmpty(t, tempVMUUID)
+
+	// Cancel the guest update (cleans up temporary VM)
+	err = client.Templates.CancelGuestUpdate(ctx, templateExtID)
+	require.NoError(t, err)
+	t.Logf("Guest update cancelled successfully")
+
+	// Verify the template no longer has a pending guest update
+	updatedTemplate, err := client.Templates.Get(ctx, templateExtID)
+	require.NoError(t, err)
+	assert.Nil(t, updatedTemplate.GuestUpdateStatus)
 }
