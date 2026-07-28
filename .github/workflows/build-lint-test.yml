@@ -1,4 +1,8 @@
 name: Build, Lint, and Test
+
+permissions:
+  contents: read
+
 on:
   push:
     branches:
