@@ -12,11 +12,11 @@ on:
       - main
       - 'release-*'
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     paths:
       - '.github/**'
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - '.github/**'
 
@@ -24,21 +24,25 @@ jobs:
   check_approvals:
     runs-on:
       - self-hosted-nutanix-docker-small
-    if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
+    # Only run for external PRs (forks) via pull_request_target
+    if: ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
     outputs:
-      check_approvals: ${{ github.event_name == 'pull_request_target' && steps.check_approvals.outputs.check_approvals || 'true' }}
-      external_pr: ${{ github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
+      check_approvals: ${{ steps.check_approvals.outputs.check_approvals }}
     steps:
       - name: Check approval status
-        if: ${{ github.event_name == 'pull_request_target' }}
         id: check_approvals
         uses: nutanix-cloud-native/action-check-approvals@v1
 
   security:
+    # Run if:
+    # 1. Push or schedule event
+    # 2. Internal PR (pull_request event from same repo)
+    # 3. External PR (pull_request_target) that has been approved
     if: ${{ always() && github.repository == 'nutanix-cloud-native/prism-go-client' &&
       (github.event_name == 'push' || github.event_name == 'schedule' ||
-      (github.event_name == 'pull_request' && needs.check_approvals.outputs.external_pr == 'false') ||
-      (github.event_name == 'pull_request_target' && needs.check_approvals.outputs.external_pr == 'true' && needs.check_approvals.outputs.check_approvals == 'true')) }}
+      (github.event_name == 'pull_request' && github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url && needs.check_approvals.outputs.check_approvals == 'true')) }}
     needs: check_approvals
     runs-on:
       - self-hosted-nutanix-docker-small

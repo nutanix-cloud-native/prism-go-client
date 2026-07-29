@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: "conventional-pr-title"
+
 permissions:
   contents: read
   pull-requests: read
+
 on:
   pull_request:
     types:
@@ -16,10 +18,17 @@ on:
       - opened
       - edited
       - synchronize
+
 jobs:
   check:
     runs-on:
       - self-hosted-nutanix-docker-xsmall
+    # Run for:
+    # 1. Internal PRs via pull_request
+    # 2. External PRs (forks) via pull_request_target
+    # This prevents duplicate runs for internal PRs
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url) }}
     steps:
       - uses: amannn/action-semantic-pull-request@v6
         with:
