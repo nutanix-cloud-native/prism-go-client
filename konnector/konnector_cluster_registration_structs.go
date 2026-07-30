@@ -97,6 +97,16 @@ type K8sCreateClusterRegistrationRequest struct {
 	// Required: true
 	// Pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
 	UUID *string `json:"uuid"`
+
+	// UUID of the Prism Central project to associate this registration with.
+	// Optional; when omitted, ProjectName may be provided and is resolved to a
+	// project UUID server-side via the v4 multidomain projects API.
+	// Pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
+	ProjectUUID *string `json:"project_uuid,omitempty"`
+
+	// Name of the Prism Central project to associate this registration with.
+	// Optional; resolved to project_uuid server-side when ProjectUUID is not set.
+	ProjectName *string `json:"project_name,omitempty"`
 }
 
 type Metadata struct {
