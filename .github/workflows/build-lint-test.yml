@@ -25,7 +25,7 @@ jobs:
       - self-hosted-nutanix-docker-small
     # Only run for external PRs (forks) via pull_request_target
     if: ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
+      github.event.pull_request.head.repo.full_name != github.repository }}
     outputs:
       check_approvals: ${{ steps.check_approvals.outputs.check_approvals }}
     steps:
@@ -40,8 +40,8 @@ jobs:
     # 3. External PR (pull_request_target) that has been approved
     if: ${{ always() &&
       (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url) ||
-      (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url && needs.check_approvals.outputs.check_approvals == 'true')) }}
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository && needs.check_approvals.outputs.check_approvals == 'true')) }}
     needs: check_approvals
     runs-on:
       - self-hosted-nutanix-docker-small
