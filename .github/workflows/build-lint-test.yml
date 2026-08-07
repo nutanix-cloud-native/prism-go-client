@@ -9,9 +9,12 @@ on:
       - main
       - 'release-*'
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - 'release-*'
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - 'release-*'
@@ -20,31 +23,25 @@ jobs:
   check_approvals:
     runs-on:
       - self-hosted-nutanix-docker-small
-    # Run this job only if the following conditions are met:
-    # 1. The pull request has the 'integration-test' label.
-    # 2. The event is either:
-    #   a. A 'pull_request' event where the base and head repositories are the same (internal PR).
-    #   b. A 'pull_request_target' event where the base and head repositories are different (external PR).
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'integration-test') &&
-      (( github.event_name == 'pull_request' && github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url) ||
-      (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url )) }}
+    # Only run for external PRs (forks) via pull_request_target
+    if: ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository }}
     outputs:
-      # Output the approval status for pull_request_target events, otherwise default to 'true'
-      check_approvals: ${{ github.event_name == 'pull_request_target' && steps.check_approvals.outputs.check_approvals || 'true' }}
-      # Output whether the PR is external
-      external_pr: ${{ github.event.pull_request.base.repo.clone_url != github.event.pull_request.head.repo.clone_url }}
+      check_approvals: ${{ steps.check_approvals.outputs.check_approvals }}
     steps:
-      - name: Check integration test allowance status
-        # Only run this step for pull_request_target events
-        if: ${{ github.event_name == 'pull_request_target' }}
+      - name: Check approval status
         id: check_approvals
-        # Use an external action to check if the PR has the necessary approvals
         uses: nutanix-cloud-native/action-check-approvals@v1
 
   build:
-    if: ${{ (github.event_name == 'push') ||
-      (github.event_name == 'pull_request' && needs.check_approvals.outputs.external_pr == 'false') ||
-      (github.event_name == 'pull_request_target' && needs.check_approvals.outputs.external_pr == 'true' && needs.check_approvals.outputs.check_approvals == 'true') }}
+    # Run if:
+    # 1. Push event (main/release branch)
+    # 2. Internal PR (pull_request event from same repo)
+    # 3. External PR (pull_request_target) that has been approved
+    if: ${{ always() &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository && needs.check_approvals.outputs.check_approvals == 'true')) }}
     needs: check_approvals
     runs-on:
       - self-hosted-nutanix-docker-small
