@@ -19,15 +19,125 @@ package v4
 
 import (
 	"context"
+	"encoding/json"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/utils/ptr"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
+	vmmConfig "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/prism/v4/config"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
+
+// newVMServiceAgainstServer builds a VMsService whose VM API client is pointed at
+// the given test HTTP server, so CreateVm requests are captured locally instead of
+// hitting a real Prism Central.
+func newVMServiceAgainstServer(t *testing.T, server *httptest.Server) *VMsService {
+	t.Helper()
+
+	u, err := url.Parse(server.URL)
+	require.NoError(t, err)
+	host, portStr, err := net.SplitHostPort(u.Host)
+	require.NoError(t, err)
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	v4c, err := v4prismGoClient.NewV4Client(prismgoclient.Credentials{
+		Endpoint: u.Host,
+		Username: "admin",
+		Password: "password",
+		Insecure: true,
+	})
+	require.NoError(t, err)
+
+	api := v4c.VmApiInstance.ApiClient
+	api.Scheme = "http"
+	api.Host = host
+	api.Port = port
+	// Avoid a pre-flight version negotiation round-trip against the test server.
+	api.AllowVersionNegotiation = false
+
+	return NewVMsService(v4c)
+}
+
+// createVmResponseBody returns a marshalled CreateVmApiResponse carrying a
+// TaskReference, matching what Prism Central returns for an accepted create.
+func createVmResponseBody(t *testing.T, taskExtID string) []byte {
+	t.Helper()
+	resp := &vmmModels.CreateVmApiResponse{}
+	require.NoError(t, resp.SetData(vmmConfig.TaskReference{
+		ObjectType_: ptr.To("prism.v4.config.TaskReference"),
+		ExtId:       ptr.To(taskExtID),
+	}))
+	body, err := json.Marshal(resp)
+	require.NoError(t, err)
+	return body
+}
+
+// TestCreateAsync_HonoursRequestIDHeader verifies that a request id set on the
+// context via WithRequestID is sent as the Ntnx-Request-Id header on the CreateVm
+// request, and that exactly one such header value reaches the wire (i.e. the SDK
+// does not also inject its own random one).
+func TestCreateAsync_HonoursRequestIDHeader(t *testing.T) {
+	const requestID = "my-idempotency-key"
+	body := createVmResponseBody(t, "task-ext-id")
+
+	var captured http.Header
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		captured = r.Header.Clone()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(body)
+	}))
+	defer server.Close()
+
+	service := newVMServiceAgainstServer(t, server)
+
+	ctx := WithRequestID(context.Background(), requestID)
+	op, err := service.CreateAsync(ctx, &vmmModels.Vm{Name: ptr.To("test-vm")})
+	require.NoError(t, err)
+	require.NotNil(t, op)
+
+	// HTTP header names are case-insensitive; the server canonicalises them, so
+	// both "NTNX-Request-Id" (what we send) and the SDK's auto-injected variant
+	// would collapse onto the same canonical key. Assert exactly one value, equal
+	// to ours.
+	values := captured.Values("Ntnx-Request-Id")
+	require.Len(t, values, 1, "expected exactly one request-id header, got %v", values)
+	assert.Equal(t, requestID, values[0])
+}
+
+// TestCreateAsync_NoRequestID_NoDuplicateHeader verifies current behaviour.
+func TestCreateAsync_NoRequestID_NoDuplicateHeader(t *testing.T) {
+	body := createVmResponseBody(t, "task-ext-id")
+
+	var captured http.Header
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		captured = r.Header.Clone()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(body)
+	}))
+	defer server.Close()
+
+	service := newVMServiceAgainstServer(t, server)
+
+	op, err := service.CreateAsync(context.Background(), &vmmModels.Vm{Name: ptr.To("test-vm")})
+	require.NoError(t, err)
+	require.NotNil(t, op)
+
+	values := captured.Values("Ntnx-Request-Id")
+	assert.Len(t, values, 1, "expected exactly one request-id header, got %v", values)
+	assert.NotEmpty(t, values[0])
+}
 
 // TestVMsCustomAttributes_NilClient tests nil client error handling for custom attributes methods
 func TestVMsCustomAttributes_NilClient(t *testing.T) {

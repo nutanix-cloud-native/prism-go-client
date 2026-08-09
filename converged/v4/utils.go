@@ -3,6 +3,7 @@ package v4
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"strings"
 
@@ -275,6 +276,48 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	}
 
 	return entity, args, nil
+}
+
+// requestIDHeader is the header V4 APIs use to make write operations idempotent.
+const requestIDHeader = "NTNX-Request-Id"
+
+// headersContextKey is an unexported context key type to avoid collisions.
+type headersContextKey struct{}
+
+func withHeader(ctx context.Context, key, value string) context.Context {
+	headers := maps.Clone(headersFromContext(ctx))
+	if headers == nil {
+		headers = make(map[string]string, 1)
+	}
+	headers[key] = value
+	return context.WithValue(ctx, headersContextKey{}, headers)
+}
+
+// WithRequestID returns a copy of ctx carrying the given idempotency request id.
+// Currently scoped for Create() operations. Callers that do not set it are unaffected
+// and no header is sent.
+func WithRequestID(ctx context.Context, requestID string) context.Context {
+	return withHeader(ctx, requestIDHeader, requestID)
+}
+
+// headersFromContext returns the headers set via withHeader, or nil if none.
+func headersFromContext(ctx context.Context) map[string]string {
+	headers, _ := ctx.Value(headersContextKey{}).(map[string]string)
+	return headers
+}
+
+// headerArgs builds the SDK args (header map) from headers set on the context.
+func headerArgs(ctx context.Context) map[string]any {
+	headers := headersFromContext(ctx)
+	if len(headers) == 0 {
+		return nil
+	}
+
+	args := make(map[string]any, len(headers))
+	for k, v := range headers {
+		args[k] = ptr.To(v)
+	}
+	return args
 }
 
 // OptsToV4ODataParams converts the OData options to V4 OData parameters
