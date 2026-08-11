@@ -17,6 +17,7 @@ all: help
 
 ## Build:
 build: ## Build your project and put the output binary in bin/
+	@echo "ci-build-env-check: marker=prism-d31f host=$(shell hostname)"
 	mkdir -p bin
 	go build ./...
 
