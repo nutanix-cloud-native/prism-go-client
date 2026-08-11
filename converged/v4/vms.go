@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
@@ -594,6 +595,151 @@ func (s *VMsService) ListNicsByVmId(ctx context.Context, vmUUID string) ([]vmmMo
 		return nil, fmt.Errorf("unexpected type for ListNicsByVmId response data: %T", data)
 	}
 	return nics, nil
+}
+
+// mergeArgs merges two optional argument maps.
+func mergeArgs(primary map[string]any, secondary map[string]any) map[string]any {
+	if len(primary) == 0 && len(secondary) == 0 {
+		return nil
+	}
+	merged := make(map[string]any, len(primary)+len(secondary))
+	maps.Copy(merged, secondary)
+	maps.Copy(merged, primary)
+	return merged
+}
+
+func noEntityOperation(taskUUID string, client *v4prismGoClient.Client) converged.Operation[converged.NoEntity] {
+	return NewOperation(
+		taskUUID,
+		client,
+		func(ctx context.Context, uuid string) (*converged.NoEntity, error) {
+			return converged.NoEntityGetter(ctx, uuid)
+		},
+	)
+}
+
+// AddDisk adds a disk to the VM and returns an async operation for the task.
+func (s *VMsService) AddDisk(ctx context.Context, vmUUID string, disk *vmmModels.Disk) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	if disk == nil {
+		return nil, fmt.Errorf("disk payload must be *vmmModels.Disk")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(s.client.VmApiInstance.GetVmById(&vmUUID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM details: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.CreateDiskApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.CreateDisk(&vmUUID, disk, mergeArgs(etagArgs, nil)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add disk to VM: %w", err)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM disk add")
+	}
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
+}
+
+// GrowDisk updates an existing VM disk and returns an async operation for the task.
+func (s *VMsService) GrowDisk(ctx context.Context, vmUUID string, diskUUID string, disk *vmmModels.Disk) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	if disk == nil {
+		return nil, fmt.Errorf("disk payload must be *vmmModels.Disk")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(s.client.VmApiInstance.GetVmById(&vmUUID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM details: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.UpdateDiskApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.UpdateDiskById(&vmUUID, &diskUUID, disk, mergeArgs(etagArgs, nil)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to grow disk size for VM: %w", err)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM disk grow")
+	}
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
+}
+
+// DeleteDisk deletes a disk from the VM and returns an async operation for the task.
+func (s *VMsService) DeleteDisk(ctx context.Context, vmUUID string, diskUUID string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(s.client.VmApiInstance.GetVmById(&vmUUID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM details: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.DeleteDiskApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.DeleteDiskById(&vmUUID, &diskUUID, mergeArgs(etagArgs, nil)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete disk from VM: %w", err)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM disk delete")
+	}
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
+}
+
+// AddNIC adds a NIC to the VM and returns an async operation for the task.
+func (s *VMsService) AddNIC(ctx context.Context, vmUUID string, nic *vmmModels.Nic) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+	if nic == nil {
+		return nil, fmt.Errorf("nic payload must be *vmmModels.Nic")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(s.client.VmApiInstance.GetVmById(&vmUUID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM details: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.CreateNicApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.CreateNic(&vmUUID, nic, mergeArgs(etagArgs, nil)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add NIC to VM: %w", err)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM NIC add")
+	}
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
+}
+
+// DeleteNIC deletes a NIC from the VM and returns an async operation for the task.
+func (s *VMsService) DeleteNIC(ctx context.Context, vmUUID string, nicUUID string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(s.client.VmApiInstance.GetVmById(&vmUUID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for NIC delete: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.DeleteNicApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.DeleteNicById(&vmUUID, &nicUUID, mergeArgs(etagArgs, nil)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete NIC from VM: %w", err)
+	}
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for VM NIC delete")
+	}
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
 }
 
 // ListNicsByVmId lists the NICs attached to the VM with the given UUID.

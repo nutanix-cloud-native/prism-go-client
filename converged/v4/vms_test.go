@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 )
 
@@ -409,6 +410,48 @@ func TestVMsListNicsByVmId_NilClient(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})
+}
+
+func TestVMSubresourceAsyncOps_NilClient(t *testing.T) {
+	service := NewVMsService(nil)
+	ctx := context.Background()
+
+	_, err := service.AddDisk(ctx, "vm", &vmmModels.Disk{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+
+	_, err = service.GrowDisk(ctx, "vm", "disk", &vmmModels.Disk{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+
+	_, err = service.DeleteDisk(ctx, "vm", "disk")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+
+	_, err = service.AddNIC(ctx, "vm", &vmmModels.Nic{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+
+	_, err = service.DeleteNIC(ctx, "vm", "nic")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "client is not initialized")
+}
+
+func TestVMSubresourceAsyncOps_NilPayload(t *testing.T) {
+	service := NewVMsService(&v4prismGoClient.Client{})
+	ctx := context.Background()
+
+	_, err := service.AddDisk(ctx, "vm", nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "disk payload must be *vmmModels.Disk")
+
+	_, err = service.GrowDisk(ctx, "vm", "disk", nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "disk payload must be *vmmModels.Disk")
+
+	_, err = service.AddNIC(ctx, "vm", nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "nic payload must be *vmmModels.Nic")
 }
 
 // TestVMsListNicsByVmId_ClientConvenienceMethod tests the Client.ListNicsByVmId convenience method
