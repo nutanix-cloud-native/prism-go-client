@@ -27,6 +27,8 @@ type Client[
 	Subnet,
 	SubnetTaskReference,
 	VM,
+	NIC,
+	VMDisk,
 	Task,
 	AppMessage,
 	VolumeGroup,
@@ -50,7 +52,7 @@ type Client[
 	Images                Images[Image, ImageFile]
 	StorageContainers     StorageContainers[StorageContainer]
 	Subnets               Subnets[Subnet, SubnetTaskReference]
-	VMs                   VMs[VM]
+	VMs                   VMs[VM, NIC, VMDisk]
 	Tasks                 Tasks[Task, AppMessage]
 	VolumeGroups          VolumeGroups[VolumeGroup, VmAttachment]
 	DomainManager         DomainManager[DomainManagerEntity]
@@ -61,8 +63,8 @@ type Client[
 	Templates             Templates[Template]
 	Ovas                  Ovas[Ova, OvaFile]
 	DataPolicies          DataPolicies[ProtectionPolicy, RecoveryPlan]
-	Disks                Disks[Disk]
-	Alerts               Alerts[Alert]
+	Disks                 Disks[Disk]
+	Alerts                Alerts[Alert]
 }
 
 // Getter is the interface for Get operations.

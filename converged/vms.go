@@ -3,7 +3,7 @@ package converged
 import "context"
 
 // VMs is the interface for the VMs service.
-type VMs[VM any] interface {
+type VMs[VM, NIC, VMDisk any] interface {
 	// Getter is the interface for Get operations.
 	Getter[VM]
 
@@ -65,4 +65,19 @@ type VMs[VM any] interface {
 	// share the same BIOS UUID (e.g. due to cloning), it resolves the chain by returning
 	// the leaf VM that is not referenced as a source by any other VM.
 	GetVMByBiosUUID(ctx context.Context, biosUUID string) (*VM, error)
+
+	// AddDisk adds a disk to the VM and returns an async operation for the task.
+	AddDisk(ctx context.Context, vmUUID string, disk *VMDisk) (Operation[NoEntity], error)
+
+	// GrowDisk updates an existing VM disk and returns an async operation for the task.
+	GrowDisk(ctx context.Context, vmUUID string, diskUUID string, disk *VMDisk) (Operation[NoEntity], error)
+
+	// DeleteDisk deletes a disk from the VM and returns an async operation for the task.
+	DeleteDisk(ctx context.Context, vmUUID string, diskUUID string) (Operation[NoEntity], error)
+
+	// AddNIC adds a NIC to the VM and returns an async operation for the task.
+	AddNIC(ctx context.Context, vmUUID string, nic *NIC) (Operation[NoEntity], error)
+
+	// DeleteNIC deletes a NIC from the VM and returns an async operation for the task.
+	DeleteNIC(ctx context.Context, vmUUID string, nicUUID string) (Operation[NoEntity], error)
 }
