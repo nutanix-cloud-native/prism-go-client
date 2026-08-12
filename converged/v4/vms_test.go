@@ -19,15 +19,23 @@ package v4
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
+	"k8s.io/utils/ptr"
 )
 
 // TestVMsCustomAttributes_NilClient tests nil client error handling for custom attributes methods
@@ -452,6 +460,139 @@ func TestVMSubresourceAsyncOps_NilPayload(t *testing.T) {
 	_, err = service.AddNIC(ctx, "vm", nil)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "nic payload must be *vmmModels.Nic")
+}
+
+func getVmResponseBodyWithEtag(t *testing.T, vmExtID string, etag string) []byte {
+	t.Helper()
+	resp := &vmmModels.GetVmApiResponse{}
+	vm := vmmModels.Vm{
+		ObjectType_: ptr.To("vmm.v4.ahv.config.Vm"),
+		ExtId:       ptr.To(vmExtID),
+	}
+	require.NoError(t, resp.SetData(vm))
+	resp.Reserved_ = map[string]any{"Etag": etag}
+	body, err := json.Marshal(resp)
+	require.NoError(t, err)
+	return body
+}
+
+func taskRefBody(taskExtID string) []byte {
+	return fmt.Appendf(nil, `{"data":{"$objectType":"prism.v4.config.TaskReference","extId":"%s"}}`, taskExtID)
+}
+
+func newVMServiceAgainstServer(t *testing.T, server *httptest.Server) *VMsService {
+	t.Helper()
+	u, err := url.Parse(server.URL)
+	require.NoError(t, err)
+	creds := prismgoclient.Credentials{
+		Username: "test-user",
+		Password: "test-pass",
+		Endpoint: u.Host,
+		Insecure: true,
+	}
+	client, err := v4prismGoClient.NewV4Client(creds)
+	require.NoError(t, err)
+	return NewVMsService(client)
+}
+
+// TestVMSubresourceAsyncOps_HonourETag verifies that all day-2 VM subresource
+// operations fetch VM ETag first and pass If-Match on the mutation request.
+func TestVMSubresourceAsyncOps_HonourETag(t *testing.T) {
+	tests := []struct {
+		name             string
+		expectedMethod   string
+		expectedPathPart string
+		call             func(t *testing.T, service *VMsService, ctx context.Context) error
+	}{
+		{
+			name:             "AddDisk",
+			expectedMethod:   http.MethodPost,
+			expectedPathPart: "/vms/vm-1/disks",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.AddDisk(ctx, "vm-1", &vmmModels.Disk{})
+				return err
+			},
+		},
+		{
+			name:             "GrowDisk",
+			expectedMethod:   http.MethodPut,
+			expectedPathPart: "/vms/vm-1/disks/disk-1",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.GrowDisk(ctx, "vm-1", "disk-1", &vmmModels.Disk{})
+				return err
+			},
+		},
+		{
+			name:             "DeleteDisk",
+			expectedMethod:   http.MethodDelete,
+			expectedPathPart: "/vms/vm-1/disks/disk-1",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.DeleteDisk(ctx, "vm-1", "disk-1")
+				return err
+			},
+		},
+		{
+			name:             "AddNIC",
+			expectedMethod:   http.MethodPost,
+			expectedPathPart: "/vms/vm-1/nics",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.AddNIC(ctx, "vm-1", &vmmModels.Nic{})
+				return err
+			},
+		},
+		{
+			name:             "DeleteNIC",
+			expectedMethod:   http.MethodDelete,
+			expectedPathPart: "/vms/vm-1/nics/nic-1",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.DeleteNIC(ctx, "vm-1", "nic-1")
+				return err
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				mu       sync.Mutex
+				requests []*http.Request
+			)
+			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				requests = append(requests, r.Clone(r.Context()))
+				mu.Unlock()
+
+				w.Header().Set("Content-Type", "application/json")
+				if r.Method == http.MethodGet && strings.Contains(r.URL.Path, "/vms/vm-1") {
+					w.Header().Set("Etag", "etag-1")
+					_, _ = w.Write(getVmResponseBodyWithEtag(t, "vm-1", "etag-1"))
+					return
+				}
+				_, _ = w.Write(taskRefBody("task-ext-id"))
+			}))
+			defer server.Close()
+
+			service := newVMServiceAgainstServer(t, server)
+			err := tt.call(t, service, context.Background())
+			require.NoError(t, err)
+
+			var getReq, opReq *http.Request
+			mu.Lock()
+			for _, req := range requests {
+				if getReq == nil && req.Method == http.MethodGet && strings.Contains(req.URL.Path, "/vms/vm-1") {
+					getReq = req
+				}
+				if opReq == nil && req.Method == tt.expectedMethod && strings.Contains(req.URL.Path, tt.expectedPathPart) {
+					opReq = req
+				}
+			}
+			mu.Unlock()
+
+			require.NotNil(t, getReq, "expected VM GET call")
+			require.NotNil(t, opReq, "expected VM subresource mutation call")
+			assert.Equal(t, "etag-1", opReq.Header.Get("If-Match"))
+		})
+	}
 }
 
 // TestVMsListNicsByVmId_ClientConvenienceMethod tests the Client.ListNicsByVmId convenience method
