@@ -56,10 +56,13 @@ func (s *UsersService) List(ctx context.Context, opts ...converged.ODataOption) 
 	return GenericListEntities[*iamModels.ListUsersApiResponse, iamModels.User](
 		func(reqParams *V4ODataParams) (*iamModels.ListUsersApiResponse, error) {
 			return s.client.UsersApiInstance.ListUsers(
+				// xNtnxProject project-scoping header, not yet plumbed through ODataOption.
+				nil,
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},
@@ -78,10 +81,13 @@ func (s *UsersService) NewIterator(ctx context.Context, opts ...converged.ODataO
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamModels.ListUsersApiResponse, error) {
 			return s.client.UsersApiInstance.ListUsers(
+				// xNtnxProject project-scoping header, not yet plumbed through ODataOption.
+				nil,
 				reqParams.Page,
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},

@@ -50,6 +50,7 @@ func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataO
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Apply,
 				reqParams.Expand,
 				reqParams.Select,
 			)
@@ -69,6 +70,7 @@ func (s *VolumeGroupsService) NewIterator(ctx context.Context, opts ...converged
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Apply,
 				reqParams.Expand,
 				reqParams.Select,
 			)

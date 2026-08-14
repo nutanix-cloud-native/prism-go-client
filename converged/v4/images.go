@@ -264,7 +264,7 @@ func (s *ImagesService) awsConfig(_ context.Context) (aws.Config, string, error)
 	if !apiClient.VerifySSL {
 		awsCfg.HTTPClient = &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // intentionally skip TLS verification when user sets insecure mode
 			},
 		}
 	}
