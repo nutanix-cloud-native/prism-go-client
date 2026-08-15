@@ -168,20 +168,22 @@ pOBWYdw9P91nbHZF2krqrhqkYE/Ho9aqp9nNgSvBZnWygI/1h01fwlr1kMbawb30
 hag8IyrhFHvBN91i0ZJsumB9iOQct+R2UTjEqUdOqCsukNK1OFHrwZyKarXMsh3o
 wFZUTKiL8IkyhtyTMr5NGvo1dbU=
 -----END CERTIFICATE-----`
+	// A trust bundle is registered with the SDK as an additional root CA, so TLS
+	// verification stays enabled rather than being disabled.
 	cp.mgmtEndpoint.AdditionalTrustBundle = certBundle
 	c, err = cache.GetOrCreate(cp)
 	assert.NoError(t, err)
 
 	// With trust bundle, VerifySSL should be false (insecure)
-	assert.False(t, c.client.CategoriesApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.ClustersApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.ImagesApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.StorageContainerAPI.ApiClient.VerifySSL)
-	assert.False(t, c.client.SubnetsApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.SubnetIPReservationApi.ApiClient.VerifySSL)
-	assert.False(t, c.client.TasksApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.VolumeGroupsApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.client.VmApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.CategoriesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.ClustersApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.ImagesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.StorageContainerAPI.ApiClient.VerifySSL)
+	assert.True(t, c.client.SubnetsApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.SubnetIPReservationApi.ApiClient.VerifySSL)
+	assert.True(t, c.client.TasksApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.VolumeGroupsApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.client.VmApiInstance.ApiClient.VerifySSL)
 }
 
 func TestGetOrCreateWithSessionAuth(t *testing.T) {

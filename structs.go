@@ -11,6 +11,9 @@ type Credentials struct {
 	Port               string
 	Insecure           bool
 	SessionAuth        bool
+	// AdditionalTrustBundle is a PEM-encoded certificate bundle added to the
+	// system trust store when verifying the Prism endpoint's certificate.
+	AdditionalTrustBundle string
 	ProxyURL           string
 	FoundationEndpoint string              // Required field for connecting to foundation VM APIs
 	FoundationPort     string              // Port for connecting to foundation VM APIs

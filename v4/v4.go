@@ -40,6 +40,20 @@ const (
 // apiClient is an interface that defines methods for adding default headers to the API client.
 type apiClient interface {
 	AddDefaultHeader(key, value string)
+	SetAdditionalCACertificates(certPEM []byte) error
+}
+
+// setAdditionalTrustBundle registers the caller-supplied PEM bundle with the API client so the
+// endpoint's certificate can be verified against it. The SDK appends the bundle to the system
+// trust store, so TLS verification stays enabled.
+func setAdditionalTrustBundle(apiClient apiClient, credentials prismgoclient.Credentials) error {
+	if credentials.AdditionalTrustBundle == "" {
+		return nil
+	}
+	if err := apiClient.SetAdditionalCACertificates([]byte(credentials.AdditionalTrustBundle)); err != nil {
+		return fmt.Errorf("failed to set additional trust bundle: %w", err)
+	}
+	return nil
 }
 
 // setAuthHeader sets the authentication header for the API client based on the provided credentials.
@@ -188,6 +202,9 @@ func initDataPoliciesApiInstance(v4Client *Client, credentials prismgoclient.Cre
 	}
 	apiClientInstance := datapoliciesClient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	apiClientInstance.SetUserName(credentials.Username)
@@ -208,6 +225,9 @@ func initVmApiInstance(v4Client *Client, credentials prismgoclient.Credentials) 
 	}
 	apiClientInstance := vmClient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	apiClientInstance.SetUserName(credentials.Username)
@@ -232,6 +252,9 @@ func initClusterApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	}
 	apiClientInstance := clusterClient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -249,6 +272,9 @@ func initProjectsApiInstance(v4Client *Client, credentials prismgoclient.Credent
 	}
 	apiClientInstance := multidomainClient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -264,6 +290,9 @@ func initPrismApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	}
 	apiClientInstance := prismClient.NewApiClient()
 	apiClientInstance.VerifySSL = !credentials.Insecure
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -280,6 +309,9 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	}
 	apiClientInstance := networkingClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -295,6 +327,9 @@ func initAlertsServiceApiInstance(v4Client *Client, credentials prismgoclient.Cr
 	}
 	apiClientInstance := monitoringClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -309,6 +344,9 @@ func initVolumesApiInstance(v4Client *Client, credentials prismgoclient.Credenti
 	}
 	apiClientInstance := volumesClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -323,6 +361,9 @@ func initUsersApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	}
 	apiClientInstance := iamClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -337,6 +378,9 @@ func initRolesApiInstance(v4Client *Client, credentials prismgoclient.Credential
 	}
 	apiClientInstance := iamClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -351,6 +395,9 @@ func initOperationsApiInstance(v4Client *Client, credentials prismgoclient.Crede
 	}
 	apiClientInstance := iamClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -365,6 +412,9 @@ func initRoleMembershipApiInstance(v4Client *Client, credentials prismgoclient.C
 	}
 	apiClientInstance := iamClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)
@@ -379,6 +429,9 @@ func initAuthorizationPoliciesApiInstance(v4Client *Client, credentials prismgoc
 	}
 	apiClientInstance := iamClient.NewApiClient()
 	apiClientInstance.SetVerifySSL(!credentials.Insecure)
+	if err := setAdditionalTrustBundle(apiClientInstance, credentials); err != nil {
+		return err
+	}
 	apiClientInstance.Host = ep.host
 	apiClientInstance.Port = ep.port
 	setAuthHeader(apiClientInstance, credentials)

@@ -85,19 +85,14 @@ func (c *ClientCache) GetOrCreate(cachedClientParams types.CachedClientParams, o
 	}
 
 	credentials := prismgoclient.Credentials{
-		URL:         managementEndpoint.Address.Host,
-		Endpoint:    managementEndpoint.Address.Host,
-		Insecure:    managementEndpoint.Insecure,
-		Username:    managementEndpoint.Username,
-		Password:    managementEndpoint.Password,
-		APIKey:      managementEndpoint.APIKey,
-		SessionAuth: c.useSessionAuth,
-	}
-
-	// TODO(sid): v4 SDK doesn't have trust bundle as an input. Until we have a better solution, we will
-	// set Insecure to true if trust bundle is provided to avoid breaking existing consumers of v3 SDK.
-	if managementEndpoint.AdditionalTrustBundle != "" {
-		credentials.Insecure = true
+		URL:                   managementEndpoint.Address.Host,
+		Endpoint:              managementEndpoint.Address.Host,
+		Insecure:              managementEndpoint.Insecure,
+		Username:              managementEndpoint.Username,
+		Password:              managementEndpoint.Password,
+		APIKey:                managementEndpoint.APIKey,
+		SessionAuth:           c.useSessionAuth,
+		AdditionalTrustBundle: managementEndpoint.AdditionalTrustBundle,
 	}
 
 	setDefaultsForCredentials(&credentials)
