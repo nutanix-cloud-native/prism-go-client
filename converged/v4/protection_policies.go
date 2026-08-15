@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
+	ppRequest "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/request/protectionpolicies"
 	dpPrism "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/prism/v4/config"
 )
 
@@ -32,7 +33,9 @@ func (s *ProtectionPoliciesService) Get(ctx context.Context, uuid string) (*dpMo
 	}
 	return GenericGetEntity[*dpModels.GetProtectionPolicyApiResponse, dpModels.ProtectionPolicy](
 		func() (*dpModels.GetProtectionPolicyApiResponse, error) {
-			return s.client.ProtectionPoliciesApiInstance.GetProtectionPolicyById(&uuid, nil)
+			return s.client.ProtectionPoliciesApiInstance.ServiceClient.GetProtectionPolicyById(ctx, &ppRequest.GetProtectionPolicyByIdRequest{
+				ExtId: &uuid,
+			})
 		},
 		s.entitiesName,
 	)
@@ -52,13 +55,13 @@ func (s *ProtectionPoliciesService) List(ctx context.Context, opts ...converged.
 	}
 	return GenericListEntities[*dpModels.ListProtectionPoliciesApiResponse, dpModels.ProtectionPolicy](
 		func(reqParams *V4ODataParams) (*dpModels.ListProtectionPoliciesApiResponse, error) {
-			return s.client.ProtectionPoliciesApiInstance.ListProtectionPolicies(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.ProtectionPoliciesApiInstance.ServiceClient.ListProtectionPolicies(ctx, &ppRequest.ListProtectionPoliciesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -84,13 +87,13 @@ func (s *ProtectionPoliciesService) NewIterator(ctx context.Context, opts ...con
 	return GenericNewIterator[*dpModels.ListProtectionPoliciesApiResponse, dpModels.ProtectionPolicy](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*dpModels.ListProtectionPoliciesApiResponse, error) {
-			return s.client.ProtectionPoliciesApiInstance.ListProtectionPolicies(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.ProtectionPoliciesApiInstance.ServiceClient.ListProtectionPolicies(ctx, &ppRequest.ListProtectionPoliciesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -121,7 +124,9 @@ func (s *ProtectionPoliciesService) CreateAsync(ctx context.Context, policy *dpM
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.CreateProtectionPolicy(policy, nil)
+	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.CreateProtectionPolicy(ctx, &ppRequest.CreateProtectionPolicyRequest{
+		Body: policy,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
@@ -159,7 +164,10 @@ func (s *ProtectionPoliciesService) UpdateAsync(ctx context.Context, uuid string
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.UpdateProtectionPolicyById(&uuid, policy, nil)
+	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.UpdateProtectionPolicyById(ctx, &ppRequest.UpdateProtectionPolicyByIdRequest{
+		ExtId: &uuid,
+		Body:  policy,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
@@ -192,12 +200,16 @@ func (s *ProtectionPoliciesService) DeleteAsync(ctx context.Context, uuid string
 		return nil, errors.New("client is not initialized")
 	}
 	_, args, err := GetEntityAndEtag(
-		s.client.ProtectionPoliciesApiInstance.GetProtectionPolicyById(&uuid, nil),
+		s.client.ProtectionPoliciesApiInstance.ServiceClient.GetProtectionPolicyById(ctx, &ppRequest.GetProtectionPolicyByIdRequest{
+			ExtId: &uuid,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.DeleteProtectionPolicyById(&uuid, args)
+	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.DeleteProtectionPolicyById(ctx, &ppRequest.DeleteProtectionPolicyByIdRequest{
+		ExtId: &uuid,
+	}, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}

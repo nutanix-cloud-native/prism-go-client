@@ -18,7 +18,7 @@ type Users[User any] interface {
 	Creator[User]
 	
 	// UpdateUserState is the interface for updating user state operations.
-	UpdateUserState(uuid string, status *authn.UserStateUpdate) (*authn.UserStateUpdateResponse, error)
+	UpdateUserState(ctx context.Context, uuid string, status *authn.UserStateUpdate) (*authn.UserStateUpdateResponse, error)
 
 	// ListUserKeys is the interface for listing user keys operations.
 	ListUserKeys(ctx context.Context, userExtId string, opts ...ODataOption) ([]authn.Key, error)
