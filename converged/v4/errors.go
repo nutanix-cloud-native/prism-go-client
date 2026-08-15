@@ -143,7 +143,7 @@ func classifyErrorGroup(errorGroup string) error {
 // which each define their own GenericOpenAPIError with the same field layout.
 func GetStatusAndBody(err error) (status string, body []byte) {
 	v := reflect.ValueOf(err)
-	if v.Kind() == reflect.Ptr && !v.IsNil() {
+	if v.Kind() == reflect.Pointer && !v.IsNil() {
 		v = v.Elem()
 	}
 	if v.Kind() != reflect.Struct {
