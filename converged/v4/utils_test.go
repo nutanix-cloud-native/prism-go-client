@@ -1,12 +1,106 @@
 package v4
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/utils/ptr"
 )
+
+// TestHeaderArgs_NoHeaders ensures a context without any headers yields nil args,
+// preserving the pre-existing behaviour.
+func TestHeaderArgs_NoHeaders(t *testing.T) {
+	assert.Nil(t, headerArgs(context.Background()))
+}
+
+// TestWithRequestID_HeaderArgs ensures WithRequestID puts the request id on the
+// context.
+func TestWithRequestID_HeaderArgs(t *testing.T) {
+	const id = "idempotency-key-123"
+	ctx := WithRequestID(context.Background(), id)
+
+	args := headerArgs(ctx)
+	require.Len(t, args, 1)
+
+	val, ok := args[requestIDHeader]
+	require.True(t, ok, "expected header %q to be present", requestIDHeader)
+
+	// The SDK only honours values that assert to *string.
+	strPtr, ok := val.(*string)
+	require.True(t, ok, "header value must be a *string, got %T", val)
+	assert.Equal(t, id, *strPtr)
+}
+
+// TestWithHeader_AccumulateAndOverride ensures multiple headers accumulate and a
+// later value overrides an earlier one for the same key.
+func TestWithHeader_AccumulateAndOverride(t *testing.T) {
+	ctx := withHeader(context.Background(), "A", "1")
+	ctx = withHeader(ctx, "B", "2")
+	ctx = withHeader(ctx, "A", "3") // override A
+
+	args := headerArgs(ctx)
+	require.Len(t, args, 2)
+	assert.Equal(t, "3", *(args["A"].(*string)))
+	assert.Equal(t, "2", *(args["B"].(*string)))
+}
+
+// TestWithHeader_DoesNotMutateParent ensures deriving a child context does not
+// mutate the header map carried by the parent (copy-on-write).
+func TestWithHeader_DoesNotMutateParent(t *testing.T) {
+	parent := withHeader(context.Background(), "A", "1")
+	_ = withHeader(parent, "B", "2") // child adds B
+
+	parentArgs := headerArgs(parent)
+	assert.Len(t, parentArgs, 1, "parent context must not see the child's header")
+	_, hasB := parentArgs["B"]
+	assert.False(t, hasB)
+}
+
+// TestHeaderArgs_DistinctPointers ensures each header maps to its own *string and
+// values are not aliased across keys.
+func TestHeaderArgs_DistinctPointers(t *testing.T) {
+	ctx := withHeader(context.Background(), "A", "1")
+	ctx = withHeader(ctx, "B", "2")
+
+	args := headerArgs(ctx)
+	assert.NotSame(t, args["A"].(*string), args["B"].(*string))
+	assert.Equal(t, "1", *(args["A"].(*string)))
+	assert.Equal(t, "2", *(args["B"].(*string)))
+}
+
+func TestRequestIDHeader_UsesSDKCasing(t *testing.T) {
+	assert.Equal(t, "NTNX-Request-Id", requestIDHeader)
+
+	ctx := WithRequestID(context.Background(), "id")
+	_, ok := headerArgs(ctx)["NTNX-Request-Id"]
+	assert.True(t, ok, "WithRequestID must set the header under the exact SDK key")
+}
+
+// TestWithRequestID_LastWins ensures re-stamping a context with a new request id
+// overrides the earlier one, so retries carry a single, deterministic key.
+func TestWithRequestID_LastWins(t *testing.T) {
+	ctx := WithRequestID(context.Background(), "first")
+	ctx = WithRequestID(ctx, "second")
+
+	args := headerArgs(ctx)
+	require.Len(t, args, 1)
+	assert.Equal(t, "second", *(args[requestIDHeader].(*string)))
+}
+
+// TestHeaderArgs_ReturnedMapIsIsolated ensures mutating the map returned by
+// headerArgs does not affect what a later call derives from the same context.
+func TestHeaderArgs_ReturnedMapIsIsolated(t *testing.T) {
+	ctx := WithRequestID(context.Background(), "id")
+
+	first := headerArgs(ctx)
+	delete(first, requestIDHeader)
+
+	second := headerArgs(ctx)
+	_, ok := second[requestIDHeader]
+	assert.True(t, ok, "a second headerArgs call must not be affected by mutating the first result")
+}
 
 // fakeListMetadata mimics the generated *ApiResponseMetadata shape that
 // GetMetadataTotalResults reflects over (it only needs a TotalAvailableResults
@@ -134,4 +228,29 @@ func TestGenericListEntities_CollectsItemsAddedWhilePaging(t *testing.T) {
 	// Without refreshing totalCount the loop would have stopped after page 1
 	// (len == 4 == stale total) and dropped "e" and "f".
 	assert.Equal(t, []string{"a", "b", "c", "d", "e", "f"}, result)
+}
+
+// anyDataResponse lets tests feed CallListAPI an arbitrary GetData() payload.
+type anyDataResponse struct {
+	Metadata *fakeListMetadata
+	data     any
+}
+
+func (r *anyDataResponse) GetData() any { return r.data }
+
+func TestCallListAPI_EmptyMismatchedSliceReturnsEmpty(t *testing.T) {
+	// Empty []int when expecting []string: SDK empty-list oneOf mis-type case.
+	// Non-empty mismatched slices must still error so $expand projections are
+	// not silently coerced.
+	empty, _, err := CallListAPI[*anyDataResponse, string](&anyDataResponse{
+		Metadata: &fakeListMetadata{TotalAvailableResults: ptr.To(0)},
+		data:     []int{},
+	}, nil)
+	require.NoError(t, err)
+	assert.Empty(t, empty)
+
+	_, _, err = CallListAPI[*anyDataResponse, string](&anyDataResponse{
+		data: []int{1},
+	}, nil)
+	require.Error(t, err)
 }

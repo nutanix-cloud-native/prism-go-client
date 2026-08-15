@@ -6,6 +6,8 @@ type Clusters[
 	Cluster,
 	VirtualGpuProfile,
 	PhysicalGpuProfile,
+	AHVVirtualGpuProfile,
+	AHVPhysicalGpuProfile,
 	Host any] interface {
 	// Getter is the interface for Get operations.
 	Getter[Cluster]
@@ -18,6 +20,14 @@ type Clusters[
 
 	// ListClusterPhysicalGPUs returns the physical GPU configuration for the given cluster UUID.
 	ListClusterPhysicalGPUs(ctx context.Context, clusterUuid string, opts ...ODataOption) ([]PhysicalGpuProfile, error)
+
+	// ListAHVVirtualGPUProfiles returns AHV virtual GPU profile templates for the given cluster.
+	// This calls the AHV global endpoint which returns profile templates with configuration name.
+	ListAHVVirtualGPUProfiles(ctx context.Context, clusterUuid string, opts ...ODataOption) ([]AHVVirtualGpuProfile, error)
+
+	// ListAHVPhysicalGPUProfiles returns AHV physical GPU profile templates for the given cluster.
+	// This calls the AHV global endpoint which returns profile templates with configuration name.
+	ListAHVPhysicalGPUProfiles(ctx context.Context, clusterUuid string, opts ...ODataOption) ([]AHVPhysicalGpuProfile, error)
 
 	// GetClusterHost returns the host for the given cluster UUID and host id.
 	GetClusterHost(ctx context.Context, clusterUuid string, hostId string) (*Host, error)

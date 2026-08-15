@@ -3,7 +3,7 @@ package converged
 import "context"
 
 // VMs is the interface for the VMs service.
-type VMs[VM any] interface {
+type VMs[VM, NIC, VMDisk any] interface {
 	// Getter is the interface for Get operations.
 	Getter[VM]
 
@@ -29,29 +29,29 @@ type VMs[VM any] interface {
 	AsyncDeleter[VM]
 
 	// PowerOnVM powers on the VM with the given UUID.
-	PowerOnVM(uuid string) (Operation[VM], error)
+	PowerOnVM(ctx context.Context, uuid string) (Operation[VM], error)
 
 	// PowerOffVM powers off the VM with the given UUID.
-	PowerOffVM(uuid string) (Operation[VM], error)
+	PowerOffVM(ctx context.Context, uuid string) (Operation[VM], error)
 
 	// AddVmCustomAttributes adds custom attributes to the VM with the given UUID.
 	AddVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*VM, error)
 
 	// AddVmCustomAttributesAsync adds custom attributes to the VM asynchronously.
-	AddVmCustomAttributesAsync(uuid string, customAttributes []string) (Operation[VM], error)
+	AddVmCustomAttributesAsync(ctx context.Context, uuid string, customAttributes []string) (Operation[VM], error)
 
 	// RemoveVmCustomAttributes removes custom attributes from the VM with the given UUID.
 	RemoveVmCustomAttributes(ctx context.Context, uuid string, customAttributes []string) (*VM, error)
 
 	// RemoveVmCustomAttributesAsync removes custom attributes from the VM asynchronously.
-	RemoveVmCustomAttributesAsync(uuid string, customAttributes []string) (Operation[VM], error)
+	RemoveVmCustomAttributesAsync(ctx context.Context, uuid string, customAttributes []string) (Operation[VM], error)
 
 	// DeleteCdRom deletes a CD-ROM device from the VM identified by uuid
 	// and waits for the asynchronous task to complete.
 	DeleteCdRom(ctx context.Context, uuid string, cdRomUUID string) error
 
 	// DeleteCdRomAsync starts an asynchronous CD-ROM deletion on the VM.
-	DeleteCdRomAsync(uuid string, cdRomUUID string) (Operation[NoEntity], error)
+	DeleteCdRomAsync(ctx context.Context, uuid string, cdRomUUID string) (Operation[NoEntity], error)
 
 	// GenerateConsoleToken obtains a JWT token and WebSocket URI for VNC
 	// console access to the VM identified by uuid.
@@ -59,10 +59,28 @@ type VMs[VM any] interface {
 
 	// GenerateConsoleTokenAsync starts the generate-console-token API call
 	// asynchronously and returns an Operation to track the task.
-	GenerateConsoleTokenAsync(uuid string) (Operation[NoEntity], error)
+	GenerateConsoleTokenAsync(ctx context.Context, uuid string) (Operation[NoEntity], error)
 
 	// GetVMByBiosUUID returns the VM matching the given BIOS UUID. When multiple VMs
 	// share the same BIOS UUID (e.g. due to cloning), it resolves the chain by returning
 	// the leaf VM that is not referenced as a source by any other VM.
 	GetVMByBiosUUID(ctx context.Context, biosUUID string) (*VM, error)
+
+	// ListNicsByVmId lists the NICs attached to the VM with the given UUID.
+	ListNicsByVmId(ctx context.Context, vmUUID string) ([]NIC, error)
+
+	// AddDisk adds a disk to the VM and returns an async operation for the task.
+	AddDisk(ctx context.Context, vmUUID string, disk *VMDisk) (Operation[NoEntity], error)
+
+	// GrowDisk updates an existing VM disk and returns an async operation for the task.
+	GrowDisk(ctx context.Context, vmUUID string, diskUUID string, disk *VMDisk) (Operation[NoEntity], error)
+
+	// DeleteDisk deletes a disk from the VM and returns an async operation for the task.
+	DeleteDisk(ctx context.Context, vmUUID string, diskUUID string) (Operation[NoEntity], error)
+
+	// AddNIC adds a NIC to the VM and returns an async operation for the task.
+	AddNIC(ctx context.Context, vmUUID string, nic *NIC) (Operation[NoEntity], error)
+
+	// DeleteNIC deletes a NIC from the VM and returns an async operation for the task.
+	DeleteNIC(ctx context.Context, vmUUID string, nicUUID string) (Operation[NoEntity], error)
 }

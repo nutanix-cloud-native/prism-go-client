@@ -9,6 +9,7 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	prismMessages "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
+	categoryRequest "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/request/categories"
 )
 
 // CategoriesService provides default "not implemented" implementation for all Categories interface methods.
@@ -29,7 +30,10 @@ func (s *CategoriesService) Get(ctx context.Context, uuid string) (*prismModels.
 	}
 	return GenericGetEntity[*prismModels.GetCategoryApiResponse, prismModels.Category](
 		func() (*prismModels.GetCategoryApiResponse, error) {
-			return s.client.CategoriesApiInstance.GetCategoryById(&uuid, nil)
+			return s.client.CategoriesApiInstance.ServiceClient.GetCategoryById(ctx,
+				&categoryRequest.GetCategoryByIdRequest{
+					ExtId: &uuid,
+				})
 		},
 		s.entities,
 	)
@@ -41,18 +45,17 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 		return nil, errors.New("client is not initialized")
 	}
 
-	// Check if Apply option is provided and return error if it is
-	reqParams, err := OptsToV4ODataParams(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
-	}
-	if reqParams != nil && reqParams.Apply != nil {
-		return nil, errors.New("apply is not supported")
-	}
-
 	return GenericListEntities[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		func(reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ServiceClient.ListCategories(ctx, &categoryRequest.ListCategoriesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+				Apply_:   reqParams.Apply,
+				Expand_:  reqParams.Expand,
+			})
 		},
 		opts,
 		"categories",
@@ -67,7 +70,15 @@ func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.O
 	return GenericNewIterator[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ServiceClient.ListCategories(ctx, &categoryRequest.ListCategoriesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+				Apply_:   reqParams.Apply,
+				Expand_:  reqParams.Expand,
+			})
 		},
 		opts,
 		"categories",
@@ -79,7 +90,13 @@ func (s *CategoriesService) Create(ctx context.Context, entity *prismModels.Cate
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](s.client.CategoriesApiInstance.CreateCategory(entity))
+	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](
+		s.client.CategoriesApiInstance.ServiceClient.CreateCategory(ctx,
+			&categoryRequest.CreateCategoryRequest{
+				Body: entity,
+			},
+		),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -103,7 +120,13 @@ func (s *CategoriesService) Update(ctx context.Context, uuid string, entity *pri
 	}
 
 	_, err = CallAPI[*prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage](
-		s.client.CategoriesApiInstance.UpdateCategoryById(&uuid, entity, args),
+		s.client.CategoriesApiInstance.ServiceClient.UpdateCategoryById(ctx,
+			&categoryRequest.UpdateCategoryByIdRequest{
+				ExtId: &uuid,
+				Body:  entity,
+			},
+			args,
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update category with UUID %s: %w", uuid, err)
@@ -138,7 +161,12 @@ func (s *CategoriesService) Delete(ctx context.Context, uuid string) error {
 		return fmt.Errorf("no category found with UUID %s", uuid)
 	}
 
-	_, err = s.client.CategoriesApiInstance.DeleteCategoryById(&uuid, args)
+	_, err = s.client.CategoriesApiInstance.ServiceClient.DeleteCategoryById(ctx,
+		&categoryRequest.DeleteCategoryByIdRequest{
+			ExtId: &uuid,
+		},
+		args,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete category with UUID %s: %w", uuid, err)
 	}

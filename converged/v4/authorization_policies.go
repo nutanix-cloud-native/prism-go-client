@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
+	authorizationPoliciesRequestModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/request/authorizationpolicies"
 )
 
 // AuthorizationPoliciesService provides implementation for IAM Authorization Policies API operations.
@@ -32,7 +33,10 @@ func (s *AuthorizationPoliciesService) Get(ctx context.Context, uuid string) (*i
 
 	return GenericGetEntity[*iamAuthzModels.GetAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
 		func() (*iamAuthzModels.GetAuthorizationPolicyApiResponse, error) {
-			return s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(&uuid, nil)
+			return s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(
+				ctx,
+				&authorizationPoliciesRequestModels.GetAuthorizationPolicyByIdRequest{ExtId: &uuid},
+			)
 		},
 		s.entitiesName,
 	)
@@ -56,12 +60,15 @@ func (s *AuthorizationPoliciesService) List(ctx context.Context, opts ...converg
 	return GenericListEntities[*iamAuthzModels.ListAuthorizationPoliciesApiResponse, iamAuthzModels.AuthorizationPolicyProjection](
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
 			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
+				ctx,
+				&authorizationPoliciesRequestModels.ListAuthorizationPoliciesRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Expand_:  reqParams.Expand,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,
@@ -79,12 +86,15 @@ func (s *AuthorizationPoliciesService) NewIterator(ctx context.Context, opts ...
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
 			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
+				ctx,
+				&authorizationPoliciesRequestModels.ListAuthorizationPoliciesRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Expand_:  reqParams.Expand,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,
@@ -99,7 +109,10 @@ func (s *AuthorizationPoliciesService) Create(ctx context.Context, entity *iamAu
 	}
 
 	newPolicy, err := CallAPI[*iamAuthzModels.CreateAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
-		s.client.AuthorizationPoliciesApiInstance.CreateAuthorizationPolicy(entity),
+		s.client.AuthorizationPoliciesApiInstance.CreateAuthorizationPolicy(
+			ctx,
+			&authorizationPoliciesRequestModels.CreateAuthorizationPolicyRequest{Body: entity},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create authorization policy: %w", err)
@@ -115,13 +128,20 @@ func (s *AuthorizationPoliciesService) Delete(ctx context.Context, uuid string) 
 	}
 
 	_, args, err := GetEntityAndEtag(
-		s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(&uuid),
+		s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(
+			ctx,
+			&authorizationPoliciesRequestModels.GetAuthorizationPolicyByIdRequest{ExtId: &uuid},
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get authorization policy with UUID %s: %w", uuid, err)
 	}
 
-	_, err = s.client.AuthorizationPoliciesApiInstance.DeleteAuthorizationPolicyById(&uuid, args)
+	_, err = s.client.AuthorizationPoliciesApiInstance.DeleteAuthorizationPolicyById(
+		ctx,
+		&authorizationPoliciesRequestModels.DeleteAuthorizationPolicyByIdRequest{ExtId: &uuid},
+		args,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete authorization policy with UUID %s: %w", uuid, err)
 	}

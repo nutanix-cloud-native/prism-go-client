@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
+	operationsRequestModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/request/operations"
 )
 
 // OperationsService provides implementation for IAM Operations API operations.
@@ -32,7 +33,10 @@ func (s *OperationsService) Get(ctx context.Context, uuid string) (*iamAuthzMode
 
 	return GenericGetEntity[*iamAuthzModels.GetOperationApiResponse, iamAuthzModels.Operation](
 		func() (*iamAuthzModels.GetOperationApiResponse, error) {
-			return s.client.OperationsApiInstance.GetOperationById(&uuid, nil)
+			return s.client.OperationsApiInstance.GetOperationById(
+				ctx,
+				&operationsRequestModels.GetOperationByIdRequest{ExtId: &uuid},
+			)
 		},
 		s.entitiesName,
 	)
@@ -56,12 +60,14 @@ func (s *OperationsService) List(ctx context.Context, opts ...converged.ODataOpt
 	return GenericListEntities[*iamAuthzModels.ListOperationsApiResponse, iamAuthzModels.Operation](
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListOperationsApiResponse, error) {
 			return s.client.OperationsApiInstance.ListOperations(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-				nil,
+				ctx,
+				&operationsRequestModels.ListOperationsRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,
@@ -79,12 +85,14 @@ func (s *OperationsService) NewIterator(ctx context.Context, opts ...converged.O
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListOperationsApiResponse, error) {
 			return s.client.OperationsApiInstance.ListOperations(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-				nil,
+				ctx,
+				&operationsRequestModels.ListOperationsRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,

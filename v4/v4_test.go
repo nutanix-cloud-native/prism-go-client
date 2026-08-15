@@ -35,6 +35,7 @@ func TestNewV4ClientBasicAuth(t *testing.T) {
 	assert.NotNil(t, v4Client.AlertsServiceApiInstance)
 	assert.NotNil(t, v4Client.CategoriesApiInstance)
 	assert.NotNil(t, v4Client.VolumeGroupsApiInstance)
+	assert.NotNil(t, v4Client.VmProfilesApiInstance)
 
 	// verify missing client scenario
 	cred = prismgoclient.Credentials{
@@ -76,6 +77,7 @@ func TestNewV4Client(t *testing.T) {
 	assert.NotNil(t, v4Client.AlertsServiceApiInstance)
 	assert.NotNil(t, v4Client.CategoriesApiInstance)
 	assert.NotNil(t, v4Client.VolumeGroupsApiInstance)
+	assert.NotNil(t, v4Client.VmProfilesApiInstance)
 
 	// verify missing client scenario
 	cred = prismgoclient.Credentials{
@@ -90,37 +92,6 @@ func TestNewV4Client(t *testing.T) {
 	v4Client, err = NewV4Client(cred)
 	assert.Nil(t, v4Client)
 	assert.EqualError(t, err, "endpoint is required for api key auth")
-}
-
-func TestInitDisksServiceApiInstance(t *testing.T) {
-	// happy path: instance is wired with endpoint, port and TLS settings
-	cred := prismgoclient.Credentials{
-		Username: "username",
-		Password: "password",
-		Endpoint: "0.0.0.0",
-		Insecure: true,
-	}
-	v4Client := &Client{}
-	err := initDisksServiceApiInstance(v4Client, cred)
-	assert.NoError(t, err)
-	assert.NotNil(t, v4Client.DisksServiceApiInstance)
-	assert.Equal(t, "0.0.0.0", v4Client.DisksServiceApiInstance.ApiClient.Host)
-	port, convErr := strconv.Atoi(defaultEndpointPort)
-	assert.NoError(t, convErr)
-	assert.Equal(t, port, v4Client.DisksServiceApiInstance.ApiClient.Port)
-	assert.False(t, v4Client.DisksServiceApiInstance.ApiClient.VerifySSL)
-
-	// error path: invalid endpoint port makes getEndpointInfo fail
-	badCred := prismgoclient.Credentials{
-		Username: "username",
-		Password: "password",
-		Endpoint: "0.0.0.0:not-a-port",
-		Insecure: true,
-	}
-	badClient := &Client{}
-	err = initDisksServiceApiInstance(badClient, badCred)
-	assert.Error(t, err)
-	assert.Nil(t, badClient.DisksServiceApiInstance)
 }
 
 func TestInitAlertsServiceApiInstance(t *testing.T) {

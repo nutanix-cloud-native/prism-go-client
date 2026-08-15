@@ -127,13 +127,49 @@ func TestCategorise_5xx_Internal(t *testing.T) {
 	}
 }
 
+func TestCategorise_UnauthenticatedAndUnauthorizedByStatus(t *testing.T) {
+	cause := fmt.Errorf("sdk error")
+
+	err401 := Categorise(cause, "401 Unauthorized", nil)
+	require.Error(t, err401)
+	assert.True(t, errors.Is(err401, converged.ErrUnauthenticated))
+	assert.True(t, converged.IsUnauthenticated(err401))
+	assert.False(t, converged.IsUnauthorized(err401))
+
+	err403 := Categorise(cause, "403 Forbidden", nil)
+	require.Error(t, err403)
+	assert.True(t, errors.Is(err403, converged.ErrUnauthorized))
+	assert.True(t, converged.IsUnauthorized(err403))
+	assert.False(t, converged.IsUnauthenticated(err403))
+}
+
+func TestCategorise_Unauthenticated_EmptyOrNonJSONBody(t *testing.T) {
+	cause := fmt.Errorf("sdk error")
+
+	// Basic-auth challenges and some gateways return 401 with no/non-JSON body.
+	for _, body := range [][]byte{
+		nil,
+		{},
+		[]byte("Unauthorized"),
+		[]byte(`<html>unauthorized</html>`),
+	} {
+		err := Categorise(cause, "401 Unauthorized", body)
+		require.Error(t, err)
+		assert.True(t, converged.IsUnauthenticated(err), "body=%q", body)
+		assert.False(t, converged.IsUnauthorized(err), "body=%q", body)
+
+		var apiErr *converged.APIError
+		require.True(t, errors.As(err, &apiErr))
+		assert.Equal(t, converged.ErrUnauthenticated, apiErr.Kind)
+		assert.Empty(t, apiErr.Message, "no JSON AppMessage → empty Message is fine")
+	}
+}
+
 func TestCategorise_Other4xx_Unclassified(t *testing.T) {
 	cause := fmt.Errorf("sdk error")
 
 	for _, status := range []string{
 		"400 Bad Request",
-		"401 Unauthorized",
-		"403 Forbidden",
 		"409 Conflict",
 		"422 Unprocessable Entity",
 	} {
@@ -147,6 +183,8 @@ func TestCategorise_Other4xx_Unclassified(t *testing.T) {
 			assert.False(t, errors.Is(err, converged.ErrNotFound))
 			assert.False(t, errors.Is(err, converged.ErrRateLimit))
 			assert.False(t, errors.Is(err, converged.ErrInternal))
+			assert.False(t, errors.Is(err, converged.ErrUnauthenticated))
+			assert.False(t, errors.Is(err, converged.ErrUnauthorized))
 		})
 	}
 }
@@ -283,9 +321,18 @@ func TestClassifyErrorGroup(t *testing.T) {
 		{"VOLUME_INTERNAL_ERROR", converged.ErrInternal},
 		{"OBJECTS_SERVICE_UNAVAILABLE_ERROR", converged.ErrInternal},
 
+		{"AUTHENTICATION_REQUIRED", converged.ErrUnauthenticated},
+		{"UNAUTHORIZED", converged.ErrUnauthenticated},
+		{"FORBIDDEN", converged.ErrUnauthorized},
+		{"ACCESS_DENIED", converged.ErrUnauthorized},
+		{"AUTHORIZATION_ERROR", converged.ErrUnauthorized},
+		{"IAM_AUTHORIZATION_ERROR", converged.ErrUnauthorized},
+
 		// Case insensitive
 		{"resource_not_found", converged.ErrNotFound},
 		{"Rate_Limit_Exceeded", converged.ErrRateLimit},
+		{"authentication_required", converged.ErrUnauthenticated},
+		{"access_denied", converged.ErrUnauthorized},
 
 		// Unknown
 		{"SOME_UNKNOWN_GROUP", nil},
@@ -404,6 +451,8 @@ func TestCategoriseFromOpenAPI_OpenAPIError(t *testing.T) {
 		err      error
 		wantKind error
 	}{
+		{"401", fakeOpenAPIError{Status: "401 Unauthorized", Body: []byte(`{}`)}, converged.ErrUnauthenticated},
+		{"403", fakeOpenAPIError{Status: "403 Forbidden", Body: []byte(`{}`)}, converged.ErrUnauthorized},
 		{"404", fakeOpenAPIError{Status: "404 Not Found", Body: []byte(`{}`)}, converged.ErrNotFound},
 		{"429", fakeOpenAPIError{Status: "429 Too Many Requests", Body: []byte(`{}`)}, converged.ErrRateLimit},
 		{"500", fakeOpenAPIError{Status: "500 Internal Server Error", Body: []byte(`{}`)}, converged.ErrInternal},
@@ -421,8 +470,6 @@ func TestCategoriseFromOpenAPI_OpenAPIError(t *testing.T) {
 func TestCategoriseFromOpenAPI_Other4xx_Unclassified(t *testing.T) {
 	for _, status := range []string{
 		"400 Bad Request",
-		"401 Unauthorized",
-		"403 Forbidden",
 		"409 Conflict",
 	} {
 		t.Run(status, func(t *testing.T) {
@@ -461,10 +508,14 @@ func TestConvenienceHelpers(t *testing.T) {
 	assert.True(t, converged.IsNotFound(&converged.APIError{Kind: converged.ErrNotFound}))
 	assert.True(t, converged.IsRateLimit(&converged.APIError{Kind: converged.ErrRateLimit}))
 	assert.True(t, converged.IsInternal(&converged.APIError{Kind: converged.ErrInternal}))
+	assert.True(t, converged.IsUnauthenticated(&converged.APIError{Kind: converged.ErrUnauthenticated}))
+	assert.True(t, converged.IsUnauthorized(&converged.APIError{Kind: converged.ErrUnauthorized}))
 
 	assert.False(t, converged.IsNotFound(&converged.APIError{Kind: converged.ErrRateLimit}))
 	assert.False(t, converged.IsRateLimit(&converged.APIError{Kind: converged.ErrNotFound}))
 	assert.False(t, converged.IsInternal(&converged.APIError{Kind: converged.ErrNotFound}))
+	assert.False(t, converged.IsUnauthenticated(&converged.APIError{Kind: converged.ErrUnauthorized}))
+	assert.False(t, converged.IsUnauthorized(&converged.APIError{Kind: converged.ErrUnauthenticated}))
 }
 
 // ---------------------------------------------------------------------------
