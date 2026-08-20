@@ -24,6 +24,7 @@ require (
 	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.3.1
 	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.2-beta.3
 	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4 v4.4.1-beta.1
 	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.4.1
 	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.4.1
 	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.3.1

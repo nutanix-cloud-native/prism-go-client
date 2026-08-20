@@ -26,8 +26,8 @@ import (
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
-	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
+	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
 	imageModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
 )
 
@@ -296,15 +296,16 @@ func TestImageFromObjectsLite(t *testing.T) {
 	service := &ImagesService{}
 
 	t.Run("DiskImage", func(t *testing.T) {
-		image, err := service.imageFromObjectsLite("test-key-123", "/path/to/image.qcow2")
+		image, err := service.imageFromObjectsLite("test-key-123", "/path/to/image.qcow2", "")
 		assert.NoError(t, err)
 		assert.NotNil(t, image)
 		assert.Equal(t, "image.qcow2", *image.Name)
 		assert.Equal(t, imageModels.IMAGETYPE_DISK_IMAGE, *image.Type)
+		assert.Nil(t, image.ProjectExtId)
 	})
 
 	t.Run("ISOImage", func(t *testing.T) {
-		image, err := service.imageFromObjectsLite("test-key-456", "/path/to/installer.iso")
+		image, err := service.imageFromObjectsLite("test-key-456", "/path/to/installer.iso", "")
 		assert.NoError(t, err)
 		assert.NotNil(t, image)
 		assert.Equal(t, "installer.iso", *image.Name)
@@ -312,7 +313,7 @@ func TestImageFromObjectsLite(t *testing.T) {
 	})
 
 	t.Run("ISOImageUppercase", func(t *testing.T) {
-		image, err := service.imageFromObjectsLite("test-key-789", "/path/to/installer.ISO")
+		image, err := service.imageFromObjectsLite("test-key-789", "/path/to/installer.ISO", "")
 		assert.NoError(t, err)
 		assert.NotNil(t, image)
 		assert.Equal(t, imageModels.IMAGETYPE_ISO_IMAGE, *image.Type)
@@ -320,9 +321,16 @@ func TestImageFromObjectsLite(t *testing.T) {
 
 	t.Run("DefaultsToDiskImage", func(t *testing.T) {
 		// Any non-ISO extension should default to DISK_IMAGE
-		image, err := service.imageFromObjectsLite("test-key", "/path/to/image.raw")
+		image, err := service.imageFromObjectsLite("test-key", "/path/to/image.raw", "")
 		assert.NoError(t, err)
 		assert.Equal(t, imageModels.IMAGETYPE_DISK_IMAGE, *image.Type)
+	})
+
+	t.Run("SetsProjectExtID", func(t *testing.T) {
+		image, err := service.imageFromObjectsLite("test-key", "/path/to/image.raw", "project-uuid")
+		assert.NoError(t, err)
+		require.NotNil(t, image.ProjectExtId)
+		assert.Equal(t, "project-uuid", *image.ProjectExtId)
 	})
 }
 

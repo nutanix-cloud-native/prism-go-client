@@ -47,6 +47,16 @@ var errorGroupToKind = map[string]error{
 	"DISK_INTERNAL_ERROR":               converged.ErrInternal,
 	"VOLUME_INTERNAL_ERROR":             converged.ErrInternal,
 	"OBJECTS_SERVICE_UNAVAILABLE_ERROR": converged.ErrInternal,
+
+	// Unauthenticated (HTTP 401 — credentials missing/invalid)
+	"AUTHENTICATION_REQUIRED": converged.ErrUnauthenticated,
+	"UNAUTHORIZED":            converged.ErrUnauthenticated,
+
+	// Unauthorized (HTTP 403 — authenticated but not permitted)
+	"FORBIDDEN":               converged.ErrUnauthorized,
+	"ACCESS_DENIED":           converged.ErrUnauthorized,
+	"AUTHORIZATION_ERROR":     converged.ErrUnauthorized,
+	"IAM_AUTHORIZATION_ERROR": converged.ErrUnauthorized,
 }
 
 // parseStatusCode extracts the numeric HTTP status code from a status line.
@@ -67,7 +77,8 @@ func parseStatusCode(status string) int {
 // Categorise classifies an error based on HTTP status code and optional response body.
 //
 // Classification order:
-//  1. HTTP status: 404 → ErrNotFound, 429 → ErrRateLimit, 500-599 → ErrInternal.
+//  1. HTTP status: 401 → ErrUnauthenticated, 403 → ErrUnauthorized,
+//     404 → ErrNotFound, 429 → ErrRateLimit, 500-599 → ErrInternal.
 //  2. Body fallback: for any other status, the body's errorGroup can classify
 //     (e.g. a 400 with errorGroup RATE_LIMIT_EXCEEDED → ErrRateLimit).
 //  3. If nothing matches, Kind is nil (unclassified) — Cause is still preserved.
@@ -85,6 +96,13 @@ func Categorise(err error, status string, body []byte) error {
 	}
 
 	switch {
+	case code == 401:
+		// 401 often has no JSON body (basic-auth challenge / plain text).
+		// Classify from status alone; only use the body message when present.
+		return &converged.APIError{Kind: converged.ErrUnauthenticated, Cause: err, Message: bodyMsg}
+	case code == 403:
+		// Same empty-body caveat as 401; status is authoritative.
+		return &converged.APIError{Kind: converged.ErrUnauthorized, Cause: err, Message: bodyMsg}
 	case code == 404:
 		return &converged.APIError{Kind: converged.ErrNotFound, Cause: err, Message: bodyMsg}
 	case code == 429:

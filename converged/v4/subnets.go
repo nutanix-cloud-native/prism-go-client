@@ -9,6 +9,8 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
+	ipReservationRequest "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/request/subnetipreservation"
+	subnetRequest "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/request/subnets"
 	networkingprismapi "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/prism/v4/config"
 )
 
@@ -31,7 +33,9 @@ func (s *SubnetsService) Get(ctx context.Context, uuid string) (*subnetModels.Su
 
 	return GenericGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet](
 		func() (*subnetModels.GetSubnetApiResponse, error) {
-			return s.client.SubnetsApiInstance.GetSubnetById(&uuid)
+			return s.client.SubnetsApiInstance.ServiceClient.GetSubnetById(ctx, &subnetRequest.GetSubnetByIdRequest{
+				ExtId: &uuid,
+			})
 		},
 		s.entitiesName,
 	)
@@ -54,14 +58,14 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 
 	return GenericListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
-			return s.client.SubnetsApiInstance.ListSubnets(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.SubnetsApiInstance.ServiceClient.ListSubnets(ctx, &subnetRequest.ListSubnetsRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -77,14 +81,14 @@ func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODat
 	return GenericNewIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
-			return s.client.SubnetsApiInstance.ListSubnets(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.SubnetsApiInstance.ServiceClient.ListSubnets(ctx, &subnetRequest.ListSubnetsRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -117,7 +121,10 @@ func (s *SubnetsService) ReserveIpsBySubnetId(
 
 	// Call the V4 API and extract TaskReference using CallAPI helper
 	taskRef, err := CallAPI[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](
-		s.client.SubnetIPReservationApi.ReserveIpsBySubnetId(&subnetExtId, ipReserveSpec),
+		s.client.SubnetIPReservationApi.ServiceClient.ReserveIpsBySubnetId(ctx, &ipReservationRequest.ReserveIpsBySubnetIdRequest{
+			ExtId: &subnetExtId,
+			Body:  ipReserveSpec,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
@@ -152,7 +159,10 @@ func (s *SubnetsService) UnreserveIpsBySubnetId(
 
 	// Call the V4 API and extract TaskReference using CallAPI helper
 	taskRef, err := CallAPI[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](
-		s.client.SubnetIPReservationApi.UnreserveIpsBySubnetId(&subnetExtId, ipUnreserveSpec),
+		s.client.SubnetIPReservationApi.ServiceClient.UnreserveIpsBySubnetId(ctx, &ipReservationRequest.UnreserveIpsBySubnetIdRequest{
+			ExtId: &subnetExtId,
+			Body:  ipUnreserveSpec,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
@@ -189,14 +199,14 @@ func (s *SubnetsService) ListReservedIpsBySubnetId(
 	}
 
 	// Call the V4 API
-	resp, err := s.client.SubnetIPReservationApi.ListReservedIpsBySubnetId(
-		&subnetExtId,
-		reqParams.Page,
-		reqParams.Limit,
-		reqParams.Filter,
-		reqParams.OrderBy,
-		reqParams.Select,
-	)
+	resp, err := s.client.SubnetIPReservationApi.ServiceClient.ListReservedIpsBySubnetId(ctx, &ipReservationRequest.ListReservedIpsBySubnetIdRequest{
+		SubnetExtId: &subnetExtId,
+		Page_:       reqParams.Page,
+		Limit_:      reqParams.Limit,
+		Filter_:     reqParams.Filter,
+		Orderby_:    reqParams.OrderBy,
+		Select_:     reqParams.Select,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list reserved IPs for subnet %s: %w", subnetExtId, err)
 	}

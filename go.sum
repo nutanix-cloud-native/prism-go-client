@@ -409,6 +409,8 @@ github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.2-beta.3 h1:6Bn
 github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.2-beta.3/go.mod h1:gF7zQKbtt3n3/mzFhAPzupXi++VEjGr27zpOnYwNUJI=
 github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.3.1 h1:NJNuKXXPkvgUbkTgLtJYA9zS8EkqeCsw/HRdDR025zk=
 github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.3.1/go.mod h1:wuBZ3Tnexi4wgUsE4a7ZMQtfGSQn44cqJWKt7EqJCDI=
+github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4 v4.4.1-beta.1 h1:sHj92aBSd7Lkgeft9/qxJkRyD+JNx6JbnLBjHrl6FSw=
+github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4 v4.4.1-beta.1/go.mod h1:y088yRb2BmFiPOO/t06dDHob1eiSjMqfvUeoOh54XcI=
 github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.4.1 h1:5gM5i7dTpKRfh6XiFyzj4oA7SsRfJftn4JWPp0iL+ZE=
 github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.4.1/go.mod h1:PfJZnc5tX4Tii5M8EPP5geSH9oMDUyUTdywdXM1ZWDM=
 github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.4.1 h1:PuKB3Zstx0P7mKmdQDEfqzmXv1OMehcTmnjDOkFDpg4=

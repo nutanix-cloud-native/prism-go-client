@@ -3,6 +3,7 @@ package v4
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"strings"
 
@@ -250,6 +251,19 @@ func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) 
 
     result, ok := data.([]T)
     if !ok {
+        // List responses can come back as either the full entity type or a
+        // *Projection type. Projections are used when the API supports $expand
+        // (for example AuthorizationPolicyProjection can include the related Role).
+        // We must not convert a non-empty projection into []T, because that would
+        // drop the nested expanded data the caller asked for.
+        //
+        // Empty lists are a special case: the generated SDK sometimes labels an
+        // empty result as a projection type even when the caller expected the
+        // full entity type. There is nothing in an empty list to lose, so treat
+        // that as "no results" and return an empty []T.
+        if v := reflect.ValueOf(data); v.Kind() == reflect.Slice && v.Len() == 0 {
+            return zero, totalCount, nil
+        }
         return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
     }
 
@@ -275,6 +289,48 @@ func GetEntityAndEtag[T any](entity T, err error) (T, map[string]any, error) {
 	}
 
 	return entity, args, nil
+}
+
+// requestIDHeader is the header V4 APIs use to make write operations idempotent.
+const requestIDHeader = "NTNX-Request-Id"
+
+// headersContextKey is an unexported context key type to avoid collisions.
+type headersContextKey struct{}
+
+func withHeader(ctx context.Context, key, value string) context.Context {
+	headers := maps.Clone(headersFromContext(ctx))
+	if headers == nil {
+		headers = make(map[string]string, 1)
+	}
+	headers[key] = value
+	return context.WithValue(ctx, headersContextKey{}, headers)
+}
+
+// WithRequestID returns a copy of ctx carrying the given idempotency request id.
+// Currently scoped for Create() operations. Callers that do not set it are unaffected 
+// and no header is sent.
+func WithRequestID(ctx context.Context, requestID string) context.Context {
+	return withHeader(ctx, requestIDHeader, requestID)
+}
+
+// headersFromContext returns the headers set via withHeader, or nil if none.
+func headersFromContext(ctx context.Context) map[string]string {
+	headers, _ := ctx.Value(headersContextKey{}).(map[string]string)
+	return headers
+}
+
+// headerArgs builds the SDK args (header map) from headers set on the context.
+func headerArgs(ctx context.Context) map[string]any {
+	headers := headersFromContext(ctx)
+	if len(headers) == 0 {
+		return nil
+	}
+
+	args := make(map[string]any, len(headers))
+	for k, v := range headers {
+		args[k] = ptr.To(v)
+	}
+	return args
 }
 
 // OptsToV4ODataParams converts the OData options to V4 OData parameters
@@ -356,6 +412,15 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 	}
 
 	return result, nil
+}
+
+// ErrorOnlyIterator returns an iterator that yields exactly one (zero, err) so the first iteration gets the error.
+func ErrorOnlyIterator[T any](err error) converged.Iterator[T] {
+	var zero T
+	seq := func(yield func(T, error) bool) {
+		yield(zero, err)
+	}
+	return converged.Iterator[T](seq)
 }
 
 // GenericNewIterator creates a new iterator for the given API call and options

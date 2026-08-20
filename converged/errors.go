@@ -6,9 +6,11 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("resource not found")
-	ErrRateLimit = errors.New("rate limit exceeded")
-	ErrInternal  = errors.New("internal error")
+	ErrNotFound        = errors.New("resource not found")
+	ErrRateLimit       = errors.New("rate limit exceeded")
+	ErrInternal        = errors.New("internal error")
+	ErrUnauthenticated = errors.New("unauthenticated") // HTTP 401: missing/invalid credentials
+	ErrUnauthorized    = errors.New("unauthorized")    // HTTP 403: authenticated but not allowed
 )
 
 // APIError wraps SDK errors with a classified Kind.
@@ -56,4 +58,16 @@ func IsRateLimit(err error) bool {
 // IsInternal returns true if the error is or wraps an ErrInternal.
 func IsInternal(err error) bool {
 	return errors.Is(err, ErrInternal)
+}
+
+// IsUnauthenticated returns true if the error is or wraps an ErrUnauthenticated
+// (HTTP 401 — missing or invalid credentials).
+func IsUnauthenticated(err error) bool {
+	return errors.Is(err, ErrUnauthenticated)
+}
+
+// IsUnauthorized returns true if the error is or wraps an ErrUnauthorized
+// (HTTP 403 — authenticated but not permitted).
+func IsUnauthorized(err error) bool {
+	return errors.Is(err, ErrUnauthorized)
 }

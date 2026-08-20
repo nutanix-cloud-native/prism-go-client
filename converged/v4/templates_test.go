@@ -220,3 +220,56 @@ func TestTemplatesErrorScenarios(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestDeployVmWithTemplate(t *testing.T) {
+	creds := testhelpers.CredentialsFromEnvironment(t)
+	if strings.Contains(creds.Endpoint, prismEndpointDummyValue) {
+		t.Skip("Skipping integration test: NUTANIX_ENDPOINT not set")
+	}
+
+	client, err := NewClient(creds)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	ctx := context.Background()
+
+	// Get first available template
+	templates, err := client.Templates.List(ctx, converged.WithLimit(1))
+	require.NoError(t, err)
+	if len(templates) == 0 {
+		t.Skip("No templates available for testing")
+	}
+	templateUUID := *templates[0].ExtId
+	if templates[0].TemplateName != nil {
+		t.Logf("Using template: %s (UUID: %s)", *templates[0].TemplateName, templateUUID)
+	}
+
+	// Get first available cluster
+	clusters, err := client.Clusters.List(ctx)
+	require.NoError(t, err)
+	if len(clusters) == 0 {
+		t.Fatalf("No clusters available for deployment")
+	}
+	clusterUUID := *clusters[0].ExtId
+	if clusters[0].Name != nil {
+		t.Logf("Using cluster: %s (UUID: %s)", *clusters[0].Name, clusterUUID)
+	}
+
+	deployParams := templateModels.NewTemplateDeployment()
+	deployParams.ClusterReference = &clusterUUID
+
+	t.Run("DeployVm", func(t *testing.T) {
+		t.Logf("Deploying VM from template UUID: %s to cluster: %s", templateUUID, clusterUUID)
+
+		operation, err := client.Templates.DeployVmWithTemplate(ctx, templateUUID, deployParams)
+		require.NoError(t, err)
+		require.NotNil(t, operation)
+
+		t.Logf("Deployment initiated. Task UUID: %s", operation.UUID())
+	})
+
+	t.Run("DeployVmWithInvalidTemplate", func(t *testing.T) {
+		_, err := client.Templates.DeployVmWithTemplate(ctx, "invalid-template-uuid", deployParams)
+		assert.Error(t, err)
+	})
+}

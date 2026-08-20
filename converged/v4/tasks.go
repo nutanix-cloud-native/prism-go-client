@@ -10,6 +10,7 @@ import (
 
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
 	prismErrors "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/error"
+	taskRequest "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/request/tasks"
 )
 
 // TasksService is the service for the tasks
@@ -35,7 +36,11 @@ func (s *TasksService) Get(ctx context.Context, uuid string) (*prismModels.Task,
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
 		func() (*prismModels.GetTaskApiResponse, error) {
-			return s.client.TasksApiInstance.GetTaskById(&uuid, nil, nil)
+			return s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
+				&taskRequest.GetTaskByIdRequest{
+					ExtId: &uuid,
+				},
+			)
 		},
 		s.entityName,
 	)
@@ -51,7 +56,12 @@ func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
 		func() (*prismModels.GetTaskApiResponse, error) {
-			return s.client.TasksApiInstance.GetTaskById(&uuid, &selectOption, nil)
+			return s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
+				&taskRequest.GetTaskByIdRequest{
+					ExtId:   &uuid,
+					Select_: &selectOption,
+				},
+			)
 		},
 		s.entityName,
 	)
@@ -74,12 +84,14 @@ func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) 
 
 	return GenericListEntities[*prismModels.ListTasksApiResponse, prismModels.Task](
 		func(reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
-			return s.client.TasksApiInstance.ListTasks(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
+			return s.client.TasksApiInstance.ServiceClient.ListTasks(ctx,
+				&taskRequest.ListTasksRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,
@@ -96,12 +108,14 @@ func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataO
 	return GenericNewIterator[*prismModels.ListTasksApiResponse, prismModels.Task](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
-			return s.client.TasksApiInstance.ListTasks(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
+			return s.client.TasksApiInstance.ServiceClient.ListTasks(ctx,
+				&taskRequest.ListTasksRequest{
+					Page_:    reqParams.Page,
+					Limit_:   reqParams.Limit,
+					Filter_:  reqParams.Filter,
+					Orderby_: reqParams.OrderBy,
+					Select_:  reqParams.Select,
+				},
 			)
 		},
 		opts,
@@ -117,7 +131,11 @@ func (s *TasksService) Cancel(ctx context.Context, uuid string) (*prismErrors.Ap
 
 	return GenericGetEntity[*prismModels.CancelTaskApiResponse, prismErrors.AppMessage](
 		func() (*prismModels.CancelTaskApiResponse, error) {
-			return s.client.TasksApiInstance.CancelTask(&uuid)
+			return s.client.TasksApiInstance.ServiceClient.CancelTask(ctx,
+				&taskRequest.CancelTaskRequest{
+					TaskExtId: &uuid,
+				},
+			)
 		},
 		s.entityName,
 	)

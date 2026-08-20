@@ -9,6 +9,7 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 
 	scModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	scRequest "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/request/storagecontainers"
 )
 
 // StorageContainersService provides implementation for all StorageContainers interface methods.
@@ -30,7 +31,9 @@ func (s *StorageContainersService) Get(ctx context.Context, uuid string) (*scMod
 
 	return GenericGetEntity[*scModels.GetStorageContainerApiResponse, scModels.StorageContainer](
 		func() (*scModels.GetStorageContainerApiResponse, error) {
-			return s.client.StorageContainerAPI.GetStorageContainerById(&uuid)
+			return s.client.StorageContainerAPI.ServiceClient.GetStorageContainerById(ctx, &scRequest.GetStorageContainerByIdRequest{
+				ExtId: &uuid,
+			})
 		},
 		s.entitiesName,
 	)
@@ -47,20 +50,20 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 		return nil, fmt.Errorf("failed to convert options to V4ODataParams: %w", err)
 	}
 
-	if myParams.Expand != nil || myParams.Apply != nil {
-		return nil, fmt.Errorf("expand and apply are not supported for listing StorageContainers")
+	if myParams.Apply != nil {
+		return nil, fmt.Errorf("apply is not supported for listing StorageContainers")
 	}
 
 	return GenericListEntities[*scModels.ListStorageContainersApiResponse, scModels.StorageContainer](
 		func(reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
-			return s.client.StorageContainerAPI.ListStorageContainers(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.StorageContainerAPI.ServiceClient.ListStorageContainers(ctx, &scRequest.ListStorageContainersRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -76,14 +79,14 @@ func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...conv
 	return GenericNewIterator[*scModels.ListStorageContainersApiResponse, scModels.StorageContainer](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
-			return s.client.StorageContainerAPI.ListStorageContainers(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.StorageContainerAPI.ServiceClient.ListStorageContainers(ctx, &scRequest.ListStorageContainersRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,

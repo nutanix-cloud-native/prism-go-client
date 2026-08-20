@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
+	roleRequestModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/request/roles"
 )
 
 // RolesService provides implementation for IAM Roles API operations.
@@ -32,7 +33,10 @@ func (s *RolesService) Get(ctx context.Context, uuid string) (*iamAuthzModels.Ro
 
 	return GenericGetEntity[*iamAuthzModels.GetRoleApiResponse, iamAuthzModels.Role](
 		func() (*iamAuthzModels.GetRoleApiResponse, error) {
-			return s.client.RolesApiInstance.GetRoleById(&uuid, nil)
+			return s.client.RolesApiInstance.GetRoleById(
+				ctx,
+				&roleRequestModels.GetRoleByIdRequest{ExtId: &uuid},
+			)
 		},
 		s.entitiesName,
 	)
@@ -55,13 +59,13 @@ func (s *RolesService) List(ctx context.Context, opts ...converged.ODataOption) 
 
 	return GenericListEntities[*iamAuthzModels.ListRolesApiResponse, iamAuthzModels.Role](
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListRolesApiResponse, error) {
-			return s.client.RolesApiInstance.ListRoles(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.RolesApiInstance.ListRoles(ctx, &roleRequestModels.ListRolesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -77,13 +81,13 @@ func (s *RolesService) NewIterator(ctx context.Context, opts ...converged.ODataO
 	return GenericNewIterator[*iamAuthzModels.ListRolesApiResponse, iamAuthzModels.Role](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListRolesApiResponse, error) {
-			return s.client.RolesApiInstance.ListRoles(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.RolesApiInstance.ListRoles(ctx, &roleRequestModels.ListRolesRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -97,7 +101,10 @@ func (s *RolesService) Create(ctx context.Context, entity *iamAuthzModels.Role) 
 	}
 
 	newRole, err := CallAPI[*iamAuthzModels.CreateRoleApiResponse, iamAuthzModels.Role](
-		s.client.RolesApiInstance.CreateRole(entity),
+		s.client.RolesApiInstance.CreateRole(
+			ctx,
+			&roleRequestModels.CreateRoleRequest{Body: entity},
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create role: %w", err)
@@ -112,12 +119,19 @@ func (s *RolesService) Delete(ctx context.Context, uuid string) error {
 		return errors.New("client is not initialized")
 	}
 	_, args, err := GetEntityAndEtag(
-		s.client.RolesApiInstance.GetRoleById(&uuid),
+		s.client.RolesApiInstance.GetRoleById(
+			ctx,
+			&roleRequestModels.GetRoleByIdRequest{ExtId: &uuid},
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get role with UUID %s: %w", uuid, err)
 	}
 
-	_, err = s.client.RolesApiInstance.DeleteRoleById(&uuid, args)
+	_, err = s.client.RolesApiInstance.DeleteRoleById(
+		ctx,
+		&roleRequestModels.DeleteRoleByIdRequest{ExtId: &uuid},
+		args,
+	)
 	return err
 }

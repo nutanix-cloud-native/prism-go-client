@@ -19,6 +19,8 @@ type Client[
 	Cluster,
 	VirtualGpuProfile,
 	PhysicalGpuProfile,
+	AHVVirtualGpuProfile,
+	AHVPhysicalGpuProfile,
 	Host,
 	Category,
 	Image,
@@ -27,42 +29,55 @@ type Client[
 	Subnet,
 	SubnetTaskReference,
 	VM,
+	NIC,
+	VMDisk,
 	Task,
 	AppMessage,
 	VolumeGroup,
 	VmAttachment,
+	VMProfile,
+	DeployParams,
 	DomainManagerEntity,
 	User,
 	Role,
+	RoleMembership,
+	RoleMembershipProjection,
 	AuthorizationPolicy,
 	AuthorizationPolicyProjection,
 	Operation,
 	Template,
+	TemplateDeployParams,
 	Ova,
 	OvaFile,
 	ProtectionPolicy,
 	RecoveryPlan,
+	Project,
+	ResourceGroup,
 	Disk,
 	Alert any] struct {
 	AntiAffinityPolicies  AntiAffinityPolicies[AntiAffinityPolicy]
-	Clusters              Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, Host]
+	Clusters              Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, AHVVirtualGpuProfile, AHVPhysicalGpuProfile, Host]
 	Categories            Categories[Category]
 	Images                Images[Image, ImageFile]
 	StorageContainers     StorageContainers[StorageContainer]
 	Subnets               Subnets[Subnet, SubnetTaskReference]
-	VMs                   VMs[VM]
+	VMs                   VMs[VM, NIC, VMDisk]
 	Tasks                 Tasks[Task, AppMessage]
 	VolumeGroups          VolumeGroups[VolumeGroup, VmAttachment]
+	VMProfiles            VMProfiles[VMProfile, VM, DeployParams]
 	DomainManager         DomainManager[DomainManagerEntity]
 	Users                 Users[User]
 	Roles                 Roles[Role]
+	RoleMemberships       RoleMemberships[RoleMembership, RoleMembershipProjection]
 	AuthorizationPolicies AuthorizationPolicies[AuthorizationPolicy, AuthorizationPolicyProjection]
 	Operations            Operations[Operation]
-	Templates             Templates[Template]
+	Templates             Templates[Template, VM, TemplateDeployParams]
 	Ovas                  Ovas[Ova, OvaFile]
 	DataPolicies          DataPolicies[ProtectionPolicy, RecoveryPlan]
-	Disks                Disks[Disk]
-	Alerts               Alerts[Alert]
+	Projects              Projects[Project]
+	ResourceGroups        ResourceGroups[ResourceGroup]
+	Disks                 Disks[Disk]
+	Alerts                Alerts[Alert]
 }
 
 // Getter is the interface for Get operations.

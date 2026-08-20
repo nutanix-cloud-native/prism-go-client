@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	domainManagerRequest "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/request/domainmanager"
 )
 
 // DomainManagerService provides methods to interact with Domain Manager API
@@ -29,7 +30,11 @@ func (s *DomainManagerService) Get(ctx context.Context, extID string) (*prismMod
 
 	return GenericGetEntity[*prismModels.GetDomainManagerApiResponse, prismModels.DomainManager](
 		func() (*prismModels.GetDomainManagerApiResponse, error) {
-			return s.client.DomainManagerApiInstance.GetDomainManagerById(&extID)
+			return s.client.DomainManagerApiInstance.ServiceClient.GetDomainManagerById(ctx,
+				&domainManagerRequest.GetDomainManagerByIdRequest{
+					ExtId: &extID,
+				},
+			)
 		},
 		s.entitiesName,
 	)
@@ -54,7 +59,11 @@ func (s *DomainManagerService) List(ctx context.Context, opts ...converged.OData
 
 	return GenericListEntities[*prismModels.ListDomainManagerApiResponse, prismModels.DomainManager](
 		func(reqParams *V4ODataParams) (*prismModels.ListDomainManagerApiResponse, error) {
-			return s.client.DomainManagerApiInstance.ListDomainManagers(reqParams.Select)
+			return s.client.DomainManagerApiInstance.ServiceClient.ListDomainManagers(ctx,
+				&domainManagerRequest.ListDomainManagersRequest{
+					Select_: reqParams.Select,
+				},
+			)
 		},
 		opts,
 		s.entitiesName,
@@ -70,7 +79,11 @@ func (s *DomainManagerService) NewIterator(ctx context.Context, opts ...converge
 	return GenericNewIterator[*prismModels.ListDomainManagerApiResponse, prismModels.DomainManager](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListDomainManagerApiResponse, error) {
-			return s.client.DomainManagerApiInstance.ListDomainManagers(reqParams.Select)
+			return s.client.DomainManagerApiInstance.ServiceClient.ListDomainManagers(ctx,
+				&domainManagerRequest.ListDomainManagersRequest{
+					Select_: reqParams.Select,
+				},
+			)
 		},
 		opts,
 		s.entitiesName,
