@@ -58,6 +58,7 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},
@@ -80,6 +81,7 @@ func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...conv
 				reqParams.Limit,
 				reqParams.Filter,
 				reqParams.OrderBy,
+				reqParams.Expand,
 				reqParams.Select,
 			)
 		},

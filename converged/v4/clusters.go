@@ -88,6 +88,7 @@ func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUui
 
 	return GenericListEntities[*clusterModels.ListVirtualGpuProfilesApiResponse, clusterModels.VirtualGpuProfile](
 		func(reqParams *V4ODataParams) (*clusterModels.ListVirtualGpuProfilesApiResponse, error) {
+			//nolint:staticcheck // Intentionally using deprecated cluster-scoped API for device-level GPU details
 			return s.client.ClustersApiInstance.ListVirtualGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
 		},
 		opts,
@@ -117,6 +118,7 @@ func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUu
 
 	return GenericListEntities[*clusterModels.ListPhysicalGpuProfilesApiResponse, clusterModels.PhysicalGpuProfile](
 		func(reqParams *V4ODataParams) (*clusterModels.ListPhysicalGpuProfilesApiResponse, error) {
+			//nolint:staticcheck // Intentionally using deprecated cluster-scoped API for device-level GPU details
 			return s.client.ClustersApiInstance.ListPhysicalGpuProfiles(&clusterUuid, reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy)
 		},
 		opts,

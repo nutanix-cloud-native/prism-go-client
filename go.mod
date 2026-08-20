@@ -20,17 +20,17 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/keploy/go-sdk v0.9.0
-	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.2.2
-	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.2.1
-	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.0.1
-	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.2.2
-	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.2.1
-	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.2.1
-	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.2.1
-	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.2.1
+	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.2-beta.3
+	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4 v4.4.1
+	github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4 v4.4.1
+	github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4 v4.3.1
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.2
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.7
@@ -91,7 +91,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.9.1 // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	go.keploy.io/server v0.8.6 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect

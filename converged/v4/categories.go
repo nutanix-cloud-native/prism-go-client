@@ -52,7 +52,7 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 
 	return GenericListEntities[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		func(reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
 		},
 		opts,
 		"categories",
@@ -67,7 +67,7 @@ func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.O
 	return GenericNewIterator[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
-			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Expand, reqParams.Select)
+			return s.client.CategoriesApiInstance.ListCategories(reqParams.Page, reqParams.Limit, reqParams.Filter, reqParams.OrderBy, reqParams.Apply, reqParams.Expand, reqParams.Select)
 		},
 		opts,
 		"categories",
