@@ -93,7 +93,7 @@ func GetEtag(object any) string {
 	var reserved reflect.Value
 	if reflect.TypeOf(object).Kind() == reflect.Struct {
 		reserved = reflect.ValueOf(object).FieldByName("Reserved_")
-	} else if reflect.TypeOf(object).Kind() == reflect.Interface || reflect.TypeOf(object).Kind() == reflect.Ptr {
+	} else if reflect.TypeOf(object).Kind() == reflect.Interface || reflect.TypeOf(object).Kind() == reflect.Pointer {
 		reserved = reflect.ValueOf(object).Elem().FieldByName("Reserved_")
 	} else {
 		return ""
@@ -141,7 +141,7 @@ func CopyEtag(source, destination any) any {
 	destination = DropEtag(destination)
 	if reflect.TypeOf(source).Kind() == reflect.Struct {
 		reserved = reflect.ValueOf(source).FieldByName("Reserved_")
-	} else if reflect.TypeOf(source).Kind() == reflect.Interface || reflect.TypeOf(source).Kind() == reflect.Ptr {
+	} else if reflect.TypeOf(source).Kind() == reflect.Interface || reflect.TypeOf(source).Kind() == reflect.Pointer {
 		reserved = reflect.ValueOf(source).Elem().FieldByName("Reserved_")
 	} else {
 		return destination

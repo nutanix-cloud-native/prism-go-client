@@ -8,11 +8,13 @@ on:
     branches:
       - main
       - 'release-*'
+  # No base-branch filter: stacked PRs target another PR's branch rather than main,
+  # and on.pull_request.branches filters on the base. The build job below decides
+  # whether to actually run. `labeled` lets a stacked PR opt in after it is opened.
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - 'release-*'
+    types: [opened, synchronize, reopened, labeled]
+  # pull_request_target runs with secrets on self-hosted runners, so it keeps its
+  # base filter and must never trigger on `labeled`.
   pull_request_target:
     types: [opened, synchronize, reopened]
     branches:
@@ -38,9 +40,14 @@ jobs:
     # 1. Push event (main/release branch)
     # 2. Internal PR (pull_request event from same repo)
     # 3. External PR (pull_request_target) that has been approved
+    # Internal PRs onto a non-main base (stacked PRs) additionally require the
+    # 'integration-test' label, so unrelated topic branches do not consume runners.
     if: ${{ always() &&
       (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.base.ref == 'main' ||
+      startsWith(github.event.pull_request.base.ref, 'release-') ||
+      contains(github.event.pull_request.labels.*.name, 'integration-test'))) ||
       (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository && needs.check_approvals.outputs.check_approvals == 'true')) }}
     needs: check_approvals
     runs-on:
