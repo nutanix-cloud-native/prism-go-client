@@ -1,6 +1,7 @@
 package v4
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
@@ -126,7 +127,17 @@ func TestInitAlertsServiceApiInstance(t *testing.T) {
 }
 
 type fakeApiClientV4Test struct {
-	headers map[string]string
+	headers      map[string]string
+	caCerts      []byte
+	caCertsError error
+}
+
+func (f *fakeApiClientV4Test) SetAdditionalCACertificates(certPEM []byte) error {
+	if f.caCertsError != nil {
+		return f.caCertsError
+	}
+	f.caCerts = certPEM
+	return nil
 }
 
 func (f *fakeApiClientV4Test) AddDefaultHeader(key, value string) {
@@ -198,4 +209,42 @@ func Test_setAuthHeader_ServiceAccountModes_V4(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSetAdditionalTrustBundle(t *testing.T) {
+	const pem = "-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----"
+
+	t.Run("bundle is forwarded to the SDK", func(t *testing.T) {
+		ac := &fakeApiClientV4Test{}
+		err := setAdditionalTrustBundle(ac, prismgoclient.Credentials{AdditionalTrustBundle: pem})
+		assert.NoError(t, err)
+		assert.Equal(t, []byte(pem), ac.caCerts)
+	})
+
+	t.Run("no bundle is a no-op", func(t *testing.T) {
+		ac := &fakeApiClientV4Test{}
+		err := setAdditionalTrustBundle(ac, prismgoclient.Credentials{})
+		assert.NoError(t, err)
+		assert.Nil(t, ac.caCerts)
+	})
+
+	t.Run("SDK error is propagated", func(t *testing.T) {
+		ac := &fakeApiClientV4Test{caCertsError: errors.New("bad pem")}
+		err := setAdditionalTrustBundle(ac, prismgoclient.Credentials{AdditionalTrustBundle: pem})
+		assert.ErrorContains(t, err, "failed to set additional trust bundle")
+	})
+
+	// A trust bundle must not disable verification: it is supplied precisely so the endpoint's
+	// certificate can be verified against it. Previously a bundle forced Insecure=true.
+	t.Run("trust bundle keeps TLS verification enabled", func(t *testing.T) {
+		v4Client := &Client{}
+		err := initAlertsServiceApiInstance(v4Client, prismgoclient.Credentials{
+			Username:              "username",
+			Password:              "password",
+			Endpoint:              "0.0.0.0",
+			AdditionalTrustBundle: pem,
+		})
+		assert.NoError(t, err)
+		assert.True(t, v4Client.AlertsServiceApiInstance.ApiClient.VerifySSL)
+	})
 }

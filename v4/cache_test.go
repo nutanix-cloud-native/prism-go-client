@@ -291,23 +291,25 @@ pOBWYdw9P91nbHZF2krqrhqkYE/Ho9aqp9nNgSvBZnWygI/1h01fwlr1kMbawb30
 hag8IyrhFHvBN91i0ZJsumB9iOQct+R2UTjEqUdOqCsukNK1OFHrwZyKarXMsh3o
 wFZUTKiL8IkyhtyTMr5NGvo1dbU=
 -----END CERTIFICATE-----`
+	// A trust bundle is registered with the SDK as an additional root CA, so TLS
+	// verification stays enabled rather than being disabled.
 	cp.mgmtEndpoint.AdditionalTrustBundle = certBundle
 	c, err = cache.GetOrCreate(cp)
 	assert.NoError(t, err)
-	assert.False(t, c.CategoriesApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.ClustersApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.DisksServiceApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.AlertsServiceApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.ImagesApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.StorageContainerAPI.ApiClient.VerifySSL)
-	assert.False(t, c.SubnetsApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.SubnetIPReservationApi.ApiClient.VerifySSL)
-	assert.False(t, c.TasksApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.VolumeGroupsApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.VmApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.UsersApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.RolesApiInstance.ApiClient.VerifySSL)
-	assert.False(t, c.AuthorizationPoliciesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.CategoriesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.ClustersApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.DisksServiceApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.AlertsServiceApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.ImagesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.StorageContainerAPI.ApiClient.VerifySSL)
+	assert.True(t, c.SubnetsApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.SubnetIPReservationApi.ApiClient.VerifySSL)
+	assert.True(t, c.TasksApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.VolumeGroupsApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.VmApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.UsersApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.RolesApiInstance.ApiClient.VerifySSL)
+	assert.True(t, c.AuthorizationPoliciesApiInstance.ApiClient.VerifySSL)
 }
 
 func TestValidateCredentials(t *testing.T) {
