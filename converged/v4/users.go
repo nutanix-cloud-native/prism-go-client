@@ -118,24 +118,24 @@ func (s *UsersService) Create(ctx context.Context, entity *iamModels.User) (*iam
 }
 
 // Update deactivates an existing user.
-func (s *UsersService) UpdateUserState(uuid string, status *iamModels.UserStateUpdate) (*iamModels.UserStateUpdateResponse, error) {
+func (s *UsersService) UpdateUserState(ctx context.Context, uuid string, status *iamModels.UserStateUpdate) (*iamModels.UserStateUpdateResponse, error) {
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
 
 	_, args, err := GetEntityAndEtag(
 		s.client.UsersApiInstance.GetUserById(
-			context.Background(),
+			ctx,
 			&usersRequestModels.GetUserByIdRequest{ExtId: &uuid},
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user with UUID %s: %w", uuid, err)
 	}
-	
+
 	userStateUpdateResponse, err := CallAPI[*iamModels.ActivateUserApiResponse, iamModels.UserStateUpdateResponse](
 		s.client.UsersApiInstance.UpdateUserState(
-			context.Background(),
+			ctx,
 			&usersRequestModels.UpdateUserStateRequest{
 				ExtId: &uuid,
 				Body:  status,

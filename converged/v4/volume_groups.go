@@ -9,6 +9,7 @@ import (
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/prism/v4/config"
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
+	vgRequest "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/request/volumegroups"
 )
 
 // VolumeGroupsService provides default "not implemented" implementation for all VolumeGroups interface methods.
@@ -32,7 +33,9 @@ func (s *VolumeGroupsService) Get(ctx context.Context, uuid string) (*volumeMode
 	}
 	return GenericGetEntity[*volumeModels.GetVolumeGroupApiResponse, volumeModels.VolumeGroup](
 		func() (*volumeModels.GetVolumeGroupApiResponse, error) {
-			return s.client.VolumeGroupsApiInstance.GetVolumeGroupById(&uuid, nil)
+			return s.client.VolumeGroupsApiInstance.ServiceClient.GetVolumeGroupById(ctx, &vgRequest.GetVolumeGroupByIdRequest{
+				ExtId: &uuid,
+			})
 		},
 		s.entities,
 	)
@@ -45,15 +48,15 @@ func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataO
 	}
 	return GenericListEntities[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
 		func(reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
-			return s.client.VolumeGroupsApiInstance.ListVolumeGroups(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Apply,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.VolumeGroupsApiInstance.ServiceClient.ListVolumeGroups(ctx, &vgRequest.ListVolumeGroupsRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Apply_:   reqParams.Apply,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entities,
@@ -65,15 +68,15 @@ func (s *VolumeGroupsService) NewIterator(ctx context.Context, opts ...converged
 	return GenericNewIterator[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
-			return s.client.VolumeGroupsApiInstance.ListVolumeGroups(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Apply,
-				reqParams.Expand,
-				reqParams.Select,
-			)
+			return s.client.VolumeGroupsApiInstance.ServiceClient.ListVolumeGroups(ctx, &vgRequest.ListVolumeGroupsRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Apply_:   reqParams.Apply,
+				Expand_:  reqParams.Expand,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entities,
@@ -87,7 +90,10 @@ func (s *VolumeGroupsService) AttachToVMAsync(ctx context.Context, volumeGroupUU
 	}
 
 	taskRef, err := CallAPI[*volumeModels.AttachVmApiResponse, prismModels.TaskReference](
-		s.client.VolumeGroupsApiInstance.AttachVm(&volumeGroupUUID, &vmAttachment),
+		s.client.VolumeGroupsApiInstance.ServiceClient.AttachVm(ctx, &vgRequest.AttachVmRequest{
+			ExtId: &volumeGroupUUID,
+			Body:  &vmAttachment,
+		}),
 	)
 
 	if err != nil {
@@ -112,7 +118,10 @@ func (s *VolumeGroupsService) DetachFromVMAsync(ctx context.Context, volumeGroup
 	}
 
 	taskRef, err := CallAPI[*volumeModels.DetachVmApiResponse, prismModels.TaskReference](
-		s.client.VolumeGroupsApiInstance.DetachVm(&volumeGroupUUID, &vmAttachment),
+		s.client.VolumeGroupsApiInstance.ServiceClient.DetachVm(ctx, &vgRequest.DetachVmRequest{
+			ExtId: &volumeGroupUUID,
+			Body:  &vmAttachment,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to detach volume group from VM asynchronously: %w", err)

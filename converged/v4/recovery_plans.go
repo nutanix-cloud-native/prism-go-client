@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
+	rpRequest "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/request/recoveryplans"
 	dpPrism "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/prism/v4/config"
 )
 
@@ -32,7 +33,9 @@ func (s *RecoveryPlansService) Get(ctx context.Context, uuid string) (*dpModels.
 	}
 	return GenericGetEntity[*dpModels.GetRecoveryPlanApiResponse, dpModels.RecoveryPlan](
 		func() (*dpModels.GetRecoveryPlanApiResponse, error) {
-			return s.client.RecoveryPlansApiInstance.GetRecoveryPlanById(&uuid, nil)
+			return s.client.RecoveryPlansApiInstance.ServiceClient.GetRecoveryPlanById(ctx, &rpRequest.GetRecoveryPlanByIdRequest{
+				ExtId: &uuid,
+			})
 		},
 		s.entitiesName,
 	)
@@ -52,13 +55,13 @@ func (s *RecoveryPlansService) List(ctx context.Context, opts ...converged.OData
 	}
 	return GenericListEntities[*dpModels.ListRecoveryPlansApiResponse, dpModels.RecoveryPlan](
 		func(reqParams *V4ODataParams) (*dpModels.ListRecoveryPlansApiResponse, error) {
-			return s.client.RecoveryPlansApiInstance.ListRecoveryPlans(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.RecoveryPlansApiInstance.ServiceClient.ListRecoveryPlans(ctx, &rpRequest.ListRecoveryPlansRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -84,13 +87,13 @@ func (s *RecoveryPlansService) NewIterator(ctx context.Context, opts ...converge
 	return GenericNewIterator[*dpModels.ListRecoveryPlansApiResponse, dpModels.RecoveryPlan](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (*dpModels.ListRecoveryPlansApiResponse, error) {
-			return s.client.RecoveryPlansApiInstance.ListRecoveryPlans(
-				reqParams.Page,
-				reqParams.Limit,
-				reqParams.Filter,
-				reqParams.OrderBy,
-				reqParams.Select,
-			)
+			return s.client.RecoveryPlansApiInstance.ServiceClient.ListRecoveryPlans(ctx, &rpRequest.ListRecoveryPlansRequest{
+				Page_:    reqParams.Page,
+				Limit_:   reqParams.Limit,
+				Filter_:  reqParams.Filter,
+				Orderby_: reqParams.OrderBy,
+				Select_:  reqParams.Select,
+			})
 		},
 		opts,
 		s.entitiesName,
@@ -121,7 +124,9 @@ func (s *RecoveryPlansService) CreateAsync(ctx context.Context, plan *dpModels.R
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.CreateRecoveryPlan(plan, nil)
+	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.CreateRecoveryPlan(ctx, &rpRequest.CreateRecoveryPlanRequest{
+		Body: plan,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
@@ -159,7 +164,10 @@ func (s *RecoveryPlansService) UpdateAsync(ctx context.Context, uuid string, pla
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.UpdateRecoveryPlanById(&uuid, plan, nil)
+	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.UpdateRecoveryPlanById(ctx, &rpRequest.UpdateRecoveryPlanByIdRequest{
+		ExtId: &uuid,
+		Body:  plan,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
@@ -192,12 +200,16 @@ func (s *RecoveryPlansService) DeleteAsync(ctx context.Context, uuid string) (co
 		return nil, errors.New("client is not initialized")
 	}
 	_, args, err := GetEntityAndEtag(
-		s.client.RecoveryPlansApiInstance.GetRecoveryPlanById(&uuid, nil),
+		s.client.RecoveryPlansApiInstance.ServiceClient.GetRecoveryPlanById(ctx, &rpRequest.GetRecoveryPlanByIdRequest{
+			ExtId: &uuid,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.DeleteRecoveryPlanById(&uuid, args)
+	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.DeleteRecoveryPlanById(ctx, &rpRequest.DeleteRecoveryPlanByIdRequest{
+		ExtId: &uuid,
+	}, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}
