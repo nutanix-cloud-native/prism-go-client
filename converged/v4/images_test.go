@@ -14,6 +14,7 @@ package v4
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"net/http"
 	"os"
@@ -592,5 +593,121 @@ func TestHeaderInjectingTransport(t *testing.T) {
 
 		_, err = tr.RoundTrip(req)
 		assert.ErrorIs(t, err, baseErr)
+	})
+}
+
+// TestUploadOptionsComposition asserts that WithExtraHeaders composes with the
+// other Upload options rather than displacing them. Both options write into the
+// same converged.UploadOptions struct and are resolved by NewUploadOptions, so a
+// regression here would silently drop one of them at the call site.
+func TestUploadOptionsComposition(t *testing.T) {
+	t.Run("ProjectUUIDAndExtraHeadersCoexist", func(t *testing.T) {
+		opts := converged.NewUploadOptions(
+			converged.WithUploadProjectUUID("project-uuid"),
+			converged.WithExtraHeaders(http.Header{"Cf-Access-Client-Id": []string{"client-id"}}),
+		)
+		assert.Equal(t, "project-uuid", opts.ProjectUUID)
+		assert.Equal(t, "client-id", opts.ExtraHeaders.Get("Cf-Access-Client-Id"))
+	})
+
+	t.Run("OrderIndependent", func(t *testing.T) {
+		opts := converged.NewUploadOptions(
+			converged.WithExtraHeaders(http.Header{"X-Foo": []string{"bar"}}),
+			converged.WithUploadProjectUUID("project-uuid"),
+		)
+		assert.Equal(t, "project-uuid", opts.ProjectUUID)
+		assert.Equal(t, "bar", opts.ExtraHeaders.Get("X-Foo"))
+	})
+
+	t.Run("ExtraHeadersOnlyLeavesProjectUUIDEmpty", func(t *testing.T) {
+		opts := converged.NewUploadOptions(
+			converged.WithExtraHeaders(http.Header{"X-Foo": []string{"bar"}}),
+		)
+		assert.Empty(t, opts.ProjectUUID)
+		assert.Equal(t, "bar", opts.ExtraHeaders.Get("X-Foo"))
+	})
+
+	t.Run("NoOptionsLeavesBothZero", func(t *testing.T) {
+		opts := converged.NewUploadOptions()
+		assert.Empty(t, opts.ProjectUUID)
+		assert.Nil(t, opts.ExtraHeaders)
+	})
+}
+
+// unwrapTLSConfig walks the transport chain awsConfig built and returns the
+// *tls.Config of the underlying *http.Transport, plus whether a
+// headerInjectingTransport was wrapped around it.
+func unwrapTLSConfig(t *testing.T, rt http.RoundTripper) (*tls.Config, bool) {
+	t.Helper()
+	injected := false
+	if hit, ok := rt.(*headerInjectingTransport); ok {
+		injected = true
+		rt = hit.base
+	}
+	tr, ok := rt.(*http.Transport)
+	require.True(t, ok, "expected an *http.Transport at the base of the chain, got %T", rt)
+	return tr.TLSClientConfig, injected
+}
+
+// TestAWSConfigHTTPClientMatrix covers the four combinations of TLS verification
+// and caller-supplied headers. The security-relevant case is
+// VerifySSL+ExtraHeaders: asking for extra headers must not silently disable TLS
+// verification, which is the failure mode of sharing one custom-client branch
+// between the two features.
+func TestAWSConfigHTTPClientMatrix(t *testing.T) {
+	headers := http.Header{"Cf-Access-Client-Id": []string{"client-id"}}
+
+	t.Run("VerifySSL_NoHeaders_UsesSDKDefaultClient", func(t *testing.T) {
+		service := &ImagesService{client: newFakeV4Client("pc.example.com", 9440, "admin", "password", false)}
+		awsCfg, _, err := service.awsConfig(context.Background(), &converged.UploadOptions{})
+		require.NoError(t, err)
+		assert.Nil(t, awsCfg.HTTPClient,
+			"no custom client should be built when TLS is verified and no headers are supplied")
+	})
+
+	t.Run("VerifySSL_WithHeaders_KeepsTLSVerification", func(t *testing.T) {
+		service := &ImagesService{client: newFakeV4Client("pc.example.com", 9440, "admin", "password", false)}
+		awsCfg, _, err := service.awsConfig(context.Background(),
+			&converged.UploadOptions{ExtraHeaders: headers})
+		require.NoError(t, err)
+
+		httpClient, ok := awsCfg.HTTPClient.(*http.Client)
+		require.True(t, ok, "expected a *http.Client when headers are supplied")
+		tlsCfg, injected := unwrapTLSConfig(t, httpClient.Transport)
+		assert.True(t, injected, "headers should be injected via headerInjectingTransport")
+		assert.False(t, tlsCfg.InsecureSkipVerify,
+			"supplying extra headers must NOT disable TLS verification")
+	})
+
+	t.Run("InsecureSSL_NoHeaders_SkipsTLSWithoutHeaderTransport", func(t *testing.T) {
+		service := &ImagesService{client: newFakeV4Client("pc.example.com", 9440, "admin", "password", true)}
+		awsCfg, _, err := service.awsConfig(context.Background(), &converged.UploadOptions{})
+		require.NoError(t, err)
+
+		httpClient, ok := awsCfg.HTTPClient.(*http.Client)
+		require.True(t, ok, "expected a *http.Client when TLS verification is skipped")
+		tlsCfg, injected := unwrapTLSConfig(t, httpClient.Transport)
+		assert.False(t, injected, "no header transport should be added when no headers are supplied")
+		assert.True(t, tlsCfg.InsecureSkipVerify)
+	})
+
+	t.Run("InsecureSSL_WithHeaders_AppliesBoth", func(t *testing.T) {
+		service := &ImagesService{client: newFakeV4Client("pc.example.com", 9440, "admin", "password", true)}
+		awsCfg, _, err := service.awsConfig(context.Background(),
+			&converged.UploadOptions{ExtraHeaders: headers})
+		require.NoError(t, err)
+
+		httpClient, ok := awsCfg.HTTPClient.(*http.Client)
+		require.True(t, ok)
+		tlsCfg, injected := unwrapTLSConfig(t, httpClient.Transport)
+		assert.True(t, injected)
+		assert.True(t, tlsCfg.InsecureSkipVerify)
+	})
+
+	t.Run("NilUploadOptions_BehavesAsNoHeaders", func(t *testing.T) {
+		service := &ImagesService{client: newFakeV4Client("pc.example.com", 9440, "admin", "password", false)}
+		awsCfg, _, err := service.awsConfig(context.Background(), nil)
+		require.NoError(t, err)
+		assert.Nil(t, awsCfg.HTTPClient)
 	})
 }
