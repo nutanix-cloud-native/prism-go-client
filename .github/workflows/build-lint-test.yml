@@ -56,9 +56,13 @@ jobs:
       EXPORT_RESULT: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: "${{ github.event.pull_request.head.sha || github.sha }}"
+          # External PRs run via pull_request_target and are gated behind
+          # maintainer approval (check_approvals / approve-to-run), so opting
+          # in to fork checkout here is safe.
+          allow-unsafe-pr-checkout: true
 
       - uses: actions/cache@v4
         with:

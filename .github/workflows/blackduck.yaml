@@ -48,9 +48,13 @@ jobs:
       - self-hosted-nutanix-docker-small
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # External PRs (non-.github changes) run via pull_request_target and
+          # are gated behind maintainer approval (check_approvals job), so
+          # opting in to fork checkout here is safe.
+          allow-unsafe-pr-checkout: true
 
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.14.0
