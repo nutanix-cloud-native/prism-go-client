@@ -17,6 +17,21 @@
 // newer than any 202x.xx version despite comparing lower numerically. That
 // rule is inert for AOS, which has no calendar-versioned releases.
 //
+// Prism Element often truncates config.buildInfo.version (AOS 7.5.1 reports as
+// "7.5") while fullVersion still carries the patch:
+//
+//	el8.5-release-ganges-7.5.1-stable-<commit>
+//
+// [Parse] extracts the AOS token from that fullVersion form, ignoring a
+// leading OS prefix (el8.5, ol9, …). When both fields are available,
+// [ParseReported] combines them so a truncated short version is refined by
+// fullVersion:
+//
+//	minAOS := versionutils.Parse("7.5.1")
+//	if versionutils.ParseReported(short, full).AtLeast(minAOS) {
+//		// Prism Element is new enough.
+//	}
+//
 // # Unparsable versions
 //
 // A version that is not '.'-separated integers, such as a development build
@@ -55,6 +70,14 @@ var pcVersion202xRe = regexp.MustCompile(`^202(\d(\.\d+)+)$`)
 // pcVersion7xRe matches the Prism Central 7.xx.xx format.
 var pcVersion7xRe = regexp.MustCompile(`^7((\.\d+)+)$`)
 
+// dottedVersionRe matches dotted integer tokens inside a Prism fullVersion
+// string such as "el8.5-release-ganges-7.5.1-stable-<commit>".
+var dottedVersionRe = regexp.MustCompile(`\d+(?:\.\d+)+`)
+
+// osPrefixRe matches a leading OS token on a Prism fullVersion ("el8.5-",
+// "el9-", "ol8.5-"). That token is the guest OS, not AOS.
+var osPrefixRe = regexp.MustCompile(`^[a-z]+(\d+(?:\.\d+)*)-`)
+
 // Version is a parsed Nutanix version, ready to compare. The zero Version is
 // not meaningful; construct one with [Parse].
 type Version struct {
@@ -68,12 +91,14 @@ type Version struct {
 }
 
 // Parse parses any Nutanix version string, whether it came from AOS
-// ("3.5.2.1") or from Prism Central ("2024.3.1", "7.6", "pc.7.6.0.5"). An
+// ("3.5.2.1"), Prism Central ("2024.3.1", "7.6", "pc.7.6.0.5"), or a Prism
+// Element fullVersion ("el8.5-release-ganges-7.5.1-stable-<commit>"). An
 // optional "pc." prefix, surrounding whitespace, and casing are normalized
-// away.
+// away. A fullVersion is reduced to its AOS token (7.5.1); a leading OS
+// prefix such as el8.5 or ol9 is ignored.
 //
-// Parse never fails. A version that is not '.'-separated integers sorts as the
-// newest possible version.
+// Parse never fails. A version that is not '.'-separated integers and does
+// not contain an extractable AOS token sorts as the newest possible version.
 func Parse(version string) Version {
 	// Prism Central reports versions with inconsistent casing, padding, and an
 	// optional "pc." prefix. AOS versions are unaffected by normalization.
@@ -93,7 +118,128 @@ func Parse(version string) Version {
 	}
 
 	v.parts = toIntList(normalized)
+	if !isUnparsableParts(v.parts) {
+		return v
+	}
+
+	// Prism fullVersion is not dotted integers. Extract the AOS token
+	// (el8.5-release-ganges-7.5.1-stable-... → 7.5.1) before treating the
+	// string as unknown. Internal builds (el9-opt-master-<sha>) have no AOS
+	// token and stay unparsable, which still satisfies every gate.
+	if looksLikeFullVersion(normalized) {
+		if extracted := reportedVersion("", normalized); extracted != "" && extracted != normalized {
+			return Parse(extracted)
+		}
+	}
 	return v
+}
+
+// ParseReported combines Prism's truncated short version with fullVersion.
+// AOS 7.5.1 often reports version "7.5" while fullVersion is
+// "el8.5-release-ganges-7.5.1-stable-<commit>". The result is the more specific
+// refinement of short (7.5.1). An unparseable short version such as "master"
+// is left unchanged so development builds keep the existing gate.
+func ParseReported(short, full string) Version {
+	return Parse(reportedVersion(short, full))
+}
+
+// reportedVersion returns the most specific dotted version that can be read
+// from a Prism short/full pair. Tokens that are not a refinement of short
+// (for example "8.5" from "el8.5-...") are ignored.
+func reportedVersion(short, full string) string {
+	short = strings.TrimSpace(short)
+	full = strings.TrimSpace(full)
+	if full == "" {
+		return short
+	}
+
+	best := short
+	for _, candidate := range aosTokensFromFull(full) {
+		if short == "" {
+			best = candidate
+			continue
+		}
+		if !versionRefines(short, candidate) {
+			continue
+		}
+		cand := Parse(candidate)
+		bestVer := Parse(best)
+		switch cand.compare(bestVer) {
+		case 1:
+			best = candidate
+		case 0:
+			if strings.Count(candidate, ".") > strings.Count(best, ".") {
+				best = candidate
+			}
+		}
+	}
+	return best
+}
+
+// aosTokensFromFull returns dotted version tokens from a Prism fullVersion,
+// skipping a leading OS prefix so it is not mistaken for AOS.
+func aosTokensFromFull(full string) []string {
+	tokens := dottedVersionRe.FindAllString(full, -1)
+	if len(tokens) == 0 {
+		return nil
+	}
+	osVer := ""
+	if m := osPrefixRe.FindStringSubmatch(full); len(m) == 2 {
+		osVer = m[1]
+	}
+	out := make([]string, 0, len(tokens))
+	skippedOS := false
+	for _, token := range tokens {
+		if !skippedOS && osVer != "" && token == osVer {
+			skippedOS = true
+			continue
+		}
+		out = append(out, token)
+	}
+	return out
+}
+
+// versionRefines reports whether candidate is the same version as base or a
+// more specific patch of it ("7.5.1" refines "7.5"; "8.5" does not).
+func versionRefines(base, candidate string) bool {
+	baseParts, ok := dottedIntParts(base)
+	if !ok {
+		return false
+	}
+	candidateParts, ok := dottedIntParts(candidate)
+	if !ok || len(candidateParts) < len(baseParts) {
+		return false
+	}
+	for i, part := range baseParts {
+		if candidateParts[i] != part {
+			return false
+		}
+	}
+	return true
+}
+
+func dottedIntParts(version string) ([]int, bool) {
+	if version == "" {
+		return nil, false
+	}
+	raw := strings.Split(version, ".")
+	parts := make([]int, 0, len(raw))
+	for _, component := range raw {
+		n, err := strconv.Atoi(component)
+		if err != nil {
+			return nil, false
+		}
+		parts = append(parts, n)
+	}
+	return parts, true
+}
+
+func isUnparsableParts(parts []int) bool {
+	return len(parts) == 1 && parts[0] == unparsableOrdinal
+}
+
+func looksLikeFullVersion(s string) bool {
+	return osPrefixRe.MatchString(s) || strings.Contains(s, "-stable-")
 }
 
 // toIntList splits a '.'-separated string into its integer components. If any
