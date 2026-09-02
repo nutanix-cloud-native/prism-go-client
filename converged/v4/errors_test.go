@@ -443,6 +443,17 @@ func TestCategoriseFromOpenAPI_PlainError(t *testing.T) {
 	assert.Contains(t, err.Error(), "connection refused")
 }
 
+func TestCategoriseFromOpenAPI_StaleClientError(t *testing.T) {
+	err := CategoriseFromOpenAPI(fmt.Errorf(`Get "/api/iam/...": unsupported protocol scheme ""`))
+	require.Error(t, err)
+	assert.True(t, converged.IsStaleClient(err))
+
+	var apiErr *converged.APIError
+	require.True(t, errors.As(err, &apiErr))
+	assert.Equal(t, converged.ErrStaleClient, apiErr.Kind)
+	assert.Contains(t, apiErr.Cause.Error(), "unsupported protocol scheme")
+}
+
 func TestCategoriseFromOpenAPI_BodyOverridesGeneric4xx(t *testing.T) {
 	body := makeV4Body("RATE_LIMIT_EXCEEDED", "SYS-001", "Too many requests")
 	err := CategoriseFromOpenAPI(fakeOpenAPIError{
@@ -461,10 +472,12 @@ func TestConvenienceHelpers(t *testing.T) {
 	assert.True(t, converged.IsNotFound(&converged.APIError{Kind: converged.ErrNotFound}))
 	assert.True(t, converged.IsRateLimit(&converged.APIError{Kind: converged.ErrRateLimit}))
 	assert.True(t, converged.IsInternal(&converged.APIError{Kind: converged.ErrInternal}))
+	assert.True(t, converged.IsStaleClient(&converged.APIError{Kind: converged.ErrStaleClient}))
 
 	assert.False(t, converged.IsNotFound(&converged.APIError{Kind: converged.ErrRateLimit}))
 	assert.False(t, converged.IsRateLimit(&converged.APIError{Kind: converged.ErrNotFound}))
 	assert.False(t, converged.IsInternal(&converged.APIError{Kind: converged.ErrNotFound}))
+	assert.False(t, converged.IsStaleClient(&converged.APIError{Kind: converged.ErrNotFound}))
 }
 
 // ---------------------------------------------------------------------------

@@ -11,3 +11,8 @@ profile.cov
 # ignore IDE folders
 .vscode/
 .idea/
+
+# local e2e credentials (copy from .env.e2e.example; profiles: .env.e2e.<name>)
+.env.e2e
+.env.e2e.*
+!.env.e2e.example

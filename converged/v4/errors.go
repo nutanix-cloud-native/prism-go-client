@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
+	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 )
 
 // v4BodyEnvelope matches the outer V4 API error response.
@@ -163,6 +164,9 @@ func GetStatusAndBody(err error) (status string, body []byte) {
 func CategoriseFromOpenAPI(err error) error {
 	if err == nil {
 		return nil
+	}
+	if v4prismGoClient.IsStaleClientError(err) {
+		return &converged.APIError{Kind: converged.ErrStaleClient, Cause: err}
 	}
 	status, body := GetStatusAndBody(err)
 	if status == "" && len(body) == 0 {
