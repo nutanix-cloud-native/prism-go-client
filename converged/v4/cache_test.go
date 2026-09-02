@@ -1,12 +1,14 @@
 package v4
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	prismgoclient "github.com/nutanix-cloud-native/prism-go-client"
+	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/environment/types"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
@@ -514,4 +516,136 @@ func TestGetNoValidationHash(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", hash) // Should return empty hash when not found in validationHashes
 	assert.Equal(t, client, returnedClient)
+}
+
+func TestNewClientFromV4SDKClientLeavesCacheBackrefNil(t *testing.T) {
+	client := NewClientFromV4SDKClient(nil)
+	assert.Nil(t, client.cache)
+	assert.Empty(t, client.cacheKey)
+	assert.Nil(t, client.recreate)
+
+	client.Invalidate() // no-op
+	_, err := client.Refresh()
+	assert.Error(t, err)
+}
+
+func TestClientInvalidateRemovesCacheEntries(t *testing.T) {
+	cache := NewClientCache()
+	client := &Client{}
+	cache.set("cluster1", "hash1", client)
+	cache.v4sdkClientCache.Delete(&cacheKeyParams{key: "cluster1"}) // ensure nested starts empty
+
+	// Put a placeholder in nested cache via set path used by Delete/deleteByKey
+	client.cache = cache
+	client.cacheKey = "cluster1"
+	client.recreate = func() (*Client, error) {
+		return &Client{}, nil
+	}
+
+	_, _, err := cache.get("cluster1")
+	require.NoError(t, err)
+
+	client.Invalidate()
+
+	_, _, err = cache.get("cluster1")
+	assert.ErrorIs(t, err, types.ErrorClientNotFound)
+	assert.Nil(t, client.cache)
+	assert.Empty(t, client.cacheKey)
+	assert.Nil(t, client.recreate)
+}
+
+func TestClientRefreshReturnsNewClient(t *testing.T) {
+	cache := NewClientCache()
+	original := &Client{}
+	fresh := &Client{}
+	cache.set("cluster1", "hash1", original)
+
+	original.cache = cache
+	original.cacheKey = "cluster1"
+	original.recreate = func() (*Client, error) {
+		return fresh, nil
+	}
+
+	got, err := original.Refresh()
+	require.NoError(t, err)
+	assert.Equal(t, fresh, got)
+	assert.Nil(t, original.cache)
+	assert.Nil(t, original.recreate)
+
+	_, _, err = cache.get("cluster1")
+	assert.ErrorIs(t, err, types.ErrorClientNotFound)
+}
+
+func TestRetryOnStaleRetriesOnce(t *testing.T) {
+	cache := NewClientCache()
+	original := &Client{}
+	fresh := &Client{}
+	cache.set("cluster1", "hash1", original)
+
+	original.cache = cache
+	original.cacheKey = "cluster1"
+	original.recreate = func() (*Client, error) {
+		return fresh, nil
+	}
+
+	calls := 0
+	result, err := RetryOnStale(original, func(c *Client) (string, error) {
+		calls++
+		if calls == 1 {
+			assert.Equal(t, original, c)
+			return "", &converged.APIError{
+				Kind:  converged.ErrStaleClient,
+				Cause: fmt.Errorf(`unsupported protocol scheme ""`),
+			}
+		}
+		assert.Equal(t, fresh, c)
+		return "ok", nil
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "ok", result)
+	assert.Equal(t, 2, calls)
+}
+
+func TestRetryOnStaleDoesNotRetryNonStale(t *testing.T) {
+	client := &Client{}
+	calls := 0
+	_, err := RetryOnStale(client, func(c *Client) (string, error) {
+		calls++
+		return "", fmt.Errorf("connection refused")
+	})
+	require.Error(t, err)
+	assert.Equal(t, 1, calls)
+	assert.Contains(t, err.Error(), "connection refused")
+}
+
+func TestRetryOnStaleSuccessNoRetry(t *testing.T) {
+	client := &Client{}
+	calls := 0
+	result, err := RetryOnStale(client, func(c *Client) (string, error) {
+		calls++
+		return "done", nil
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "done", result)
+	assert.Equal(t, 1, calls)
+}
+
+func TestGetOrCreateSetsCacheBackref(t *testing.T) {
+	cache := NewClientCache()
+	mgmtEndpoint := testhelpers.ManagementEndpointFromEnvironment(t)
+	cp := &cachedClientParams{
+		name:         "backref-cluster",
+		mgmtEndpoint: *mgmtEndpoint,
+	}
+
+	client, err := cache.GetOrCreate(cp)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	assert.Equal(t, cache, client.cache)
+	assert.Equal(t, "backref-cluster", client.cacheKey)
+	assert.NotNil(t, client.recreate)
+
+	cache.Delete(cp)
 }

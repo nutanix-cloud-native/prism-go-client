@@ -57,6 +57,11 @@ type Client struct {
 	]
 
 	client *v4prismGoClient.Client
+
+	// Set only when the client is obtained via ClientCache.GetOrCreate.
+	cache    *ClientCache
+	cacheKey string
+	recreate func() (*Client, error)
 }
 
 // NewClient creates a new converged client

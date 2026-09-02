@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("resource not found")
-	ErrRateLimit = errors.New("rate limit exceeded")
-	ErrInternal  = errors.New("internal error")
+	ErrNotFound    = errors.New("resource not found")
+	ErrRateLimit   = errors.New("rate limit exceeded")
+	ErrInternal    = errors.New("internal error")
+	ErrStaleClient = errors.New("stale client")
 )
 
 // APIError wraps SDK errors with a classified Kind.
@@ -56,4 +57,9 @@ func IsRateLimit(err error) bool {
 // IsInternal returns true if the error is or wraps an ErrInternal.
 func IsInternal(err error) bool {
 	return errors.Is(err, ErrInternal)
+}
+
+// IsStaleClient returns true if the error is or wraps an ErrStaleClient.
+func IsStaleClient(err error) bool {
+	return errors.Is(err, ErrStaleClient)
 }
