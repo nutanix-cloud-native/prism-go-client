@@ -15,7 +15,8 @@ import (
 
 // TasksService is the service for the tasks
 type TasksService struct {
-	client *v4prismGoClient.Client
+	client    *v4prismGoClient.Client
+	converged *Client
 
 	entityName string
 }
@@ -35,6 +36,7 @@ func (s *TasksService) Get(ctx context.Context, uuid string) (*prismModels.Task,
 	}
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
+		s.converged,
 		func() (*prismModels.GetTaskApiResponse, error) {
 			return s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
 				&taskRequest.GetTaskByIdRequest{
@@ -55,6 +57,7 @@ func (s *TasksService) GetWithSelect(ctx context.Context, uuid string, fields []
 	selectOption := strings.Join(fields, ",")
 
 	return GenericGetEntity[*prismModels.GetTaskApiResponse, prismModels.Task](
+		s.converged,
 		func() (*prismModels.GetTaskApiResponse, error) {
 			return s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
 				&taskRequest.GetTaskByIdRequest{
@@ -83,6 +86,7 @@ func (s *TasksService) List(ctx context.Context, opts ...converged.ODataOption) 
 	}
 
 	return GenericListEntities[*prismModels.ListTasksApiResponse, prismModels.Task](
+		s.converged,
 		func(reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
 			return s.client.TasksApiInstance.ServiceClient.ListTasks(ctx,
 				&taskRequest.ListTasksRequest{
@@ -107,6 +111,7 @@ func (s *TasksService) NewIterator(ctx context.Context, opts ...converged.ODataO
 
 	return GenericNewIterator[*prismModels.ListTasksApiResponse, prismModels.Task](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListTasksApiResponse, error) {
 			return s.client.TasksApiInstance.ServiceClient.ListTasks(ctx,
 				&taskRequest.ListTasksRequest{
@@ -130,6 +135,7 @@ func (s *TasksService) Cancel(ctx context.Context, uuid string) (*prismErrors.Ap
 	}
 
 	return GenericGetEntity[*prismModels.CancelTaskApiResponse, prismErrors.AppMessage](
+		s.converged,
 		func() (*prismModels.CancelTaskApiResponse, error) {
 			return s.client.TasksApiInstance.ServiceClient.CancelTask(ctx,
 				&taskRequest.CancelTaskRequest{

@@ -15,6 +15,7 @@ import (
 // StorageContainersService provides implementation for all StorageContainers interface methods.
 type StorageContainersService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -30,6 +31,7 @@ func (s *StorageContainersService) Get(ctx context.Context, uuid string) (*scMod
 	}
 
 	return GenericGetEntity[*scModels.GetStorageContainerApiResponse, scModels.StorageContainer](
+		s.converged,
 		func() (*scModels.GetStorageContainerApiResponse, error) {
 			return s.client.StorageContainerAPI.ServiceClient.GetStorageContainerById(ctx, &scRequest.GetStorageContainerByIdRequest{
 				ExtId: &uuid,
@@ -55,6 +57,7 @@ func (s *StorageContainersService) List(ctx context.Context, opts ...converged.O
 	}
 
 	return GenericListEntities[*scModels.ListStorageContainersApiResponse, scModels.StorageContainer](
+		s.converged,
 		func(reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
 			return s.client.StorageContainerAPI.ServiceClient.ListStorageContainers(ctx, &scRequest.ListStorageContainersRequest{
 				Page_:    reqParams.Page,
@@ -78,6 +81,7 @@ func (s *StorageContainersService) NewIterator(ctx context.Context, opts ...conv
 
 	return GenericNewIterator[*scModels.ListStorageContainersApiResponse, scModels.StorageContainer](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*scModels.ListStorageContainersApiResponse, error) {
 			return s.client.StorageContainerAPI.ServiceClient.ListStorageContainers(ctx, &scRequest.ListStorageContainersRequest{
 				Page_:    reqParams.Page,

@@ -149,6 +149,14 @@ test: run-keploy ## Run the tests of the project
 	go test -race -v ./...
 	@$(MAKE) stop-keploy
 
+.PHONY: test-e2e
+test-e2e: ## Run real-PC e2e tests
+	@E2E_ENV_FILE=".env.e2e"; \
+	if [ -n "$(E2E_PROFILE)" ]; then E2E_ENV_FILE=".env.e2e.$(E2E_PROFILE)"; fi; \
+	if [ -f "$$E2E_ENV_FILE" ]; then set -a; . ./$$E2E_ENV_FILE; set +a; \
+	elif [ -n "$(E2E_PROFILE)" ]; then echo "E2E_PROFILE=$(E2E_PROFILE) set but $$E2E_ENV_FILE not found" >&2; exit 1; fi; \
+	go test -race -v -tags=e2e ./tests/e2e -run 'E2E$$' -count=1 -timeout 10m
+
 coverage: run-keploy ## Run the tests of the project and export the coverage
 	go test -race -coverprofile=coverage.out -covermode=atomic $(GOTESTPKGS)
 	@$(MAKE) stop-keploy
@@ -180,4 +188,3 @@ help: ## Show this help.
 		if (/^[a-zA-Z_-]+:.*?##.*$$/) {printf "    ${YELLOW}%-20s${GREEN}%s${RESET}\n", $$1, $$2} \
 		else if (/^## .*$$/) {printf "  ${CYAN}%s${RESET}\n", substr($$1,4)} \
 		}' $(MAKEFILE_LIST)
-

@@ -14,6 +14,7 @@ import (
 // UsersService provides implementation for IAM Users API operations.
 type UsersService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *UsersService) Get(ctx context.Context, uuid string) (*iamModels.User, e
 	}
 
 	return GenericGetEntity[*iamModels.GetUserApiResponse, iamModels.User](
+		s.converged,
 		func() (*iamModels.GetUserApiResponse, error) {
 			return s.client.UsersApiInstance.GetUserById(
 				ctx,
@@ -58,6 +60,7 @@ func (s *UsersService) List(ctx context.Context, opts ...converged.ODataOption) 
 	}
 
 	return GenericListEntities[*iamModels.ListUsersApiResponse, iamModels.User](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamModels.ListUsersApiResponse, error) {
 			return s.client.UsersApiInstance.ListUsers(ctx, &usersRequestModels.ListUsersRequest{
 				XNtnxProject: nil,
@@ -82,6 +85,7 @@ func (s *UsersService) NewIterator(ctx context.Context, opts ...converged.ODataO
 
 	return GenericNewIterator[*iamModels.ListUsersApiResponse, iamModels.User](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamModels.ListUsersApiResponse, error) {
 			return s.client.UsersApiInstance.ListUsers(ctx, &usersRequestModels.ListUsersRequest{
 				XNtnxProject: nil,
@@ -104,12 +108,12 @@ func (s *UsersService) Create(ctx context.Context, entity *iamModels.User) (*iam
 		return nil, errors.New("client is not initialized")
 	}
 
-	newUser, err := CallAPI[*iamModels.CreateUserApiResponse, iamModels.User](
-		s.client.UsersApiInstance.CreateUser(
+	newUser, err := CallAPIWithClient[*iamModels.CreateUserApiResponse, iamModels.User](s.converged, func() (*iamModels.CreateUserApiResponse, error) {
+		return s.client.UsersApiInstance.CreateUser(
 			ctx,
 			&usersRequestModels.CreateUserRequest{Body: entity},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -133,16 +137,16 @@ func (s *UsersService) UpdateUserState(ctx context.Context, uuid string, status 
 		return nil, fmt.Errorf("failed to get user with UUID %s: %w", uuid, err)
 	}
 
-	userStateUpdateResponse, err := CallAPI[*iamModels.ActivateUserApiResponse, iamModels.UserStateUpdateResponse](
-		s.client.UsersApiInstance.UpdateUserState(
+	userStateUpdateResponse, err := CallAPIWithClient[*iamModels.ActivateUserApiResponse, iamModels.UserStateUpdateResponse](s.converged, func() (*iamModels.ActivateUserApiResponse, error) {
+		return s.client.UsersApiInstance.UpdateUserState(
 			ctx,
 			&usersRequestModels.UpdateUserStateRequest{
 				ExtId: &uuid,
 				Body:  status,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user state for user %s: %w", uuid, err)
 	}
@@ -166,6 +170,7 @@ func (s *UsersService) ListUserKeys(ctx context.Context, userExtId string, opts 
 	}
 
 	return GenericListEntities[*iamModels.ListUserKeysApiResponse, iamModels.Key](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamModels.ListUserKeysApiResponse, error) {
 			return s.client.UsersApiInstance.ListUserKeys(ctx, &usersRequestModels.ListUserKeysRequest{
 				UserExtId: &userExtId,
@@ -187,15 +192,15 @@ func (s *UsersService) CreateUserKey(ctx context.Context, userExtId string, key 
 		return nil, errors.New("client is not initialized")
 	}
 
-	apiKeyDetails, err := CallAPI[*iamModels.CreateKeyApiResponse, iamModels.Key](
-		s.client.UsersApiInstance.CreateUserKey(
+	apiKeyDetails, err := CallAPIWithClient[*iamModels.CreateKeyApiResponse, iamModels.Key](s.converged, func() (*iamModels.CreateKeyApiResponse, error) {
+		return s.client.UsersApiInstance.CreateUserKey(
 			ctx,
 			&usersRequestModels.CreateUserKeyRequest{
 				UserExtId: &userExtId,
 				Body:      key,
 			},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user key for user %s: %w", userExtId, err)
 	}
@@ -210,6 +215,7 @@ func (s *UsersService) GetUserKeyById(ctx context.Context, userExtId string, key
 	}
 
 	return GenericGetEntity[*iamModels.GetUserKeyApiResponse, iamModels.Key](
+		s.converged,
 		func() (*iamModels.GetUserKeyApiResponse, error) {
 			return s.client.UsersApiInstance.GetUserKeyById(
 				ctx,
@@ -228,7 +234,7 @@ func (s *UsersService) DeleteUserKeyById(ctx context.Context, userExtId string, 
 	if s.client == nil {
 		return errors.New("client is not initialized")
 	}
-	
+
 	_, args, err := GetEntityAndEtag(
 		s.client.UsersApiInstance.GetUserKeyById(
 			ctx,

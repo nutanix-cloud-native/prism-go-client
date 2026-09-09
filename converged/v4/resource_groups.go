@@ -20,6 +20,7 @@ const (
 // ResourceGroupsService provides implementation for ResourceGroups API operations.
 type ResourceGroupsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -34,6 +35,7 @@ func (s *ResourceGroupsService) Get(ctx context.Context, uuid string) (*multidom
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*multidomainModels.GetResourceGroupApiResponse, multidomainModels.ResourceGroup](
+		s.converged,
 		func() (*multidomainModels.GetResourceGroupApiResponse, error) {
 			return s.client.ResourceGroupsApiInstance.ServiceClient.GetResourceGroupById(ctx, &resourceGroupRequest.GetResourceGroupByIdRequest{
 				ExtId: &uuid,
@@ -59,6 +61,7 @@ func (s *ResourceGroupsService) List(ctx context.Context, opts ...converged.ODat
 	}
 
 	return GenericListEntities[*multidomainModels.ListResourceGroupsApiResponse, multidomainModels.ResourceGroup](
+		s.converged,
 		func(reqParams *V4ODataParams) (*multidomainModels.ListResourceGroupsApiResponse, error) {
 			return s.client.ResourceGroupsApiInstance.ServiceClient.ListResourceGroups(ctx, &resourceGroupRequest.ListResourceGroupsRequest{
 				Page_:    reqParams.Page,
@@ -87,6 +90,7 @@ func (s *ResourceGroupsService) NewIterator(ctx context.Context, opts ...converg
 	}
 	return GenericNewIterator[*multidomainModels.ListResourceGroupsApiResponse, multidomainModels.ResourceGroup](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*multidomainModels.ListResourceGroupsApiResponse, error) {
 			return s.client.ResourceGroupsApiInstance.ServiceClient.ListResourceGroups(ctx, &resourceGroupRequest.ListResourceGroupsRequest{
 				Page_:    reqParams.Page,

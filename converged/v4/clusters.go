@@ -15,8 +15,9 @@ import (
 
 // ClustersService provides default "not implemented" implementation for all Clusters interface methods.
 type ClustersService struct {
-	client   *v4prismGoClient.Client
-	entities string
+	client    *v4prismGoClient.Client
+	converged *Client
+	entities  string
 }
 
 // NewClustersService creates a new ClustersService instance.
@@ -33,6 +34,7 @@ func (s *ClustersService) Get(ctx context.Context, uuid string) (*clusterModels.
 		return nil, fmt.Errorf("uuid is required")
 	}
 	return GenericGetEntity[*clusterModels.GetClusterApiResponse, clusterModels.Cluster](
+		s.converged,
 		func() (*clusterModels.GetClusterApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.GetClusterById(ctx, &clusterRequest.GetClusterByIdRequest{
 				ExtId: &uuid,
@@ -48,6 +50,7 @@ func (s *ClustersService) List(ctx context.Context, opts ...converged.ODataOptio
 		return nil, fmt.Errorf("client is nil")
 	}
 	return GenericListEntities[*clusterModels.ListClustersApiResponse, clusterModels.Cluster](
+		s.converged,
 		func(reqParams *V4ODataParams) (*clusterModels.ListClustersApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListClusters(ctx, &clusterRequest.ListClustersRequest{
 				Page_:    reqParams.Page,
@@ -71,6 +74,7 @@ func (s *ClustersService) NewIterator(ctx context.Context, opts ...converged.ODa
 	}
 	return GenericNewIterator[*clusterModels.ListClustersApiResponse, clusterModels.Cluster](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListClustersApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListClusters(ctx, &clusterRequest.ListClustersRequest{
 				Page_:    reqParams.Page,
@@ -109,6 +113,7 @@ func (s *ClustersService) ListClusterVirtualGPUs(ctx context.Context, clusterUui
 
 	//nolint:staticcheck // Intentionally using deprecated cluster-scoped API for device-level GPU details
 	return GenericListEntities[*clusterModels.ListVirtualGpuProfilesApiResponse, clusterModels.VirtualGpuProfile](
+		s.converged,
 		func(reqParams *V4ODataParams) (*clusterModels.ListVirtualGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListVirtualGpuProfiles(ctx, &clusterRequest.ListVirtualGpuProfilesRequest{
 				ClusterExtId: &clusterUuid,
@@ -145,6 +150,7 @@ func (s *ClustersService) ListClusterPhysicalGPUs(ctx context.Context, clusterUu
 
 	//nolint:staticcheck // Intentionally using deprecated cluster-scoped API for device-level GPU details
 	return GenericListEntities[*clusterModels.ListPhysicalGpuProfilesApiResponse, clusterModels.PhysicalGpuProfile](
+		s.converged,
 		func(reqParams *V4ODataParams) (*clusterModels.ListPhysicalGpuProfilesApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListPhysicalGpuProfiles(ctx, &clusterRequest.ListPhysicalGpuProfilesRequest{
 				ClusterExtId: &clusterUuid,
@@ -191,6 +197,7 @@ func (s *ClustersService) ListAHVVirtualGPUProfiles(ctx context.Context, cluster
 	}
 
 	return GenericListEntities[*gpuModels.ListAhvVirtualGpuProfilesApiResponse, gpuModels.VirtualGpuProfile](
+		s.converged,
 		func(reqParams *V4ODataParams) (*gpuModels.ListAhvVirtualGpuProfilesApiResponse, error) {
 			return s.client.GpuProfilesApiInstance.ServiceClient.ListAhvVirtualGpuProfiles(ctx, &gpuProfilesRequest.ListAhvVirtualGpuProfilesRequest{
 				Page_:    reqParams.Page,
@@ -237,6 +244,7 @@ func (s *ClustersService) ListAHVPhysicalGPUProfiles(ctx context.Context, cluste
 	}
 
 	return GenericListEntities[*gpuModels.ListAhvPhysicalGpuProfilesApiResponse, gpuModels.PhysicalGpuProfile](
+		s.converged,
 		func(reqParams *V4ODataParams) (*gpuModels.ListAhvPhysicalGpuProfilesApiResponse, error) {
 			return s.client.GpuProfilesApiInstance.ServiceClient.ListAhvPhysicalGpuProfiles(ctx, &gpuProfilesRequest.ListAhvPhysicalGpuProfilesRequest{
 				Page_:    reqParams.Page,
@@ -263,6 +271,7 @@ func (s *ClustersService) GetClusterHost(ctx context.Context, clusterUuid string
 		return nil, fmt.Errorf("hostId is required")
 	}
 	return GenericGetEntity[*clusterModels.GetHostApiResponse, clusterModels.Host](
+		s.converged,
 		func() (*clusterModels.GetHostApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.GetHostById(ctx, &clusterRequest.GetHostByIdRequest{
 				ClusterExtId: &clusterUuid,
@@ -294,6 +303,7 @@ func (s *ClustersService) ListClusterHosts(ctx context.Context, clusterUuid stri
 	}
 
 	return GenericListEntities[*clusterModels.ListHostsByClusterIdApiResponse, clusterModels.Host](
+		s.converged,
 		func(reqParams *V4ODataParams) (*clusterModels.ListHostsByClusterIdApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListHostsByClusterId(ctx, &clusterRequest.ListHostsByClusterIdRequest{
 				ClusterExtId: &clusterUuid,
@@ -318,6 +328,7 @@ func (s *ClustersService) NewClusterHostsIterator(ctx context.Context, clusterUu
 
 	return GenericNewIterator[*clusterModels.ListHostsByClusterIdApiResponse, clusterModels.Host](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListHostsByClusterIdApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListHostsByClusterId(ctx, &clusterRequest.ListHostsByClusterIdRequest{
 				ClusterExtId: &clusterUuid,
@@ -352,6 +363,7 @@ func (s *ClustersService) ListAllHosts(ctx context.Context, opts ...converged.OD
 	}
 
 	return GenericListEntities[*clusterModels.ListHostsApiResponse, clusterModels.Host](
+		s.converged,
 		func(reqParams *V4ODataParams) (*clusterModels.ListHostsApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListHosts(ctx, &clusterRequest.ListHostsRequest{
 				Page_:    reqParams.Page,
@@ -374,6 +386,7 @@ func (s *ClustersService) NewAllHostsIterator(ctx context.Context, opts ...conve
 	}
 	return GenericNewIterator[*clusterModels.ListHostsApiResponse, clusterModels.Host](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*clusterModels.ListHostsApiResponse, error) {
 			return s.client.ClustersApiInstance.ServiceClient.ListHosts(ctx, &clusterRequest.ListHostsRequest{
 				Page_:    reqParams.Page,

@@ -17,6 +17,7 @@ import (
 // TODO: Migrate to OvasServiceApi methods which support project params in a future PR.
 type OvasService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *OvasService) Get(ctx context.Context, uuid string) (*ovaModels.Ova, err
 	}
 
 	return GenericGetEntity[*ovaModels.GetOvaApiResponse, ovaModels.Ova](
+		s.converged,
 		func() (*ovaModels.GetOvaApiResponse, error) {
 			return s.client.OvasApiInstance.ServiceClient.GetOvaById(ctx,
 				&ovaRequest.GetOvaByIdRequest{
@@ -60,6 +62,7 @@ func (s *OvasService) List(ctx context.Context, opts ...converged.ODataOption) (
 	}
 
 	return GenericListEntities[*ovaModels.ListOvasApiResponse, ovaModels.Ova](
+		s.converged,
 		func(reqParams *V4ODataParams) (*ovaModels.ListOvasApiResponse, error) {
 			return s.client.OvasApiInstance.ServiceClient.ListOvas(ctx,
 				&ovaRequest.ListOvasRequest{
@@ -84,6 +87,7 @@ func (s *OvasService) NewIterator(ctx context.Context, opts ...converged.ODataOp
 
 	return GenericNewIterator[*ovaModels.ListOvasApiResponse, ovaModels.Ova](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*ovaModels.ListOvasApiResponse, error) {
 			return s.client.OvasApiInstance.ServiceClient.ListOvas(ctx,
 				&ovaRequest.ListOvasRequest{
@@ -127,14 +131,14 @@ func (s *OvasService) CreateAsync(ctx context.Context, ova *ovaModels.Ova) (conv
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*ovaModels.CreateOvaApiResponse, vmmPrismModels.TaskReference](
-		s.client.OvasApiInstance.ServiceClient.CreateOva(ctx,
+	taskRef, err := CallAPIWithClient[*ovaModels.CreateOvaApiResponse, vmmPrismModels.TaskReference](s.converged, func() (*ovaModels.CreateOvaApiResponse, error) {
+		return s.client.OvasApiInstance.ServiceClient.CreateOva(ctx,
 			&ovaRequest.CreateOvaRequest{
 				Body: ova,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OVA: %w", err)
 	}
@@ -156,14 +160,14 @@ func (s *OvasService) GetFile(ctx context.Context, uuid string) (*ovaModels.File
 		return nil, errors.New("client is not initialized")
 	}
 
-	result, err := CallAPI[*ovaModels.GetOvaFileApiResponse, ovaModels.FileDetail](
-		s.client.OvasApiInstance.ServiceClient.GetFileByOvaId(ctx,
+	result, err := CallAPIWithClient[*ovaModels.GetOvaFileApiResponse, ovaModels.FileDetail](s.converged, func() (*ovaModels.GetOvaFileApiResponse, error) {
+		return s.client.OvasApiInstance.ServiceClient.GetFileByOvaId(ctx,
 			&ovaRequest.GetFileByOvaIdRequest{
 				OvaExtId: &uuid,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get OVA file: %w", err)
 	}

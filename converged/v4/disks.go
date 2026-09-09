@@ -16,6 +16,7 @@ import (
 // DisksService provides implementation for all Disks interface methods.
 type DisksService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -33,6 +34,7 @@ func (s *DisksService) Get(ctx context.Context, uuid string) (
 	}
 
 	return GenericGetEntity[*diskModels.GetDiskApiResponse, diskModels.Disk](
+		s.converged,
 		func() (*diskModels.GetDiskApiResponse, error) {
 			return s.client.DisksServiceApiInstance.GetDiskById(
 				ctx, &disksReq.GetDiskByIdRequest{ExtId: &uuid})
@@ -63,6 +65,7 @@ func (s *DisksService) List(
 
 	return GenericListEntities[
 		*diskModels.ListDisksApiResponse, diskModels.Disk](
+		s.converged,
 		func(reqParams *V4ODataParams) (
 			*diskModels.ListDisksApiResponse, error) {
 			return s.client.DisksServiceApiInstance.ListDisks(ctx,
@@ -90,6 +93,7 @@ func (s *DisksService) NewIterator(ctx context.Context,
 
 	return GenericNewIterator[
 		*diskModels.ListDisksApiResponse, diskModels.Disk](ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (
 			*diskModels.ListDisksApiResponse, error) {
 			return s.client.DisksServiceApiInstance.ListDisks(ctx,
@@ -135,11 +139,11 @@ func (s *DisksService) DeleteAsync(ctx context.Context, uuid string) (
 		return nil, errors.New("client is not initialized")
 	}
 
-	taskRef, err := CallAPI[*diskModels.DeleteDiskApiResponse,
-		clusterPrism.TaskReference](
-		s.client.DisksServiceApiInstance.DeleteDiskById(ctx,
-			&disksReq.DeleteDiskByIdRequest{ExtId: &uuid}),
-	)
+	taskRef, err := CallAPIWithClient[*diskModels.DeleteDiskApiResponse,
+		clusterPrism.TaskReference](s.converged, func() (*diskModels.DeleteDiskApiResponse, error) {
+		return s.client.DisksServiceApiInstance.DeleteDiskById(ctx,
+			&disksReq.DeleteDiskByIdRequest{ExtId: &uuid})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete disk: %w", err)
 	}

@@ -56,6 +56,7 @@ func (t *headerInjectingTransport) RoundTrip(req *http.Request) (*http.Response,
 // TODO: Migrate to ImagesServiceApi methods which support project params in a future PR.
 type ImagesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -71,6 +72,7 @@ func (s *ImagesService) Get(ctx context.Context, uuid string) (*imageModels.Imag
 	}
 
 	return GenericGetEntity[*imageModels.GetImageApiResponse, imageModels.Image](
+		s.converged,
 		func() (*imageModels.GetImageApiResponse, error) {
 			return s.client.ImagesApiInstance.ServiceClient.GetImageById(ctx,
 				&imageRequest.GetImageByIdRequest{
@@ -98,6 +100,7 @@ func (s *ImagesService) List(ctx context.Context, opts ...converged.ODataOption)
 	}
 
 	return GenericListEntities[*imageModels.ListImagesApiResponse, imageModels.Image](
+		s.converged,
 		func(reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return s.client.ImagesApiInstance.ServiceClient.ListImages(ctx,
 				&imageRequest.ListImagesRequest{
@@ -122,6 +125,7 @@ func (s *ImagesService) NewIterator(ctx context.Context, opts ...converged.OData
 
 	return GenericNewIterator[*imageModels.ListImagesApiResponse, imageModels.Image](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*imageModels.ListImagesApiResponse, error) {
 			return s.client.ImagesApiInstance.ServiceClient.ListImages(ctx,
 				&imageRequest.ListImagesRequest{
@@ -184,14 +188,14 @@ func (s *ImagesService) GetFile(ctx context.Context, uuid string) (*imageModels.
 		return nil, errors.New("client is not initialized")
 	}
 
-	result, err := CallAPI[*imageModels.GetImageFileApiResponse, imageModels.FileDetail](
-		s.client.ImagesApiInstance.ServiceClient.GetFileByImageId(ctx,
+	result, err := CallAPIWithClient[*imageModels.GetImageFileApiResponse, imageModels.FileDetail](s.converged, func() (*imageModels.GetImageFileApiResponse, error) {
+		return s.client.ImagesApiInstance.ServiceClient.GetFileByImageId(ctx,
 			&imageRequest.GetFileByImageIdRequest{
 				ImageExtId: &uuid,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get image file: %w", err)
 	}
@@ -330,14 +334,14 @@ func (s *ImagesService) CreateAsync(ctx context.Context, image *imageModels.Imag
 		return nil, errors.New("client is not initialized")
 	}
 	s.client.ImagesApiInstance.ApiClient.AddDefaultHeader("Ntnx-Request-Id", uuid.NewString())
-	taskRef, err := CallAPI[*imageModels.CreateImageApiResponse, vmmPrismModels.TaskReference](
-		s.client.ImagesApiInstance.ServiceClient.CreateImage(ctx,
+	taskRef, err := CallAPIWithClient[*imageModels.CreateImageApiResponse, vmmPrismModels.TaskReference](s.converged, func() (*imageModels.CreateImageApiResponse, error) {
+		return s.client.ImagesApiInstance.ServiceClient.CreateImage(ctx,
 			&imageRequest.CreateImageRequest{
 				Body: image,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create image: %w", err)
 	}
@@ -358,14 +362,14 @@ func (s *ImagesService) DeleteAsync(ctx context.Context, uuid string) (converged
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*imageModels.DeleteImageApiResponse, vmmPrismModels.TaskReference](
-		s.client.ImagesApiInstance.ServiceClient.DeleteImageById(ctx,
+	taskRef, err := CallAPIWithClient[*imageModels.DeleteImageApiResponse, vmmPrismModels.TaskReference](s.converged, func() (*imageModels.DeleteImageApiResponse, error) {
+		return s.client.ImagesApiInstance.ServiceClient.DeleteImageById(ctx,
 			&imageRequest.DeleteImageByIdRequest{
 				ExtId: &uuid,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete image: %w", err)
 	}

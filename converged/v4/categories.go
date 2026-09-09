@@ -14,8 +14,9 @@ import (
 
 // CategoriesService provides default "not implemented" implementation for all Categories interface methods.
 type CategoriesService struct {
-	client   *v4prismGoClient.Client
-	entities string
+	client    *v4prismGoClient.Client
+	converged *Client
+	entities  string
 }
 
 // NewCategoriesService creates a new CategoriesService instance.
@@ -29,6 +30,7 @@ func (s *CategoriesService) Get(ctx context.Context, uuid string) (*prismModels.
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*prismModels.GetCategoryApiResponse, prismModels.Category](
+		s.converged,
 		func() (*prismModels.GetCategoryApiResponse, error) {
 			return s.client.CategoriesApiInstance.ServiceClient.GetCategoryById(ctx,
 				&categoryRequest.GetCategoryByIdRequest{
@@ -46,6 +48,7 @@ func (s *CategoriesService) List(ctx context.Context, opts ...converged.ODataOpt
 	}
 
 	return GenericListEntities[*prismModels.ListCategoriesApiResponse, prismModels.Category](
+		s.converged,
 		func(reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
 			return s.client.CategoriesApiInstance.ServiceClient.ListCategories(ctx, &categoryRequest.ListCategoriesRequest{
 				Page_:    reqParams.Page,
@@ -69,6 +72,7 @@ func (s *CategoriesService) NewIterator(ctx context.Context, opts ...converged.O
 	}
 	return GenericNewIterator[*prismModels.ListCategoriesApiResponse, prismModels.Category](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListCategoriesApiResponse, error) {
 			return s.client.CategoriesApiInstance.ServiceClient.ListCategories(ctx, &categoryRequest.ListCategoriesRequest{
 				Page_:    reqParams.Page,
@@ -90,13 +94,13 @@ func (s *CategoriesService) Create(ctx context.Context, entity *prismModels.Cate
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	newCategory, err := CallAPI[*prismModels.CreateCategoryApiResponse, prismModels.Category](
-		s.client.CategoriesApiInstance.ServiceClient.CreateCategory(ctx,
+	newCategory, err := CallAPIWithClient[*prismModels.CreateCategoryApiResponse, prismModels.Category](s.converged, func() (*prismModels.CreateCategoryApiResponse, error) {
+		return s.client.CategoriesApiInstance.ServiceClient.CreateCategory(ctx,
 			&categoryRequest.CreateCategoryRequest{
 				Body: entity,
 			},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -119,15 +123,15 @@ func (s *CategoriesService) Update(ctx context.Context, uuid string, entity *pri
 		return nil, fmt.Errorf("no category found with UUID %s", uuid)
 	}
 
-	_, err = CallAPI[*prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage](
-		s.client.CategoriesApiInstance.ServiceClient.UpdateCategoryById(ctx,
+	_, err = CallAPIWithClient[*prismModels.UpdateCategoryApiResponse, []prismMessages.AppMessage](s.converged, func() (*prismModels.UpdateCategoryApiResponse, error) {
+		return s.client.CategoriesApiInstance.ServiceClient.UpdateCategoryById(ctx,
 			&categoryRequest.UpdateCategoryByIdRequest{
 				ExtId: &uuid,
 				Body:  entity,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update category with UUID %s: %w", uuid, err)
 	}

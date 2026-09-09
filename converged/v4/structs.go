@@ -17,6 +17,9 @@ import (
 
 	gpuModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/ahv/config"
 	clusterModels "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/models/clustermgmt/v4/config"
+	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
+	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
+	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
 	alertModels "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/models/monitoring/v4/serviceability"
 	multidomainModels "github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4/models/multidomain/v4/config"
 	subnetModels "github.com/nutanix/ntnx-api-golang-clients/networking-go-client/v4/models/networking/v4/config"
@@ -27,9 +30,6 @@ import (
 	vmmModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/config"
 	policyModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/ahv/policies"
 	contentModels "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/models/vmm/v4/content"
-	dpModels "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/models/datapolicies/v4/config"
-	iamModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authn"
-	iamAuthzModels "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/models/iam/v4/authz"
 	volumeModels "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/models/volumes/v4/config"
 )
 
@@ -82,7 +82,30 @@ type Client struct {
 		alertModels.Alert,
 	]
 
-	client *v4prismGoClient.Client
+	client   *v4prismGoClient.Client
+	cache    *ClientCache
+	cacheKey string
+	recreate func() (*Client, error)
+
+	// credentials and opts are stashed by NewClient so that SelfHeal can rebuild
+	// this client from scratch when it was not created via a ClientCache (in
+	// which case recreate is nil). hasCredentials distinguishes "no credentials
+	// stored" from the Credentials zero value, since Credentials has no natural
+	// nil/zero sentinel of its own.
+	credentials    prismgoclient.Credentials
+	hasCredentials bool
+	opts           []types.ClientOption[v4prismGoClient.Client]
+
+	// healMu guards SelfHeal's rebuild-and-copy operation. Self-heal is expected
+	// to fire rarely (roughly once per auth-session lifetime), so a full mutex
+	// here adds no meaningful overhead: it is never taken on the normal request
+	// hot path, only while a heal is in flight.
+	//
+	// This is a pointer (rather than an embedded sync.Mutex) so that SelfHeal's
+	// "*c = *fresh" shallow copy does not copy a locked mutex value into c: all
+	// clients created from the same *Client (via SelfHeal or otherwise) share
+	// the same underlying lock.
+	healMu *sync.Mutex
 }
 
 // NewClient creates a new converged client
@@ -91,13 +114,17 @@ func NewClient(credentials prismgoclient.Credentials, opts ...types.ClientOption
 	if err != nil {
 		return nil, err
 	}
-	return NewClientFromV4SDKClient(v4sdkClient), nil
+	client := NewClientFromV4SDKClient(v4sdkClient)
+	client.credentials = credentials
+	client.hasCredentials = true
+	client.opts = opts
+	return client, nil
 }
 
 // NewClientFromV4SDKClient creates a new converged client from a V4 SDK client
 // It initializes the V4 client and creates the service implementations
 func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
-	return &Client{
+	client := &Client{
 		Client: converged.Client[
 			policyModels.VmAntiAffinityPolicy,
 			clusterModels.Cluster,
@@ -168,7 +195,43 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			Alerts:         NewAlertsService(v4sdkClient),
 		},
 		client: v4sdkClient,
+		healMu: &sync.Mutex{},
 	}
+	client.rebindServices()
+
+	return client
+}
+
+// rebindServices points every service's back-reference at c itself. This is
+// required after NewClientFromV4SDKClient constructs services referencing a
+// different, throwaway Client value (itself), and again after SelfHeal
+// shallow-copies a freshly built Client's fields into an existing pointer
+// (the copied services still point at the discarded fresh Client).
+func (c *Client) rebindServices() {
+	c.AntiAffinityPolicies.(*AntiAffinityPoliciesService).converged = c
+	c.Clusters.(*ClustersService).converged = c
+	c.Categories.(*CategoriesService).converged = c
+	c.Images.(*ImagesService).converged = c
+	c.StorageContainers.(*StorageContainersService).converged = c
+	c.Subnets.(*SubnetsService).converged = c
+	c.VMs.(*VMsService).converged = c
+	c.Tasks.(*TasksService).converged = c
+	c.VolumeGroups.(*VolumeGroupsService).converged = c
+	c.VMProfiles.(*VMProfilesService).converged = c
+	c.DomainManager.(*DomainManagerService).converged = c
+	c.Users.(*UsersService).converged = c
+	c.Roles.(*RolesService).converged = c
+	c.RoleMemberships.(*RoleMembershipsService).converged = c
+	c.AuthorizationPolicies.(*AuthorizationPoliciesService).converged = c
+	c.Operations.(*OperationsService).converged = c
+	c.Templates.(*TemplatesService).converged = c
+	c.Ovas.(*OvasService).converged = c
+	c.DataPolicies.ProtectionPolicies.(*ProtectionPoliciesService).converged = c
+	c.DataPolicies.RecoveryPlans.(*RecoveryPlansService).converged = c
+	c.Projects.(*ProjectsService).converged = c
+	c.ResourceGroups.(*ResourceGroupsService).converged = c
+	c.Disks.(*DisksService).converged = c
+	c.Alerts.(*AlertsService).converged = c
 }
 
 // Operation struct async PC task operation

@@ -18,6 +18,7 @@ import (
 // TODO: Migrate to TemplatesServiceApi methods which support project params in a future PR.
 type TemplatesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -33,6 +34,7 @@ func (s *TemplatesService) Get(ctx context.Context, uuid string) (*templateModel
 	}
 
 	return GenericGetEntity[*templateModels.GetTemplateApiResponse, templateModels.Template](
+		s.converged,
 		func() (*templateModels.GetTemplateApiResponse, error) {
 			return s.client.TemplatesApiInstance.ServiceClient.GetTemplateById(ctx,
 				&templateRequest.GetTemplateByIdRequest{
@@ -61,6 +63,7 @@ func (s *TemplatesService) List(ctx context.Context, opts ...converged.ODataOpti
 	}
 
 	return GenericListEntities[*templateModels.ListTemplatesApiResponse, templateModels.Template](
+		s.converged,
 		func(reqParams *V4ODataParams) (*templateModels.ListTemplatesApiResponse, error) {
 			return s.client.TemplatesApiInstance.ServiceClient.ListTemplates(ctx,
 				&templateRequest.ListTemplatesRequest{
@@ -85,6 +88,7 @@ func (s *TemplatesService) NewIterator(ctx context.Context, opts ...converged.OD
 
 	return GenericNewIterator[*templateModels.ListTemplatesApiResponse, templateModels.Template](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*templateModels.ListTemplatesApiResponse, error) {
 			return s.client.TemplatesApiInstance.ServiceClient.ListTemplates(ctx,
 				&templateRequest.ListTemplatesRequest{
@@ -128,14 +132,14 @@ func (s *TemplatesService) CreateAsync(ctx context.Context, template *templateMo
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*templateModels.CreateTemplateApiResponse, vmmPrismModels.TaskReference](
-		s.client.TemplatesApiInstance.ServiceClient.CreateTemplate(ctx,
+	taskRef, err := CallAPIWithClient[*templateModels.CreateTemplateApiResponse, vmmPrismModels.TaskReference](s.converged, func() (*templateModels.CreateTemplateApiResponse, error) {
+		return s.client.TemplatesApiInstance.ServiceClient.CreateTemplate(ctx,
 			&templateRequest.CreateTemplateRequest{
 				Body: template,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create template: %w", err)
 	}
@@ -159,15 +163,15 @@ func (s *TemplatesService) DeployVmWithTemplate(ctx context.Context, templateUUI
 
 	vmsService := NewVMsService(s.client)
 
-	taskRef, err := CallAPI[*templateModels.DeployTemplateApiResponse, vmmPrismModels.TaskReference](
-		s.client.TemplatesApiInstance.ServiceClient.DeployTemplate(ctx,
+	taskRef, err := CallAPIWithClient[*templateModels.DeployTemplateApiResponse, vmmPrismModels.TaskReference](s.converged, func() (*templateModels.DeployTemplateApiResponse, error) {
+		return s.client.TemplatesApiInstance.ServiceClient.DeployTemplate(ctx,
 			&templateRequest.DeployTemplateRequest{
 				ExtId: &templateUUID,
 				Body:  params,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy VM from template: %w", err)
 	}

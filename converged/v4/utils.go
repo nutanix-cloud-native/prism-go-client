@@ -213,61 +213,61 @@ func CallAPI[R APIResponse, T any](response R, err error) (T, error) {
 // GetMetadataTotalResults gets the total results from the API response metadata
 // It returns the total results if the metadata is valid, otherwise it returns an error
 func GetMetadataTotalResults[R APIResponse](response R) int {
-    // Do not return an error if any of the fields are not found as these are optional fields.
-    hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
-    if !hasMetadataField.IsValid() {
-        return 0
-    }
-    metadata := hasMetadataField.Interface()
-    if reflect.ValueOf(metadata).IsNil() {
-        return 0
-    }
-    totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
-    if !totalCountField.IsValid() || totalCountField.IsNil() {
-        return 0
-    }
-    totalCount := totalCountField.Interface().(*int)
-    if totalCount == nil || *totalCount < 0 {
-        return 0
-    }
+	// Do not return an error if any of the fields are not found as these are optional fields.
+	hasMetadataField := reflect.ValueOf(response).Elem().FieldByName("Metadata")
+	if !hasMetadataField.IsValid() {
+		return 0
+	}
+	metadata := hasMetadataField.Interface()
+	if reflect.ValueOf(metadata).IsNil() {
+		return 0
+	}
+	totalCountField := reflect.ValueOf(metadata).Elem().FieldByName("TotalAvailableResults")
+	if !totalCountField.IsValid() || totalCountField.IsNil() {
+		return 0
+	}
+	totalCount := totalCountField.Interface().(*int)
+	if totalCount == nil || *totalCount < 0 {
+		return 0
+	}
 
-    return int(*totalCount)
+	return int(*totalCount)
 }
 
 // CallListAPI calls the list API and returns the result
 // It returns the result if the API call is successful, otherwise it returns an error
 func CallListAPI[R APIResponse, T any](response R, err error) ([]T, int, error) {
-    var zero []T
-    if err != nil {
-        return zero, 0, CategoriseFromOpenAPI(err)
-    }
+	var zero []T
+	if err != nil {
+		return zero, 0, CategoriseFromOpenAPI(err)
+	}
 
-    totalCount := GetMetadataTotalResults(response)
+	totalCount := GetMetadataTotalResults(response)
 
-    data := response.GetData()
-    if data == nil {
-        return zero, totalCount, nil
-    }
+	data := response.GetData()
+	if data == nil {
+		return zero, totalCount, nil
+	}
 
-    result, ok := data.([]T)
-    if !ok {
-        // List responses can come back as either the full entity type or a
-        // *Projection type. Projections are used when the API supports $expand
-        // (for example AuthorizationPolicyProjection can include the related Role).
-        // We must not convert a non-empty projection into []T, because that would
-        // drop the nested expanded data the caller asked for.
-        //
-        // Empty lists are a special case: the generated SDK sometimes labels an
-        // empty result as a projection type even when the caller expected the
-        // full entity type. There is nothing in an empty list to lose, so treat
-        // that as "no results" and return an empty []T.
-        if v := reflect.ValueOf(data); v.Kind() == reflect.Slice && v.Len() == 0 {
-            return zero, totalCount, nil
-        }
-        return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
-    }
+	result, ok := data.([]T)
+	if !ok {
+		// List responses can come back as either the full entity type or a
+		// *Projection type. Projections are used when the API supports $expand
+		// (for example AuthorizationPolicyProjection can include the related Role).
+		// We must not convert a non-empty projection into []T, because that would
+		// drop the nested expanded data the caller asked for.
+		//
+		// Empty lists are a special case: the generated SDK sometimes labels an
+		// empty result as a projection type even when the caller expected the
+		// full entity type. There is nothing in an empty list to lose, so treat
+		// that as "no results" and return an empty []T.
+		if v := reflect.ValueOf(data); v.Kind() == reflect.Slice && v.Len() == 0 {
+			return zero, totalCount, nil
+		}
+		return zero, 0, fmt.Errorf("unexpected type for API response data: %T", data)
+	}
 
-    return result, totalCount, nil
+	return result, totalCount, nil
 }
 
 // GetEntityAndEtag gets the entity and etag from the API response
@@ -307,7 +307,7 @@ func withHeader(ctx context.Context, key, value string) context.Context {
 }
 
 // WithRequestID returns a copy of ctx carrying the given idempotency request id.
-// Currently scoped for Create() operations. Callers that do not set it are unaffected 
+// Currently scoped for Create() operations. Callers that do not set it are unaffected
 // and no header is sent.
 func WithRequestID(ctx context.Context, requestID string) context.Context {
 	return withHeader(ctx, requestIDHeader, requestID)
@@ -347,10 +347,10 @@ func OptsToV4ODataParams(opts ...converged.ODataOption) (*V4ODataParams, error) 
 	return params, nil
 }
 
-// Generic implementation of the Getter interface
+// GenericGetEntity gets a single entity
 // It returns the entity if the API call is successful, otherwise it returns an error
-func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityName string) (*T, error) {
-	result, err := CallAPI[R, T](apiCall())
+func GenericGetEntity[R APIResponse, T any](client *Client, apiCall func() (R, error), entityName string) (*T, error) {
+	result, err := CallAPI[R, T](callSDKWithSelfHeal(client, apiCall))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s: %w", entityName, err)
 	}
@@ -359,7 +359,7 @@ func GenericGetEntity[R APIResponse, T any](apiCall func() (R, error), entityNam
 
 // GenericListEntities lists the entities
 // It returns the entities if the API call is successful, otherwise it returns an error
-func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
+func GenericListEntities[R APIResponse, T any](client *Client, apiCall func(reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) ([]T, error) {
 	returnAll := false
 	page := 0
 
@@ -380,7 +380,9 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 
 	result := []T{}
 
-	items, totalCount, err := CallListAPI[R, T](apiCall(reqParams))
+	items, totalCount, err := CallListAPI[R, T](callSDKWithSelfHeal(client, func() (R, error) {
+		return apiCall(reqParams)
+	}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all %s: %w", entitiesName, err)
 	}
@@ -390,7 +392,9 @@ func GenericListEntities[R APIResponse, T any](apiCall func(reqParams *V4ODataPa
 		for len(result) < totalCount {
 			page++
 			reqParams.Page = ptr.To(page)
-			moreItems, latestTotalCount, err := CallListAPI[R, T](apiCall(reqParams))
+			moreItems, latestTotalCount, err := CallListAPI[R, T](callSDKWithSelfHeal(client, func() (R, error) {
+				return apiCall(reqParams)
+			}))
 			if err != nil {
 				return nil, fmt.Errorf("failed to list all %s on page %d: %w", entitiesName, *reqParams.Page, err)
 			}
@@ -425,12 +429,60 @@ func ErrorOnlyIterator[T any](err error) converged.Iterator[T] {
 
 // GenericNewIterator creates a new iterator for the given API call and options
 // It returns the iterator if the API call is successful, otherwise it returns an error
-func GenericNewIterator[R APIResponse, T any](ctx context.Context, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
+func GenericNewIterator[R APIResponse, T any](ctx context.Context, client *Client, apiCall func(ctx context.Context, reqParams *V4ODataParams) (R, error), options []converged.ODataOption, entitiesName string) converged.Iterator[T] {
 	return NewIterator[R, T](
 		ctx,
 		func(ctx context.Context, reqParams *V4ODataParams) (R, error) {
-			return apiCall(ctx, reqParams)
+			return callSDKWithSelfHeal(client, func() (R, error) {
+				return apiCall(ctx, reqParams)
+			})
 		},
 		options...,
 	)
+}
+
+const unauthenticatedSDKPanic = "interface conversion: interface {} is *http.Response, not []uint8"
+
+// callSDK turns panics from generated API clients into errors. Some generated
+// clients panic when version negotiation receives an HTTP 401 response.
+func callSDK[R any](apiCall func() (R, error)) (result R, err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			if strings.Contains(fmt.Sprint(recovered), unauthenticatedSDKPanic) {
+				err = fmt.Errorf("%w: generated API client panic: %v", converged.ErrUnauthenticated, recovered)
+				return
+			}
+			err = fmt.Errorf("generated API client panic: %v", recovered)
+		}
+	}()
+	return apiCall()
+}
+
+// callSDKWithSelfHeal calls apiCall via callSDK, and if it fails with a
+// stale-client error, automatically heals client in place and retries once.
+// This is what lets existing callers keep calling client.Xxx.List(ctx) etc.
+// directly without ever needing RetryOnStale.
+func callSDKWithSelfHeal[R any](client *Client, apiCall func() (R, error)) (R, error) {
+	result, err := callSDK(apiCall)
+	if err == nil || client == nil || !converged.IsStaleClient(CategoriseFromOpenAPI(err)) {
+		return result, err
+	}
+
+	if healErr := client.SelfHeal(); healErr != nil {
+		return result, err
+	}
+	return callSDK(apiCall)
+}
+
+// CallAPIWithClient calls apiCall (retrying once via client's self-heal on a
+// stale-client error) and extracts the typed result, the same way CallAPI does.
+func CallAPIWithClient[R APIResponse, T any](client *Client, apiCall func() (R, error)) (T, error) {
+	return CallAPI[R, T](callSDKWithSelfHeal(client, apiCall))
+}
+
+// CallListAPIWithClient calls apiCall (retrying once via client's self-heal
+// on a stale-client error) and extracts the typed list result, the same way
+// CallListAPI does.
+func CallListAPIWithClient[R APIResponse, T any](client *Client, apiCall func() (R, error)) ([]T, int, error) {
+	return CallListAPI[R, T](callSDKWithSelfHeal(client, apiCall))
 }

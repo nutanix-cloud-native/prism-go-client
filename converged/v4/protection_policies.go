@@ -15,6 +15,7 @@ import (
 // ProtectionPoliciesService provides methods to interact with Data Policies Protection Policies API (v4.2).
 type ProtectionPoliciesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *ProtectionPoliciesService) Get(ctx context.Context, uuid string) (*dpMo
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*dpModels.GetProtectionPolicyApiResponse, dpModels.ProtectionPolicy](
+		s.converged,
 		func() (*dpModels.GetProtectionPolicyApiResponse, error) {
 			return s.client.ProtectionPoliciesApiInstance.ServiceClient.GetProtectionPolicyById(ctx, &ppRequest.GetProtectionPolicyByIdRequest{
 				ExtId: &uuid,
@@ -54,6 +56,7 @@ func (s *ProtectionPoliciesService) List(ctx context.Context, opts ...converged.
 		return nil, fmt.Errorf("apply and expand options are not supported for listing %s", s.entitiesName)
 	}
 	return GenericListEntities[*dpModels.ListProtectionPoliciesApiResponse, dpModels.ProtectionPolicy](
+		s.converged,
 		func(reqParams *V4ODataParams) (*dpModels.ListProtectionPoliciesApiResponse, error) {
 			return s.client.ProtectionPoliciesApiInstance.ServiceClient.ListProtectionPolicies(ctx, &ppRequest.ListProtectionPoliciesRequest{
 				Page_:    reqParams.Page,
@@ -86,6 +89,7 @@ func (s *ProtectionPoliciesService) NewIterator(ctx context.Context, opts ...con
 	}
 	return GenericNewIterator[*dpModels.ListProtectionPoliciesApiResponse, dpModels.ProtectionPolicy](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*dpModels.ListProtectionPoliciesApiResponse, error) {
 			return s.client.ProtectionPoliciesApiInstance.ServiceClient.ListProtectionPolicies(ctx, &ppRequest.ListProtectionPoliciesRequest{
 				Page_:    reqParams.Page,
@@ -124,13 +128,11 @@ func (s *ProtectionPoliciesService) CreateAsync(ctx context.Context, policy *dpM
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.CreateProtectionPolicy(ctx, &ppRequest.CreateProtectionPolicyRequest{
-		Body: policy,
+	taskRef, err := CallAPIWithClient[*dpModels.CreateProtectionPolicyApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.CreateProtectionPolicyApiResponse, error) {
+		return s.client.ProtectionPoliciesApiInstance.ServiceClient.CreateProtectionPolicy(ctx, &ppRequest.CreateProtectionPolicyRequest{
+			Body: policy,
+		})
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.CreateProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
@@ -164,14 +166,12 @@ func (s *ProtectionPoliciesService) UpdateAsync(ctx context.Context, uuid string
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.UpdateProtectionPolicyById(ctx, &ppRequest.UpdateProtectionPolicyByIdRequest{
-		ExtId: &uuid,
-		Body:  policy,
+	taskRef, err := CallAPIWithClient[*dpModels.UpdateProtectionPolicyApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.UpdateProtectionPolicyApiResponse, error) {
+		return s.client.ProtectionPoliciesApiInstance.ServiceClient.UpdateProtectionPolicyById(ctx, &ppRequest.UpdateProtectionPolicyByIdRequest{
+			ExtId: &uuid,
+			Body:  policy,
+		})
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.UpdateProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
@@ -207,13 +207,11 @@ func (s *ProtectionPoliciesService) DeleteAsync(ctx context.Context, uuid string
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
 	}
-	resp, err := s.client.ProtectionPoliciesApiInstance.ServiceClient.DeleteProtectionPolicyById(ctx, &ppRequest.DeleteProtectionPolicyByIdRequest{
-		ExtId: &uuid,
-	}, args)
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.DeleteProtectionPolicyApiResponse, dpPrism.TaskReference](resp, err)
+	taskRef, err := CallAPIWithClient[*dpModels.DeleteProtectionPolicyApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.DeleteProtectionPolicyApiResponse, error) {
+		return s.client.ProtectionPoliciesApiInstance.ServiceClient.DeleteProtectionPolicyById(ctx, &ppRequest.DeleteProtectionPolicyByIdRequest{
+			ExtId: &uuid,
+		}, args)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}

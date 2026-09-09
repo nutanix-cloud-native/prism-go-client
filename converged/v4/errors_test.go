@@ -384,6 +384,13 @@ func TestAPIError_Is(t *testing.T) {
 	assert.False(t, errors.Is(e, converged.ErrInternal))
 }
 
+func TestAPIError_StaleClientIsUnauthenticated(t *testing.T) {
+	e := &converged.APIError{Kind: converged.ErrStaleClient, Cause: fmt.Errorf("x")}
+	assert.True(t, converged.IsStaleClient(e))
+	assert.True(t, converged.IsUnauthenticated(e))
+	assert.False(t, converged.IsUnauthorized(e))
+}
+
 func TestAPIError_Is_NilKind(t *testing.T) {
 	e := &converged.APIError{Kind: nil, Cause: fmt.Errorf("x")}
 	assert.False(t, errors.Is(e, converged.ErrNotFound))
@@ -488,6 +495,13 @@ func TestCategoriseFromOpenAPI_PlainError(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "api call failed")
 	assert.Contains(t, err.Error(), "connection refused")
+}
+
+func TestCategoriseFromOpenAPI_StaleOIDCErrorIsUnauthenticated(t *testing.T) {
+	err := CategoriseFromOpenAPI(fmt.Errorf(`Get "/api/iam/authn/v1/oidc/auth": unsupported protocol scheme ""`))
+	require.Error(t, err)
+	assert.True(t, converged.IsStaleClient(err))
+	assert.True(t, converged.IsUnauthenticated(err))
 }
 
 func TestCategoriseFromOpenAPI_BodyOverridesGeneric4xx(t *testing.T) {

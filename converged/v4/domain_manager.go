@@ -14,6 +14,7 @@ import (
 // DomainManagerService provides methods to interact with Domain Manager API
 type DomainManagerService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -29,6 +30,7 @@ func (s *DomainManagerService) Get(ctx context.Context, extID string) (*prismMod
 	}
 
 	return GenericGetEntity[*prismModels.GetDomainManagerApiResponse, prismModels.DomainManager](
+		s.converged,
 		func() (*prismModels.GetDomainManagerApiResponse, error) {
 			return s.client.DomainManagerApiInstance.ServiceClient.GetDomainManagerById(ctx,
 				&domainManagerRequest.GetDomainManagerByIdRequest{
@@ -58,6 +60,7 @@ func (s *DomainManagerService) List(ctx context.Context, opts ...converged.OData
 	}
 
 	return GenericListEntities[*prismModels.ListDomainManagerApiResponse, prismModels.DomainManager](
+		s.converged,
 		func(reqParams *V4ODataParams) (*prismModels.ListDomainManagerApiResponse, error) {
 			return s.client.DomainManagerApiInstance.ServiceClient.ListDomainManagers(ctx,
 				&domainManagerRequest.ListDomainManagersRequest{
@@ -78,6 +81,7 @@ func (s *DomainManagerService) NewIterator(ctx context.Context, opts ...converge
 
 	return GenericNewIterator[*prismModels.ListDomainManagerApiResponse, prismModels.DomainManager](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*prismModels.ListDomainManagerApiResponse, error) {
 			return s.client.DomainManagerApiInstance.ServiceClient.ListDomainManagers(ctx,
 				&domainManagerRequest.ListDomainManagersRequest{
