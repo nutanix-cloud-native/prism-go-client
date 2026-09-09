@@ -15,6 +15,7 @@ import (
 // ProjectsService provides implementation for Projects API operations.
 type ProjectsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -29,6 +30,7 @@ func (s *ProjectsService) Get(ctx context.Context, uuid string) (*multidomainMod
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*multidomainModels.GetProjectApiResponse, multidomainModels.Project](
+		s.converged,
 		func() (*multidomainModels.GetProjectApiResponse, error) {
 			return s.client.ProjectsApiInstance.ServiceClient.GetProjectById(ctx, &projectRequest.GetProjectByIdRequest{
 				ExtId: &uuid,
@@ -54,6 +56,7 @@ func (s *ProjectsService) List(ctx context.Context, opts ...converged.ODataOptio
 	}
 
 	return GenericListEntities[*multidomainModels.ListProjectsApiResponse, multidomainModels.Project](
+		s.converged,
 		func(reqParams *V4ODataParams) (*multidomainModels.ListProjectsApiResponse, error) {
 			return s.client.ProjectsApiInstance.ServiceClient.ListProjects(ctx, &projectRequest.ListProjectsRequest{
 				Page_:    reqParams.Page,
@@ -82,6 +85,7 @@ func (s *ProjectsService) NewIterator(ctx context.Context, opts ...converged.ODa
 	}
 	return GenericNewIterator[*multidomainModels.ListProjectsApiResponse, multidomainModels.Project](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*multidomainModels.ListProjectsApiResponse, error) {
 			return s.client.ProjectsApiInstance.ServiceClient.ListProjects(ctx, &projectRequest.ListProjectsRequest{
 				Page_:    reqParams.Page,

@@ -15,6 +15,7 @@ import (
 // AlertsService provides implementation for all Alerts interface methods.
 type AlertsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -33,6 +34,7 @@ func (s *AlertsService) Get(ctx context.Context, uuid string) (
 
 	return GenericGetEntity[
 		*alertModels.GetAlertApiResponse, alertModels.Alert](
+		s.converged,
 		func() (*alertModels.GetAlertApiResponse, error) {
 			return s.client.AlertsServiceApiInstance.GetAlertById(ctx,
 				&alertsReq.GetAlertByIdRequest{ExtId: &uuid})
@@ -62,6 +64,7 @@ func (s *AlertsService) List(ctx context.Context,
 
 	return GenericListEntities[
 		*alertModels.ListAlertsApiResponse, alertModels.Alert](
+		s.converged,
 		func(reqParams *V4ODataParams) (
 			*alertModels.ListAlertsApiResponse, error) {
 			return s.client.AlertsServiceApiInstance.ListAlerts(
@@ -88,6 +91,7 @@ func (s *AlertsService) NewIterator(ctx context.Context,
 
 	return GenericNewIterator[*alertModels.ListAlertsApiResponse, alertModels.Alert](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (
 			*alertModels.ListAlertsApiResponse, error) {
 			return s.client.AlertsServiceApiInstance.ListAlerts(ctx,

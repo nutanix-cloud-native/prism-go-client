@@ -14,6 +14,7 @@ import (
 // RolesService provides implementation for IAM Roles API operations.
 type RolesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *RolesService) Get(ctx context.Context, uuid string) (*iamAuthzModels.Ro
 	}
 
 	return GenericGetEntity[*iamAuthzModels.GetRoleApiResponse, iamAuthzModels.Role](
+		s.converged,
 		func() (*iamAuthzModels.GetRoleApiResponse, error) {
 			return s.client.RolesApiInstance.GetRoleById(
 				ctx,
@@ -58,6 +60,7 @@ func (s *RolesService) List(ctx context.Context, opts ...converged.ODataOption) 
 	}
 
 	return GenericListEntities[*iamAuthzModels.ListRolesApiResponse, iamAuthzModels.Role](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListRolesApiResponse, error) {
 			return s.client.RolesApiInstance.ListRoles(ctx, &roleRequestModels.ListRolesRequest{
 				Page_:    reqParams.Page,
@@ -80,6 +83,7 @@ func (s *RolesService) NewIterator(ctx context.Context, opts ...converged.ODataO
 
 	return GenericNewIterator[*iamAuthzModels.ListRolesApiResponse, iamAuthzModels.Role](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListRolesApiResponse, error) {
 			return s.client.RolesApiInstance.ListRoles(ctx, &roleRequestModels.ListRolesRequest{
 				Page_:    reqParams.Page,
@@ -100,12 +104,12 @@ func (s *RolesService) Create(ctx context.Context, entity *iamAuthzModels.Role) 
 		return nil, errors.New("client is not initialized")
 	}
 
-	newRole, err := CallAPI[*iamAuthzModels.CreateRoleApiResponse, iamAuthzModels.Role](
-		s.client.RolesApiInstance.CreateRole(
+	newRole, err := CallAPIWithClient[*iamAuthzModels.CreateRoleApiResponse, iamAuthzModels.Role](s.converged, func() (*iamAuthzModels.CreateRoleApiResponse, error) {
+		return s.client.RolesApiInstance.CreateRole(
 			ctx,
 			&roleRequestModels.CreateRoleRequest{Body: entity},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create role: %w", err)
 	}

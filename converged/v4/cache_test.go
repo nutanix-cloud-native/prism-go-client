@@ -1,6 +1,7 @@
 package v4
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -518,4 +519,87 @@ func TestGetNoValidationHash(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", hash) // Should return empty hash when not found in validationHashes
 	assert.Equal(t, client, returnedClient)
+}
+
+func TestSelfHealNilClientReturnsError(t *testing.T) {
+	var client *Client
+
+	err := client.SelfHeal()
+
+	assert.Error(t, err)
+}
+
+func TestSelfHealWithoutCacheOrCredentialsReturnsError(t *testing.T) {
+	// A Client built by hand (not via NewClient or a ClientCache) has neither
+	// recreate nor stored credentials, so it cannot self-heal.
+	client := &Client{healMu: &sync.Mutex{}}
+
+	err := client.SelfHeal()
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot self-heal")
+}
+
+// TestSelfHealStandaloneClientRebuildsInPlace verifies that a Client created
+// directly via NewClient (no ClientCache involved) can self-heal by rebuilding
+// itself from its stored credentials/options, while keeping the same pointer
+// identity so existing holders of the *Client keep working.
+func TestSelfHealStandaloneClientRebuildsInPlace(t *testing.T) {
+	credentials := prismgoclient.Credentials{
+		Endpoint: "prism-test.nutanix.com",
+		Port:     "9440",
+		Username: "test",
+		Password: "test",
+	}
+
+	client, err := NewClient(credentials)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	originalV4Client := client.client
+	require.NotNil(t, client.Clusters)
+
+	err = client.SelfHeal()
+
+	require.NoError(t, err)
+	// The underlying v4 SDK client is rebuilt (new object)...
+	assert.NotSame(t, originalV4Client, client.client)
+	// ...but service back-references are rebound to the same converged Client.
+	clustersService, ok := client.Clusters.(*ClustersService)
+	require.True(t, ok)
+	assert.Same(t, client, clustersService.converged)
+}
+
+// TestSelfHealCacheBackedClientReusesRefresh verifies that a Client created
+// via a ClientCache self-heals by going through Invalidate()+recreate(), so
+// the cache remains authoritative, while the caller's *Client pointer keeps
+// working unchanged.
+func TestSelfHealCacheBackedClientReusesRefresh(t *testing.T) {
+	cache := NewClientCache()
+	mgmtEndpoint := testhelpers.ManagementEndpointFromEnvironment(t)
+	cp := &cachedClientParams{
+		name:         "cluster1",
+		mgmtEndpoint: *mgmtEndpoint,
+	}
+
+	client, err := cache.GetOrCreate(cp)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	originalV4Client := client.client
+
+	err = client.SelfHeal()
+
+	require.NoError(t, err)
+	assert.NotSame(t, originalV4Client, client.client)
+	// The cache now holds a freshly recreated client (registered by
+	// recreate() during Refresh()), with c's underlying v4 SDK client
+	// matching what the cache handed back.
+	cachedClient, _, err := cache.get("cluster1")
+	require.NoError(t, err)
+	assert.Same(t, client.client, cachedClient.client)
+
+	clustersService, ok := client.Clusters.(*ClustersService)
+	require.True(t, ok)
+	assert.Same(t, client, clustersService.converged)
 }

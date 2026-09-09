@@ -100,7 +100,7 @@ func TestOperationsListOptions(t *testing.T) {
 		assert.Equal(t, 1, len(operations))
 		assert.Equal(t, "View_Role", *operations[0].DisplayName)
 	})
-	
+
 	t.Run("WithSelect", func(t *testing.T) {
 		operations, err := client.Operations.List(ctx, converged.WithSelect("extId,displayName"))
 		assert.NoError(t, err)
@@ -113,4 +113,3 @@ func TestOperationsListOptions(t *testing.T) {
 		assert.Contains(t, err.Error(), "apply and expand options are not supported for listing Operations")
 	})
 }
-

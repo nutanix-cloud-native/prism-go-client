@@ -24,6 +24,7 @@ const (
 // TODO: Migrate to VmServiceApi methods which support project params in a future PR.
 type VMsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -41,6 +42,7 @@ func (s *VMsService) Get(ctx context.Context, uuid string) (*vmmModels.Vm, error
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*vmmModels.GetVmApiResponse, vmmModels.Vm](
+		s.converged,
 		func() (*vmmModels.GetVmApiResponse, error) {
 			return s.client.VmApiInstance.ServiceClient.GetVmById(ctx,
 				&vmRequest.GetVmByIdRequest{
@@ -70,6 +72,7 @@ func (s *VMsService) List(ctx context.Context, opts ...converged.ODataOption) ([
 	}
 
 	return GenericListEntities[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
+		s.converged,
 		func(reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return s.client.VmApiInstance.ServiceClient.ListVms(ctx,
 				&vmRequest.ListVmsRequest{
@@ -93,6 +96,7 @@ func (s *VMsService) NewIterator(ctx context.Context, opts ...converged.ODataOpt
 	}
 	return GenericNewIterator[*vmmModels.ListVmsApiResponse, vmmModels.Vm](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*vmmModels.ListVmsApiResponse, error) {
 			return s.client.VmApiInstance.ServiceClient.ListVms(ctx,
 				&vmRequest.ListVmsRequest{
@@ -176,14 +180,14 @@ func (s *VMsService) CreateAsync(ctx context.Context, vm *vmmModels.Vm) (converg
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	taskRef, err := CallAPI[*vmmModels.CreateVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.CreateVm(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.CreateVmApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.CreateVmApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.CreateVm(ctx,
 			&vmRequest.CreateVmRequest{
 				Body: vm,
 			},
 			headerArgs(ctx),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VM: %w", err)
 	}
@@ -218,15 +222,15 @@ func (s *VMsService) UpdateAsync(ctx context.Context, uuid string, vm *vmmModels
 
 	vm = CopyEtag(currentVM, vm).(*vmmModels.Vm)
 
-	taskRef, err := CallAPI[*vmmModels.UpdateVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.UpdateVmById(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.UpdateVmApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.UpdateVmApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.UpdateVmById(ctx,
 			&vmRequest.UpdateVmByIdRequest{
 				ExtId: &uuid,
 				Body:  vm,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update VM: %w", err)
 	}
@@ -261,14 +265,14 @@ func (s *VMsService) DeleteAsync(ctx context.Context, uuid string) (converged.Op
 		return nil, fmt.Errorf("failed to get VM for deletion: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.DeleteVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.DeleteVmById(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.DeleteVmApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.DeleteVmApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.DeleteVmById(ctx,
 			&vmRequest.DeleteVmByIdRequest{
 				ExtId: &uuid,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete VM: %w", err)
 	}
@@ -303,14 +307,14 @@ func (s *VMsService) PowerOnVM(ctx context.Context, uuid string) (converged.Oper
 		return nil, fmt.Errorf("failed to get VM for power on: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.PowerOnVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.PowerOnVm(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.PowerOnVmApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.PowerOnVmApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.PowerOnVm(ctx,
 			&vmRequest.PowerOnVmRequest{
 				ExtId: &uuid,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to power on VM: %w", err)
 	}
@@ -343,14 +347,14 @@ func (s *VMsService) PowerOffVM(ctx context.Context, uuid string) (converged.Ope
 		return nil, fmt.Errorf("failed to get VM for power off: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.PowerOffVmApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.PowerOffVm(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.PowerOffVmApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.PowerOffVmApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.PowerOffVm(ctx,
 			&vmRequest.PowerOffVmRequest{
 				ExtId: &uuid,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to power off VM: %w", err)
 	}
@@ -410,15 +414,15 @@ func (s *VMsService) AddVmCustomAttributesAsync(ctx context.Context, uuid string
 		return nil, fmt.Errorf("failed to get VM for adding custom attributes: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.AddVmCustomAttributesApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.AddVmCustomAttributes(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.AddVmCustomAttributesApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.AddVmCustomAttributesApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.AddVmCustomAttributes(ctx,
 			&vmRequest.AddVmCustomAttributesRequest{
 				ExtId: &uuid,
 				Body:  body,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to add custom attributes to VM: %w", err)
 	}
@@ -478,15 +482,15 @@ func (s *VMsService) RemoveVmCustomAttributesAsync(ctx context.Context, uuid str
 		return nil, fmt.Errorf("failed to get VM for removing custom attributes: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.RemoveVmCustomAttributesApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.RemoveVmCustomAttributes(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.RemoveVmCustomAttributesApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.RemoveVmCustomAttributesApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.RemoveVmCustomAttributes(ctx,
 			&vmRequest.RemoveVmCustomAttributesRequest{
 				ExtId: &uuid,
 				Body:  body,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to remove custom attributes from VM: %w", err)
 	}
@@ -539,15 +543,15 @@ func (s *VMsService) DeleteCdRomAsync(ctx context.Context, uuid string, cdRomUUI
 		return nil, fmt.Errorf("failed to get VM for CD-ROM deletion: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.DeleteCdRomApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.DeleteCdRomById(ctx,
+	taskRef, err := CallAPIWithClient[*vmmModels.DeleteCdRomApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.DeleteCdRomApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.DeleteCdRomById(ctx,
 			&vmRequest.DeleteCdRomByIdRequest{
 				VmExtId: &uuid,
 				ExtId:   &cdRomUUID,
 			},
 			args,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete CD-ROM from VM: %w", err)
 	}
@@ -585,14 +589,14 @@ func (s *VMsService) GenerateConsoleToken(ctx context.Context, uuid string) (*co
 	}
 
 	taskID := operation.UUID()
-	taskResp, err := CallAPI[*prismModels.GetTaskApiResponse, prismModels.Task](
-		s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
+	taskResp, err := CallAPIWithClient[*prismModels.GetTaskApiResponse, prismModels.Task](s.converged, func() (*prismModels.GetTaskApiResponse, error) {
+		return s.client.TasksApiInstance.ServiceClient.GetTaskById(ctx,
 			&taskRequest.GetTaskByIdRequest{
 				ExtId: &taskID,
 			},
 			nil,
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get completed task: %w", err)
 	}
@@ -737,13 +741,13 @@ func (s *VMsService) AddDisk(ctx context.Context, vmUUID string, disk *vmmModels
 		return nil, fmt.Errorf("failed to get VM details: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.CreateDiskApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.CreateDisk(
+	taskRef, err := CallAPIWithClient[*vmmModels.CreateDiskApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.CreateDiskApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.CreateDisk(
 			ctx,
 			&vmRequest.CreateDiskRequest{VmExtId: &vmUUID, Body: disk},
 			mergeArgs(etagArgs, headerArgs(ctx)),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to add disk to VM: %w", err)
 	}
@@ -769,13 +773,13 @@ func (s *VMsService) GrowDisk(ctx context.Context, vmUUID string, diskUUID strin
 		return nil, fmt.Errorf("failed to get VM details: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.UpdateDiskApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.UpdateDiskById(
+	taskRef, err := CallAPIWithClient[*vmmModels.UpdateDiskApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.UpdateDiskApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.UpdateDiskById(
 			ctx,
 			&vmRequest.UpdateDiskByIdRequest{VmExtId: &vmUUID, ExtId: &diskUUID, Body: disk},
 			mergeArgs(etagArgs, headerArgs(ctx)),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to grow disk size for VM: %w", err)
 	}
@@ -797,13 +801,13 @@ func (s *VMsService) DeleteDisk(ctx context.Context, vmUUID string, diskUUID str
 		return nil, fmt.Errorf("failed to get VM details: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.DeleteDiskApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.DeleteDiskById(
+	taskRef, err := CallAPIWithClient[*vmmModels.DeleteDiskApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.DeleteDiskApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.DeleteDiskById(
 			ctx,
 			&vmRequest.DeleteDiskByIdRequest{VmExtId: &vmUUID, ExtId: &diskUUID},
 			mergeArgs(etagArgs, headerArgs(ctx)),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete disk from VM: %w", err)
 	}
@@ -829,13 +833,13 @@ func (s *VMsService) AddNIC(ctx context.Context, vmUUID string, nic *vmmModels.N
 		return nil, fmt.Errorf("failed to get VM details: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.CreateNicApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.CreateNic(
+	taskRef, err := CallAPIWithClient[*vmmModels.CreateNicApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.CreateNicApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.CreateNic(
 			ctx,
 			&vmRequest.CreateNicRequest{VmExtId: &vmUUID, Body: nic},
 			mergeArgs(etagArgs, headerArgs(ctx)),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to add NIC to VM: %w", err)
 	}
@@ -857,13 +861,13 @@ func (s *VMsService) DeleteNIC(ctx context.Context, vmUUID string, nicUUID strin
 		return nil, fmt.Errorf("failed to get VM for NIC delete: %w", err)
 	}
 
-	taskRef, err := CallAPI[*vmmModels.DeleteNicApiResponse, vmmConfig.TaskReference](
-		s.client.VmApiInstance.ServiceClient.DeleteNicById(
+	taskRef, err := CallAPIWithClient[*vmmModels.DeleteNicApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.DeleteNicApiResponse, error) {
+		return s.client.VmApiInstance.ServiceClient.DeleteNicById(
 			ctx,
 			&vmRequest.DeleteNicByIdRequest{VmExtId: &vmUUID, ExtId: &nicUUID},
 			mergeArgs(etagArgs, headerArgs(ctx)),
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete NIC from VM: %w", err)
 	}

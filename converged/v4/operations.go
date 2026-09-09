@@ -14,6 +14,7 @@ import (
 // OperationsService provides implementation for IAM Operations API operations.
 type OperationsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *OperationsService) Get(ctx context.Context, uuid string) (*iamAuthzMode
 	}
 
 	return GenericGetEntity[*iamAuthzModels.GetOperationApiResponse, iamAuthzModels.Operation](
+		s.converged,
 		func() (*iamAuthzModels.GetOperationApiResponse, error) {
 			return s.client.OperationsApiInstance.GetOperationById(
 				ctx,
@@ -58,6 +60,7 @@ func (s *OperationsService) List(ctx context.Context, opts ...converged.ODataOpt
 	}
 
 	return GenericListEntities[*iamAuthzModels.ListOperationsApiResponse, iamAuthzModels.Operation](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListOperationsApiResponse, error) {
 			return s.client.OperationsApiInstance.ListOperations(
 				ctx,
@@ -83,6 +86,7 @@ func (s *OperationsService) NewIterator(ctx context.Context, opts ...converged.O
 
 	return GenericNewIterator[*iamAuthzModels.ListOperationsApiResponse, iamAuthzModels.Operation](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListOperationsApiResponse, error) {
 			return s.client.OperationsApiInstance.ListOperations(
 				ctx,

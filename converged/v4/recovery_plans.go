@@ -15,6 +15,7 @@ import (
 // RecoveryPlansService provides methods to interact with Data Policies Recovery Plans API (v4.2).
 type RecoveryPlansService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *RecoveryPlansService) Get(ctx context.Context, uuid string) (*dpModels.
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*dpModels.GetRecoveryPlanApiResponse, dpModels.RecoveryPlan](
+		s.converged,
 		func() (*dpModels.GetRecoveryPlanApiResponse, error) {
 			return s.client.RecoveryPlansApiInstance.ServiceClient.GetRecoveryPlanById(ctx, &rpRequest.GetRecoveryPlanByIdRequest{
 				ExtId: &uuid,
@@ -54,6 +56,7 @@ func (s *RecoveryPlansService) List(ctx context.Context, opts ...converged.OData
 		return nil, fmt.Errorf("apply and expand options are not supported for listing %s", s.entitiesName)
 	}
 	return GenericListEntities[*dpModels.ListRecoveryPlansApiResponse, dpModels.RecoveryPlan](
+		s.converged,
 		func(reqParams *V4ODataParams) (*dpModels.ListRecoveryPlansApiResponse, error) {
 			return s.client.RecoveryPlansApiInstance.ServiceClient.ListRecoveryPlans(ctx, &rpRequest.ListRecoveryPlansRequest{
 				Page_:    reqParams.Page,
@@ -86,6 +89,7 @@ func (s *RecoveryPlansService) NewIterator(ctx context.Context, opts ...converge
 	}
 	return GenericNewIterator[*dpModels.ListRecoveryPlansApiResponse, dpModels.RecoveryPlan](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*dpModels.ListRecoveryPlansApiResponse, error) {
 			return s.client.RecoveryPlansApiInstance.ServiceClient.ListRecoveryPlans(ctx, &rpRequest.ListRecoveryPlansRequest{
 				Page_:    reqParams.Page,
@@ -124,13 +128,11 @@ func (s *RecoveryPlansService) CreateAsync(ctx context.Context, plan *dpModels.R
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.CreateRecoveryPlan(ctx, &rpRequest.CreateRecoveryPlanRequest{
-		Body: plan,
+	taskRef, err := CallAPIWithClient[*dpModels.CreateRecoveryPlanApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.CreateRecoveryPlanApiResponse, error) {
+		return s.client.RecoveryPlansApiInstance.ServiceClient.CreateRecoveryPlan(ctx, &rpRequest.CreateRecoveryPlanRequest{
+			Body: plan,
+		})
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.CreateRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", s.entitiesName, err)
 	}
@@ -164,14 +166,12 @@ func (s *RecoveryPlansService) UpdateAsync(ctx context.Context, uuid string, pla
 	if s.client == nil {
 		return nil, errors.New("client is not initialized")
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.UpdateRecoveryPlanById(ctx, &rpRequest.UpdateRecoveryPlanByIdRequest{
-		ExtId: &uuid,
-		Body:  plan,
+	taskRef, err := CallAPIWithClient[*dpModels.UpdateRecoveryPlanApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.UpdateRecoveryPlanApiResponse, error) {
+		return s.client.RecoveryPlansApiInstance.ServiceClient.UpdateRecoveryPlanById(ctx, &rpRequest.UpdateRecoveryPlanByIdRequest{
+			ExtId: &uuid,
+			Body:  plan,
+		})
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.UpdateRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update %s: %w", s.entitiesName, err)
 	}
@@ -207,13 +207,11 @@ func (s *RecoveryPlansService) DeleteAsync(ctx context.Context, uuid string) (co
 	if err != nil {
 		return nil, fmt.Errorf("failed to get %s for deletion: %w", s.entitiesName, err)
 	}
-	resp, err := s.client.RecoveryPlansApiInstance.ServiceClient.DeleteRecoveryPlanById(ctx, &rpRequest.DeleteRecoveryPlanByIdRequest{
-		ExtId: &uuid,
-	}, args)
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
-	}
-	taskRef, err := CallAPI[*dpModels.DeleteRecoveryPlanApiResponse, dpPrism.TaskReference](resp, err)
+	taskRef, err := CallAPIWithClient[*dpModels.DeleteRecoveryPlanApiResponse, dpPrism.TaskReference](s.converged, func() (*dpModels.DeleteRecoveryPlanApiResponse, error) {
+		return s.client.RecoveryPlansApiInstance.ServiceClient.DeleteRecoveryPlanById(ctx, &rpRequest.DeleteRecoveryPlanByIdRequest{
+			ExtId: &uuid,
+		}, args)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete %s: %w", s.entitiesName, err)
 	}

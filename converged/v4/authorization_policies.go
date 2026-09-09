@@ -14,6 +14,7 @@ import (
 // AuthorizationPoliciesService provides implementation for IAM Authorization Policies API operations.
 type AuthorizationPoliciesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *AuthorizationPoliciesService) Get(ctx context.Context, uuid string) (*i
 	}
 
 	return GenericGetEntity[*iamAuthzModels.GetAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
+		s.converged,
 		func() (*iamAuthzModels.GetAuthorizationPolicyApiResponse, error) {
 			return s.client.AuthorizationPoliciesApiInstance.GetAuthorizationPolicyById(
 				ctx,
@@ -58,6 +60,7 @@ func (s *AuthorizationPoliciesService) List(ctx context.Context, opts ...converg
 	}
 
 	return GenericListEntities[*iamAuthzModels.ListAuthorizationPoliciesApiResponse, iamAuthzModels.AuthorizationPolicyProjection](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
 			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
 				ctx,
@@ -84,6 +87,7 @@ func (s *AuthorizationPoliciesService) NewIterator(ctx context.Context, opts ...
 
 	return GenericNewIterator[*iamAuthzModels.ListAuthorizationPoliciesApiResponse, iamAuthzModels.AuthorizationPolicyProjection](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListAuthorizationPoliciesApiResponse, error) {
 			return s.client.AuthorizationPoliciesApiInstance.ListAuthorizationPolicies(
 				ctx,
@@ -108,12 +112,12 @@ func (s *AuthorizationPoliciesService) Create(ctx context.Context, entity *iamAu
 		return nil, errors.New("client is not initialized")
 	}
 
-	newPolicy, err := CallAPI[*iamAuthzModels.CreateAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](
-		s.client.AuthorizationPoliciesApiInstance.CreateAuthorizationPolicy(
+	newPolicy, err := CallAPIWithClient[*iamAuthzModels.CreateAuthorizationPolicyApiResponse, iamAuthzModels.AuthorizationPolicy](s.converged, func() (*iamAuthzModels.CreateAuthorizationPolicyApiResponse, error) {
+		return s.client.AuthorizationPoliciesApiInstance.CreateAuthorizationPolicy(
 			ctx,
 			&authorizationPoliciesRequestModels.CreateAuthorizationPolicyRequest{Body: entity},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create authorization policy: %w", err)
 	}

@@ -14,8 +14,9 @@ import (
 
 // VolumeGroupsService provides default "not implemented" implementation for all VolumeGroups interface methods.
 type VolumeGroupsService struct {
-	client   *v4prismGoClient.Client
-	entities string
+	client    *v4prismGoClient.Client
+	converged *Client
+	entities  string
 }
 
 // NewVolumeGroupsService creates a new VolumeGroupsService instance.
@@ -32,6 +33,7 @@ func (s *VolumeGroupsService) Get(ctx context.Context, uuid string) (*volumeMode
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*volumeModels.GetVolumeGroupApiResponse, volumeModels.VolumeGroup](
+		s.converged,
 		func() (*volumeModels.GetVolumeGroupApiResponse, error) {
 			return s.client.VolumeGroupsApiInstance.ServiceClient.GetVolumeGroupById(ctx, &vgRequest.GetVolumeGroupByIdRequest{
 				ExtId: &uuid,
@@ -47,6 +49,7 @@ func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataO
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericListEntities[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
+		s.converged,
 		func(reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
 			return s.client.VolumeGroupsApiInstance.ServiceClient.ListVolumeGroups(ctx, &vgRequest.ListVolumeGroupsRequest{
 				Page_:    reqParams.Page,
@@ -67,6 +70,7 @@ func (s *VolumeGroupsService) List(ctx context.Context, opts ...converged.ODataO
 func (s *VolumeGroupsService) NewIterator(ctx context.Context, opts ...converged.ODataOption) converged.Iterator[volumeModels.VolumeGroup] {
 	return GenericNewIterator[*volumeModels.ListVolumeGroupsApiResponse, volumeModels.VolumeGroup](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*volumeModels.ListVolumeGroupsApiResponse, error) {
 			return s.client.VolumeGroupsApiInstance.ServiceClient.ListVolumeGroups(ctx, &vgRequest.ListVolumeGroupsRequest{
 				Page_:    reqParams.Page,
@@ -89,12 +93,12 @@ func (s *VolumeGroupsService) AttachToVMAsync(ctx context.Context, volumeGroupUU
 		return nil, errors.New("client is not initialized")
 	}
 
-	taskRef, err := CallAPI[*volumeModels.AttachVmApiResponse, prismModels.TaskReference](
-		s.client.VolumeGroupsApiInstance.ServiceClient.AttachVm(ctx, &vgRequest.AttachVmRequest{
+	taskRef, err := CallAPIWithClient[*volumeModels.AttachVmApiResponse, prismModels.TaskReference](s.converged, func() (*volumeModels.AttachVmApiResponse, error) {
+		return s.client.VolumeGroupsApiInstance.ServiceClient.AttachVm(ctx, &vgRequest.AttachVmRequest{
 			ExtId: &volumeGroupUUID,
 			Body:  &vmAttachment,
-		}),
-	)
+		})
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to attach volume group to VM asynchronously: %w", err)
@@ -117,12 +121,12 @@ func (s *VolumeGroupsService) DetachFromVMAsync(ctx context.Context, volumeGroup
 		return nil, errors.New("client is not initialized")
 	}
 
-	taskRef, err := CallAPI[*volumeModels.DetachVmApiResponse, prismModels.TaskReference](
-		s.client.VolumeGroupsApiInstance.ServiceClient.DetachVm(ctx, &vgRequest.DetachVmRequest{
+	taskRef, err := CallAPIWithClient[*volumeModels.DetachVmApiResponse, prismModels.TaskReference](s.converged, func() (*volumeModels.DetachVmApiResponse, error) {
+		return s.client.VolumeGroupsApiInstance.ServiceClient.DetachVm(ctx, &vgRequest.DetachVmRequest{
 			ExtId: &volumeGroupUUID,
 			Body:  &vmAttachment,
-		}),
-	)
+		})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to detach volume group from VM asynchronously: %w", err)
 	}

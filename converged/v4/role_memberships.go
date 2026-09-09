@@ -14,6 +14,7 @@ import (
 // RoleMembershipsService provides implementation for IAM Role Membership API operations.
 type RoleMembershipsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *RoleMembershipsService) Get(ctx context.Context, uuid string) (*iamAuth
 	}
 
 	return GenericGetEntity[*iamAuthzModels.GetRoleMembershipApiResponse, iamAuthzModels.RoleMembership](
+		s.converged,
 		func() (*iamAuthzModels.GetRoleMembershipApiResponse, error) {
 			return s.client.RoleMembershipApiInstance.GetRoleMembershipById(
 				ctx,
@@ -58,6 +60,7 @@ func (s *RoleMembershipsService) List(ctx context.Context, opts ...converged.ODa
 	}
 
 	return GenericListEntities[*iamAuthzModels.ListRoleMembershipsApiResponse, iamAuthzModels.RoleMembershipProjection](
+		s.converged,
 		func(reqParams *V4ODataParams) (*iamAuthzModels.ListRoleMembershipsApiResponse, error) {
 			return s.client.RoleMembershipApiInstance.ListRoleMemberships(ctx, &rolemembershipRequestModels.ListRoleMembershipsRequest{
 				Page_:    reqParams.Page,
@@ -81,6 +84,7 @@ func (s *RoleMembershipsService) NewIterator(ctx context.Context, opts ...conver
 
 	return GenericNewIterator[*iamAuthzModels.ListRoleMembershipsApiResponse, iamAuthzModels.RoleMembershipProjection](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*iamAuthzModels.ListRoleMembershipsApiResponse, error) {
 			return s.client.RoleMembershipApiInstance.ListRoleMemberships(ctx, &rolemembershipRequestModels.ListRoleMembershipsRequest{
 				Page_:    reqParams.Page,
@@ -102,12 +106,12 @@ func (s *RoleMembershipsService) Create(ctx context.Context, entity *iamAuthzMod
 		return nil, errors.New("client is not initialized")
 	}
 
-	newRoleMembership, err := CallAPI[*iamAuthzModels.CreateRoleMembershipApiResponse, iamAuthzModels.RoleMembership](
-		s.client.RoleMembershipApiInstance.CreateRoleMembership(
+	newRoleMembership, err := CallAPIWithClient[*iamAuthzModels.CreateRoleMembershipApiResponse, iamAuthzModels.RoleMembership](s.converged, func() (*iamAuthzModels.CreateRoleMembershipApiResponse, error) {
+		return s.client.RoleMembershipApiInstance.CreateRoleMembership(
 			ctx,
 			&rolemembershipRequestModels.CreateRoleMembershipRequest{Body: entity},
-		),
-	)
+		)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create role membership: %w", err)
 	}

@@ -17,6 +17,7 @@ import (
 // SubnetsService provides implementation for all Subnets interface methods.
 type SubnetsService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *SubnetsService) Get(ctx context.Context, uuid string) (*subnetModels.Su
 	}
 
 	return GenericGetEntity[*subnetModels.GetSubnetApiResponse, subnetModels.Subnet](
+		s.converged,
 		func() (*subnetModels.GetSubnetApiResponse, error) {
 			return s.client.SubnetsApiInstance.ServiceClient.GetSubnetById(ctx, &subnetRequest.GetSubnetByIdRequest{
 				ExtId: &uuid,
@@ -57,6 +59,7 @@ func (s *SubnetsService) List(ctx context.Context, opts ...converged.ODataOption
 	}
 
 	return GenericListEntities[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
+		s.converged,
 		func(reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return s.client.SubnetsApiInstance.ServiceClient.ListSubnets(ctx, &subnetRequest.ListSubnetsRequest{
 				Page_:    reqParams.Page,
@@ -80,6 +83,7 @@ func (s *SubnetsService) NewIterator(ctx context.Context, opts ...converged.ODat
 
 	return GenericNewIterator[*subnetModels.ListSubnetsApiResponse, subnetModels.Subnet](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*subnetModels.ListSubnetsApiResponse, error) {
 			return s.client.SubnetsApiInstance.ServiceClient.ListSubnets(ctx, &subnetRequest.ListSubnetsRequest{
 				Page_:    reqParams.Page,
@@ -120,12 +124,12 @@ func (s *SubnetsService) ReserveIpsBySubnetId(
 	}
 
 	// Call the V4 API and extract TaskReference using CallAPI helper
-	taskRef, err := CallAPI[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](
-		s.client.SubnetIPReservationApi.ServiceClient.ReserveIpsBySubnetId(ctx, &ipReservationRequest.ReserveIpsBySubnetIdRequest{
+	taskRef, err := CallAPIWithClient[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](s.converged, func() (*subnetModels.TaskReferenceApiResponse, error) {
+		return s.client.SubnetIPReservationApi.ServiceClient.ReserveIpsBySubnetId(ctx, &ipReservationRequest.ReserveIpsBySubnetIdRequest{
 			ExtId: &subnetExtId,
 			Body:  ipReserveSpec,
-		}),
-	)
+		})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to reserve IPs for subnet %s: %w", subnetExtId, err)
 	}
@@ -158,12 +162,12 @@ func (s *SubnetsService) UnreserveIpsBySubnetId(
 	}
 
 	// Call the V4 API and extract TaskReference using CallAPI helper
-	taskRef, err := CallAPI[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](
-		s.client.SubnetIPReservationApi.ServiceClient.UnreserveIpsBySubnetId(ctx, &ipReservationRequest.UnreserveIpsBySubnetIdRequest{
+	taskRef, err := CallAPIWithClient[*subnetModels.TaskReferenceApiResponse, networkingprismapi.TaskReference](s.converged, func() (*subnetModels.TaskReferenceApiResponse, error) {
+		return s.client.SubnetIPReservationApi.ServiceClient.UnreserveIpsBySubnetId(ctx, &ipReservationRequest.UnreserveIpsBySubnetIdRequest{
 			ExtId: &subnetExtId,
 			Body:  ipUnreserveSpec,
-		}),
-	)
+		})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to unreserve IPs for subnet %s: %w", subnetExtId, err)
 	}

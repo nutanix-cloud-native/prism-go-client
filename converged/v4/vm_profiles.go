@@ -15,6 +15,7 @@ import (
 // VMProfilesService provides implementation for all VMProfiles interface methods.
 type VMProfilesService struct {
 	client       *v4prismGoClient.Client
+	converged    *Client
 	entitiesName string
 }
 
@@ -32,6 +33,7 @@ func (s *VMProfilesService) Get(ctx context.Context, uuid string) (*vmmModels.Vm
 		return nil, errors.New("client is not initialized")
 	}
 	return GenericGetEntity[*vmmModels.GetVmProfileApiResponse, vmmModels.VmProfile](
+		s.converged,
 		func() (*vmmModels.GetVmProfileApiResponse, error) {
 			return s.client.VmProfilesApiInstance.ServiceClient.GetVmProfileById(ctx, &vmProfileRequest.GetVmProfileByIdRequest{
 				ExtId: &uuid,
@@ -58,6 +60,7 @@ func (s *VMProfilesService) List(ctx context.Context, opts ...converged.ODataOpt
 	}
 
 	return GenericListEntities[*vmmModels.ListVmProfilesApiResponse, vmmModels.VmProfile](
+		s.converged,
 		func(reqParams *V4ODataParams) (*vmmModels.ListVmProfilesApiResponse, error) {
 			return s.client.VmProfilesApiInstance.ServiceClient.ListVmProfiles(ctx, &vmProfileRequest.ListVmProfilesRequest{
 				Page_:    reqParams.Page,
@@ -79,6 +82,7 @@ func (s *VMProfilesService) NewIterator(ctx context.Context, opts ...converged.O
 	}
 	return GenericNewIterator[*vmmModels.ListVmProfilesApiResponse, vmmModels.VmProfile](
 		ctx,
+		s.converged,
 		func(ctx context.Context, reqParams *V4ODataParams) (*vmmModels.ListVmProfilesApiResponse, error) {
 			return s.client.VmProfilesApiInstance.ServiceClient.ListVmProfiles(ctx, &vmProfileRequest.ListVmProfilesRequest{
 				Page_:    reqParams.Page,
@@ -102,12 +106,12 @@ func (s *VMProfilesService) DeployVmWithVmProfile(ctx context.Context, vmProfile
 	// Get VMs service to use its Get method for the operation
 	vmsService := NewVMsService(s.client)
 
-	taskRef, err := CallAPI[*vmmModels.DeployVmFromVmProfileApiResponse, vmmConfig.TaskReference](
-		s.client.VmProfilesApiInstance.ServiceClient.DeployVmFromVmProfile(ctx, &vmProfileRequest.DeployVmFromVmProfileRequest{
+	taskRef, err := CallAPIWithClient[*vmmModels.DeployVmFromVmProfileApiResponse, vmmConfig.TaskReference](s.converged, func() (*vmmModels.DeployVmFromVmProfileApiResponse, error) {
+		return s.client.VmProfilesApiInstance.ServiceClient.DeployVmFromVmProfile(ctx, &vmProfileRequest.DeployVmFromVmProfileRequest{
 			ExtId: &vmProfileUUID,
 			Body:  params,
-		}),
-	)
+		})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy VM from VM Profile: %w", err)
 	}

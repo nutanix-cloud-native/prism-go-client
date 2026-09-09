@@ -9,6 +9,7 @@ var (
 	ErrNotFound        = errors.New("resource not found")
 	ErrRateLimit       = errors.New("rate limit exceeded")
 	ErrInternal        = errors.New("internal error")
+	ErrStaleClient     = errors.New("stale client")
 	ErrUnauthenticated = errors.New("unauthenticated") // HTTP 401: missing/invalid credentials
 	ErrUnauthorized    = errors.New("unauthorized")    // HTTP 403: authenticated but not allowed
 )
@@ -60,10 +61,16 @@ func IsInternal(err error) bool {
 	return errors.Is(err, ErrInternal)
 }
 
+// IsStaleClient returns true if the error is or wraps an ErrStaleClient.
+func IsStaleClient(err error) bool {
+	return errors.Is(err, ErrStaleClient) || (err != nil && strings.Contains(err.Error(), "unsupported protocol scheme"))
+}
+
 // IsUnauthenticated returns true if the error is or wraps an ErrUnauthenticated
-// (HTTP 401 — missing or invalid credentials).
+// (HTTP 401 — missing or invalid credentials), including stale-client auth
+// failures that were observed after a 401/OIDC redirect.
 func IsUnauthenticated(err error) bool {
-	return errors.Is(err, ErrUnauthenticated)
+	return errors.Is(err, ErrUnauthenticated) || IsStaleClient(err)
 }
 
 // IsUnauthorized returns true if the error is or wraps an ErrUnauthorized

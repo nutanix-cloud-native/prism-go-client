@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/utils/ptr"
+
+	"github.com/nutanix-cloud-native/prism-go-client/converged"
 )
 
 // TestHeaderArgs_NoHeaders ensures a context without any headers yields nil args,
@@ -158,7 +160,7 @@ func TestGenericListEntities_StopsOnEmptyPage(t *testing.T) {
 		}, nil
 	}
 
-	result, err := GenericListEntities[*fakeListResponse, string](apiCall, nil, "fake")
+	result, err := GenericListEntities[*fakeListResponse, string](nil, apiCall, nil, "fake")
 	require.NoError(t, err)
 	assert.Equal(t, []string{"a", "b", "c", "d", "e", "f"}, result)
 }
@@ -186,7 +188,7 @@ func TestGenericListEntities_PagesUntilTotalCount(t *testing.T) {
 		}, nil
 	}
 
-	result, err := GenericListEntities[*fakeListResponse, string](apiCall, nil, "fake")
+	result, err := GenericListEntities[*fakeListResponse, string](nil, apiCall, nil, "fake")
 	require.NoError(t, err)
 	assert.Equal(t, []string{"a", "b", "c", "d", "e"}, result)
 	// Pages 0, 1 and 2 are fetched; once len(result) == total the loop stops.
@@ -223,11 +225,91 @@ func TestGenericListEntities_CollectsItemsAddedWhilePaging(t *testing.T) {
 		}, nil
 	}
 
-	result, err := GenericListEntities[*fakeListResponse, string](apiCall, nil, "fake")
+	result, err := GenericListEntities[*fakeListResponse, string](nil, apiCall, nil, "fake")
 	require.NoError(t, err)
 	// Without refreshing totalCount the loop would have stopped after page 1
 	// (len == 4 == stale total) and dropped "e" and "f".
 	assert.Equal(t, []string{"a", "b", "c", "d", "e", "f"}, result)
+}
+
+func TestGenericGetEntity_RecoversSDKPanicAsUnauthenticated(t *testing.T) {
+	_, err := GenericGetEntity[*fakeListResponse, string](nil, func() (*fakeListResponse, error) {
+		panic("interface conversion: interface {} is *http.Response, not []uint8")
+	}, "fake")
+
+	require.Error(t, err)
+	assert.True(t, converged.IsUnauthenticated(err))
+	assert.Contains(t, err.Error(), "generated API client panic")
+}
+
+func TestGenericGetEntity_RecoversOtherSDKPanicAsGenericError(t *testing.T) {
+	_, err := GenericGetEntity[*fakeListResponse, string](nil, func() (*fakeListResponse, error) {
+		panic("unexpected SDK failure")
+	}, "fake")
+
+	require.Error(t, err)
+	assert.False(t, converged.IsUnauthenticated(err))
+	assert.Contains(t, err.Error(), "unexpected SDK failure")
+}
+
+func TestGenericListEntities_RecoversSDKPanicAsUnauthenticated(t *testing.T) {
+	_, err := GenericListEntities[*fakeListResponse, string](nil, func(*V4ODataParams) (*fakeListResponse, error) {
+		panic("interface conversion: interface {} is *http.Response, not []uint8")
+	}, nil, "fake")
+
+	require.Error(t, err)
+	assert.True(t, converged.IsUnauthenticated(err))
+}
+
+func TestGenericListEntities_RecoversOtherSDKPanicAsGenericError(t *testing.T) {
+	_, err := GenericListEntities[*fakeListResponse, string](nil, func(*V4ODataParams) (*fakeListResponse, error) {
+		panic("unexpected SDK failure")
+	}, nil, "fake")
+
+	require.Error(t, err)
+	assert.False(t, converged.IsUnauthenticated(err))
+	assert.Contains(t, err.Error(), "unexpected SDK failure")
+}
+
+func TestGenericNewIterator_RecoversSDKPanicAsUnauthenticated(t *testing.T) {
+	iterator := GenericNewIterator[*fakeListResponse, string](
+		context.Background(),
+		nil,
+		func(context.Context, *V4ODataParams) (*fakeListResponse, error) {
+			panic("interface conversion: interface {} is *http.Response, not []uint8")
+		},
+		nil,
+		"fake",
+	)
+
+	var err error
+	for _, iteratorErr := range iterator {
+		err = iteratorErr
+		break
+	}
+	require.Error(t, err)
+	assert.True(t, converged.IsUnauthenticated(err))
+}
+
+func TestGenericNewIterator_RecoversOtherSDKPanicAsGenericError(t *testing.T) {
+	iterator := GenericNewIterator[*fakeListResponse, string](
+		context.Background(),
+		nil,
+		func(context.Context, *V4ODataParams) (*fakeListResponse, error) {
+			panic("unexpected SDK failure")
+		},
+		nil,
+		"fake",
+	)
+
+	var err error
+	for _, iteratorErr := range iterator {
+		err = iteratorErr
+		break
+	}
+	require.Error(t, err)
+	assert.False(t, converged.IsUnauthenticated(err))
+	assert.Contains(t, err.Error(), "unexpected SDK failure")
 }
 
 // anyDataResponse lets tests feed CallListAPI an arbitrary GetData() payload.
