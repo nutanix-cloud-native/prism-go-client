@@ -53,6 +53,14 @@ type VMs[VM, NIC, VMDisk any] interface {
 	// DeleteCdRomAsync starts an asynchronous CD-ROM deletion on the VM.
 	DeleteCdRomAsync(ctx context.Context, uuid string, cdRomUUID string) (Operation[NoEntity], error)
 
+	// EjectCdRom ejects the ISO from the CD-ROM device identified by cdRomUUID
+	// on the VM identified by uuid, and waits for the asynchronous task to complete.
+	// The CD-ROM device remains attached and empty.
+	EjectCdRom(ctx context.Context, uuid string, cdRomUUID string) error
+
+	// EjectCdRomAsync starts an asynchronous CD-ROM eject on the VM.
+	EjectCdRomAsync(ctx context.Context, uuid string, cdRomUUID string) (Operation[NoEntity], error)
+
 	// GenerateConsoleToken obtains a JWT token and WebSocket URI for VNC
 	// console access to the VM identified by uuid.
 	GenerateConsoleToken(ctx context.Context, uuid string) (*VMConsoleToken, error)

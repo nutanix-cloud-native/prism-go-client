@@ -12,6 +12,7 @@
 //	go test -v ./converged/v4 -run TestVMs                         # all VM tests
 //	go test -v ./converged/v4 -run TestVMsCustomAttributes_NilClient
 //	go test -v ./converged/v4 -run TestVMsDeleteCdRom_NilClient
+//	go test -v ./converged/v4 -run TestVMsEjectCdRom_NilClient
 //	go test -v ./converged/v4 -run TestVMsGenerateConsoleToken_NilClient
 //	go test -v ./converged/v4 -run TestVMsDeleteCdRomIntegration
 //	go test -v ./converged/v4 -run TestVMsGenerateConsoleTokenIntegration
@@ -209,6 +210,14 @@ func TestVMSubresourceAsyncOps_HonourRequestIDAndETag(t *testing.T) {
 			expectedOp: "/api/vmm/v4.3/ahv/config/vms/vm-1/nics/nic-1",
 			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
 				_, err := service.DeleteNIC(ctx, "vm-1", "nic-1")
+				return err
+			},
+		},
+		{
+			name:       "EjectCdRom",
+			expectedOp: "/api/vmm/v4.3/ahv/config/vms/vm-1/cd-roms/cdrom-1/$actions/eject",
+			call: func(t *testing.T, service *VMsService, ctx context.Context) error {
+				_, err := service.EjectCdRomAsync(ctx, "vm-1", "cdrom-1")
 				return err
 			},
 		},
@@ -743,6 +752,25 @@ func TestVMsDeleteCdRom_NilClient(t *testing.T) {
 
 	t.Run("DeleteCdRomAsync", func(t *testing.T) {
 		_, err := service.DeleteCdRomAsync(ctx, "test-vm-id", "test-cdrom-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+}
+
+// TestVMsEjectCdRom_NilClient tests nil client error handling for CD-ROM eject methods.
+func TestVMsEjectCdRom_NilClient(t *testing.T) {
+	service := NewVMsService(nil)
+	require.NotNil(t, service)
+	ctx := context.Background()
+
+	t.Run("EjectCdRom", func(t *testing.T) {
+		err := service.EjectCdRom(ctx, "test-vm-id", "test-cdrom-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("EjectCdRomAsync", func(t *testing.T) {
+		_, err := service.EjectCdRomAsync(ctx, "test-vm-id", "test-cdrom-id")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})

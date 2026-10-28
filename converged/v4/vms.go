@@ -565,6 +565,63 @@ func (s *VMsService) DeleteCdRomAsync(ctx context.Context, uuid string, cdRomUUI
 	), nil
 }
 
+// EjectCdRom ejects the ISO from the CD-ROM device identified by cdRomUUID
+// on the VM identified by uuid. It fetches the VM's current ETag, issues the
+// eject, and waits for the asynchronous task to complete before returning.
+// The CD-ROM device remains attached and empty.
+func (s *VMsService) EjectCdRom(ctx context.Context, uuid string, cdRomUUID string) error {
+	if s.client == nil {
+		return errors.New("client is not initialized")
+	}
+	operation, err := s.EjectCdRomAsync(ctx, uuid, cdRomUUID)
+	if err != nil {
+		return err
+	}
+	if _, err = operation.Wait(ctx); err != nil {
+		return fmt.Errorf("failed to eject CD-ROM from VM: %w", err)
+	}
+	return nil
+}
+
+// EjectCdRomAsync starts an asynchronous CD-ROM eject on the VM.
+// The caller receives an Operation that can be polled or waited on.
+func (s *VMsService) EjectCdRomAsync(ctx context.Context, uuid string, cdRomUUID string) (converged.Operation[converged.NoEntity], error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	_, etagArgs, err := GetEntityAndEtag(
+		s.client.VmApiInstance.ServiceClient.GetVmById(ctx,
+			&vmRequest.GetVmByIdRequest{
+				ExtId: &uuid,
+			},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VM for CD-ROM eject: %w", err)
+	}
+
+	taskRef, err := CallAPI[*vmmModels.EjectCdRomApiResponse, vmmConfig.TaskReference](
+		s.client.VmApiInstance.ServiceClient.EjectCdRomById(ctx,
+			&vmRequest.EjectCdRomByIdRequest{
+				VmExtId: &uuid,
+				ExtId:   &cdRomUUID,
+			},
+			mergeArgs(etagArgs, headerArgs(ctx)),
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to eject CD-ROM from VM: %w", err)
+	}
+
+	if taskRef.ExtId == nil {
+		return nil, fmt.Errorf("task reference ExtId is nil for CD-ROM eject")
+	}
+
+	return noEntityOperation(*taskRef.ExtId, s.client), nil
+}
+
 // GenerateConsoleToken obtains a JWT token and WebSocket URI for VNC console
 // access to the VM identified by uuid. It calls the generate-console-token API,
 // waits for the asynchronous task to complete, then extracts VmConsoleToken and
