@@ -87,6 +87,7 @@ type Client struct {
 	StorageContainerAPI               *clusterApi.StorageContainersApi
 	SubnetsApiInstance                *networkingApi.SubnetsApi
 	SubnetIPReservationApi            *networkingApi.SubnetIPReservationApi
+	FloatingIpsApiInstance            *networkingApi.FloatingIpsApi
 	TasksApiInstance                  *prismApi.TasksApi
 	TemplatesApiInstance              *vmApi.TemplatesApi
 	VolumeGroupsApiInstance           *volumesApi.VolumeGroupsApi
@@ -317,6 +318,7 @@ func initSubnetApiInstance(v4Client *Client, credentials prismgoclient.Credentia
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.SubnetsApiInstance = networkingApi.NewSubnetsApi(apiClientInstance)
 	v4Client.SubnetIPReservationApi = networkingApi.NewSubnetIPReservationApi(apiClientInstance)
+	v4Client.FloatingIpsApiInstance = networkingApi.NewFloatingIpsApi(apiClientInstance)
 	return nil
 }
 

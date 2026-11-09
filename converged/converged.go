@@ -54,7 +54,8 @@ type Client[
 	Project,
 	ResourceGroup,
 	Disk,
-	Alert any] struct {
+	Alert,
+	FloatingIp any] struct {
 	AntiAffinityPolicies  AntiAffinityPolicies[AntiAffinityPolicy]
 	Clusters              Clusters[Cluster, VirtualGpuProfile, PhysicalGpuProfile, AHVVirtualGpuProfile, AHVPhysicalGpuProfile, Host]
 	Categories            Categories[Category]
@@ -78,6 +79,7 @@ type Client[
 	ResourceGroups        ResourceGroups[ResourceGroup]
 	Disks                 Disks[Disk]
 	Alerts                Alerts[Alert]
+	FloatingIps           FloatingIps[FloatingIp]
 }
 
 // Getter is the interface for Get operations.

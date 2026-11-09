@@ -95,8 +95,11 @@ func getDeveloperConfig(t *testing.T, filePath string) devConf {
 
 // CredentialsFromEnvironment returns a Credentials object from the developer environment
 // or dummy values if the developer environment is not configured.
-// The prism developer config is configured by creating a `.prism-dev.yaml` file in the user's home directory.
-// Alternatively, the path to the developer config file can be set in the environment variable `PRISM_DEV_CONFIG`.
+//
+// Precedence:
+//  1. Existing NUTANIX_* environment variables (for example after sourcing a shell env file)
+//  2. `.prism-dev.yaml` in the home directory, or the file pointed to by `PRISM_DEV_CONFIG`
+//
 // More information about the developer config file can be found in the DEVELOPMENT.md in repo root.
 func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
 	endpoint := ManagementEndpointFromEnvironment(t)
@@ -112,21 +115,26 @@ func CredentialsFromEnvironment(t *testing.T) prismgoclient.Credentials {
 	}
 }
 
-// ManagementEndpointFromEnvironment returns a ManagementEndpoint object from the developer environment
+// ManagementEndpointFromEnvironment returns a ManagementEndpoint object from the developer environment.
+// If NUTANIX_ENDPOINT is already set, those environment variables are used as-is.
+// Otherwise credentials are loaded from the prism developer config file.
 func ManagementEndpointFromEnvironment(t *testing.T) *types.ManagementEndpoint {
-	confFile, err := prismDevConfigFilePath()
-	require.NoError(t, err)
-	conf := getDeveloperConfig(t, confFile)
-	// NOTE: These environment variables are set to dummy values for the purpose of unit testing.
-	// These environment variables need to be replaced with a real Prism Central endpoint and credentials
-	// when recording the mocks. Once done with recording, please reset them back to the original dummy values.
-	// and ensure that the actual credentials are not checked in to the repository.
-	t.Setenv("NUTANIX_ENDPOINT", conf.PrismCentral.Endpoint)
-	t.Setenv("NUTANIX_PORT", conf.PrismCentral.Port)
-	t.Setenv("NUTANIX_USERNAME", conf.PrismCentral.Username)
-	t.Setenv("NUTANIX_PASSWORD", conf.PrismCentral.Password)
-	t.Setenv("NUTANIX_API_KEY", conf.PrismCentral.APIKey)
-	t.Setenv("NUTANIX_INSECURE", strconv.FormatBool(conf.PrismCentral.Insecure))
+	if os.Getenv("NUTANIX_ENDPOINT") == "" {
+		confFile, err := prismDevConfigFilePath()
+		require.NoError(t, err)
+		conf := getDeveloperConfig(t, confFile)
+		// NOTE: These environment variables are set to dummy values for the purpose of unit testing.
+		// These environment variables need to be replaced with a real Prism Central endpoint and credentials
+		// when recording the mocks. Once done with recording, please reset them back to the original dummy values.
+		// and ensure that the actual credentials are not checked in to the repository.
+		t.Setenv("NUTANIX_ENDPOINT", conf.PrismCentral.Endpoint)
+		t.Setenv("NUTANIX_PORT", conf.PrismCentral.Port)
+		t.Setenv("NUTANIX_USERNAME", conf.PrismCentral.Username)
+		t.Setenv("NUTANIX_PASSWORD", conf.PrismCentral.Password)
+		t.Setenv("NUTANIX_API_KEY", conf.PrismCentral.APIKey)
+		t.Setenv("NUTANIX_INSECURE", strconv.FormatBool(conf.PrismCentral.Insecure))
+	}
+
 	endpoint, err := local.NewProvider().GetManagementEndpoint(nil)
 	require.NoError(t, err)
 

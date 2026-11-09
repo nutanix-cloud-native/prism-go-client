@@ -80,6 +80,7 @@ type Client struct {
 		multidomainModels.ResourceGroup,
 		clusterModels.Disk,
 		alertModels.Alert,
+		subnetModels.FloatingIp,
 	]
 
 	client *v4prismGoClient.Client
@@ -139,6 +140,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			multidomainModels.ResourceGroup,
 			clusterModels.Disk,
 			alertModels.Alert,
+			subnetModels.FloatingIp,
 		]{
 			AntiAffinityPolicies:  NewAntiAffinityPoliciesService(v4sdkClient),
 			Clusters:              NewClustersService(v4sdkClient),
@@ -166,6 +168,7 @@ func NewClientFromV4SDKClient(v4sdkClient *v4prismGoClient.Client) *Client {
 			ResourceGroups: NewResourceGroupsService(v4sdkClient),
 			Disks:          NewDisksService(v4sdkClient),
 			Alerts:         NewAlertsService(v4sdkClient),
+			FloatingIps:    NewFloatingIpsService(v4sdkClient),
 		},
 		client: v4sdkClient,
 	}
