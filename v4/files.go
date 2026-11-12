@@ -65,7 +65,7 @@ type filesPCFileServersResponse struct {
 // FilesNFSVersion reads NFS version directly from the file server configured in Credentials.
 func (c *Client) FilesNFSVersion(ctx context.Context) (FilesNFSVersion, error) {
 	if c == nil || c.filesNameServicesAPI == nil {
-		return FilesNFSVersionUnknown, fmt.Errorf("Files client is not initialized")
+		return FilesNFSVersionUnknown, fmt.Errorf("files client is not initialized")
 	}
 	if err := ctx.Err(); err != nil {
 		return FilesNFSVersionUnknown, err
@@ -77,11 +77,11 @@ func (c *Client) FilesNFSVersion(ctx context.Context) (FilesNFSVersion, error) {
 		return FilesNFSVersionUnknown, err
 	}
 	if response == nil {
-		return FilesNFSVersionUnknown, fmt.Errorf("Files name-services response is empty")
+		return FilesNFSVersionUnknown, fmt.Errorf("files name-services response is empty")
 	}
 	nameServices, ok := response.GetData().(filesConfig.NameServiceSpec)
 	if !ok || nameServices.NfsVersion == nil {
-		return FilesNFSVersionUnknown, fmt.Errorf("Files name-services response has invalid data")
+		return FilesNFSVersionUnknown, fmt.Errorf("files name-services response has invalid data")
 	}
 	return filesNFSVersionFromSDK(*nameServices.NfsVersion)
 }
@@ -90,7 +90,7 @@ func (c *Client) FilesNFSVersion(ctx context.Context) (FilesNFSVersion, error) {
 // fileServer can be a file server name, external ID, FQDN, external IP, or virtual IP.
 func (c *Client) FilesNFSVersionFromPC(ctx context.Context, fileServer string) (FilesNFSVersion, error) {
 	if c == nil || c.filesAPIClient == nil {
-		return FilesNFSVersionUnknown, fmt.Errorf("Files client is not initialized")
+		return FilesNFSVersionUnknown, fmt.Errorf("files client is not initialized")
 	}
 	if err := ctx.Err(); err != nil {
 		return FilesNFSVersionUnknown, err
@@ -111,7 +111,7 @@ func filesNFSVersionFromSDK(version filesConfig.NfsVersion) (FilesNFSVersion, er
 	case filesConfig.NFSVERSION_NFSV3V4:
 		return FilesNFSVersionV3V4, nil
 	default:
-		return FilesNFSVersionUnknown, fmt.Errorf("Files name-services response has no usable NFS version")
+		return FilesNFSVersionUnknown, fmt.Errorf("files name-services response has no usable NFS version")
 	}
 }
 
@@ -125,13 +125,13 @@ func (c *Client) nameServicesFromPC(path string) (FilesNFSVersion, error) {
 		return FilesNFSVersionUnknown, fmt.Errorf("failed to decode Files name-services response: %w", err)
 	}
 	if response.Data.ObjectType != "files.v4.config.NameServiceSpec" {
-		return FilesNFSVersionUnknown, fmt.Errorf("Files name-services response has invalid data type %q", response.Data.ObjectType)
+		return FilesNFSVersionUnknown, fmt.Errorf("files name-services response has invalid data type %q", response.Data.ObjectType)
 	}
 	switch FilesNFSVersion(response.Data.NFSVersion) {
 	case FilesNFSVersionV3, FilesNFSVersionV4, FilesNFSVersionV3V4:
 		return FilesNFSVersion(response.Data.NFSVersion), nil
 	default:
-		return FilesNFSVersionUnknown, fmt.Errorf("Files name-services response has no usable NFS version")
+		return FilesNFSVersionUnknown, fmt.Errorf("files name-services response has no usable NFS version")
 	}
 }
 
