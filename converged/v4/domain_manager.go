@@ -8,6 +8,7 @@ import (
 	converged "github.com/nutanix-cloud-native/prism-go-client/converged"
 	v4prismGoClient "github.com/nutanix-cloud-native/prism-go-client/v4"
 	prismModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/config"
+	managementModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/management"
 	domainManagerRequest "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/request/domainmanager"
 )
 
@@ -88,6 +89,94 @@ func (s *DomainManagerService) NewIterator(ctx context.Context, opts ...converge
 		opts,
 		s.entitiesName,
 	)
+}
+
+// ListProducts returns the products registered on the domain manager identified
+// by domainManagerExtID. Additional OData options (e.g. converged.WithFilter) may
+// be supplied; for example, to filter by product name:
+//
+//	converged.WithFilter("name eq Prism.Management.ProductName'NUTANIX_DISASTER_RECOVERY'")
+func (s *DomainManagerService) ListProducts(ctx context.Context, domainManagerExtID string, opts ...converged.ODataOption) ([]managementModels.Product, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	return GenericListEntities[*managementModels.ListProductsApiResponse, managementModels.Product](
+		func(reqParams *V4ODataParams) (*managementModels.ListProductsApiResponse, error) {
+			return s.client.DomainManagerApiInstance.ServiceClient.ListProducts(ctx,
+				&domainManagerRequest.ListProductsRequest{
+					DomainManagerExtId: &domainManagerExtID,
+					Page_:              reqParams.Page,
+					Limit_:             reqParams.Limit,
+					Filter_:            reqParams.Filter,
+					Orderby_:           reqParams.OrderBy,
+					Select_:            reqParams.Select,
+				},
+			)
+		},
+		opts,
+		"domain manager product",
+	)
+}
+
+// GetProduct returns a single product (identified by extID) registered on the
+// domain manager identified by domainManagerExtID.
+func (s *DomainManagerService) GetProduct(ctx context.Context, domainManagerExtID, extID string) (*managementModels.Product, error) {
+	if s.client == nil {
+		return nil, errors.New("client is not initialized")
+	}
+
+	return GenericGetEntity[*managementModels.GetProductApiResponse, managementModels.Product](
+		func() (*managementModels.GetProductApiResponse, error) {
+			return s.client.DomainManagerApiInstance.ServiceClient.GetProductById(ctx,
+				&domainManagerRequest.GetProductByIdRequest{
+					DomainManagerExtId: &domainManagerExtID,
+					ExtId:              &extID,
+				},
+			)
+		},
+		"domain manager product",
+	)
+}
+
+// IsProductDisabled reports whether the product with the given productName is in
+// the DISABLED enablement state on the domain manager identified by
+// domainManagerExtID.
+//
+// It performs the two-step lookup documented by the API: it lists products
+// filtered by name to resolve the product's extId, then fetches that product
+// and inspects its enablementState.
+//
+// If no product matching productName is found, found is false and err is nil.
+func (s *DomainManagerService) IsProductDisabled(ctx context.Context, domainManagerExtID string, productName managementModels.ProductName) (disabled bool, found bool, err error) {
+	if s.client == nil {
+		return false, false, errors.New("client is not initialized")
+	}
+
+	filter := fmt.Sprintf("name eq Prism.Management.ProductName'%s'", productName.GetName())
+	products, err := s.ListProducts(ctx, domainManagerExtID, converged.WithFilter(filter))
+	if err != nil {
+		return false, false, fmt.Errorf("failed to list products: %w", err)
+	}
+
+	if len(products) == 0 {
+		return false, false, nil
+	}
+
+	if products[0].ExtId == nil {
+		return false, false, fmt.Errorf("product %q is missing an extId", productName.GetName())
+	}
+
+	product, err := s.GetProduct(ctx, domainManagerExtID, *products[0].ExtId)
+	if err != nil {
+		return false, false, fmt.Errorf("failed to get product %q: %w", productName.GetName(), err)
+	}
+
+	if product.EnablementState == nil {
+		return false, true, fmt.Errorf("product %q has no enablementState", productName.GetName())
+	}
+
+	return *product.EnablementState == managementModels.ENABLEMENTSTATE_DISABLED, true, nil
 }
 
 // GetPrismCentralVersion gets the Prism Central version from Domain Manager API

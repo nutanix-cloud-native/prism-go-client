@@ -13,6 +13,7 @@ package v4
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -21,6 +22,7 @@ import (
 
 	"github.com/nutanix-cloud-native/prism-go-client/converged"
 	"github.com/nutanix-cloud-native/prism-go-client/internal/testhelpers"
+	managementModels "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/models/prism/v4/management"
 )
 
 // TestDomainManagerIntegration tests the client.DomainManager with real Nutanix API calls
@@ -153,6 +155,41 @@ func TestDomainManagerIntegration(t *testing.T) {
 		assert.GreaterOrEqual(t, count, 0)
 	})
 
+	t.Run("Products", func(t *testing.T) {
+		domainManagers, err := client.DomainManager.List(ctx)
+		require.NoError(t, err)
+		if len(domainManagers) == 0 {
+			t.Skip("No domain managers available for testing")
+		}
+		dmExtID := *domainManagers[0].ExtId
+
+		// Product methods are v4-SDK specific, exposed on the concrete service.
+		dmService := NewDomainManagerService(client.client)
+
+		// List all products on the domain manager.
+		products, err := dmService.ListProducts(ctx, dmExtID)
+		require.NoError(t, err)
+
+		// Filtered list by product name, then Get by extId and inspect state.
+		disabled, found, err := dmService.IsProductDisabled(
+			ctx, dmExtID, managementModels.PRODUCTNAME_NUTANIX_DISASTER_RECOVERY)
+		require.NoError(t, err)
+		t.Logf("NUTANIX_DISASTER_RECOVERY found=%v disabled=%v (total products=%d)",
+			found, disabled, len(products))
+
+		if found {
+			// Cross-check: GetProduct for each listed product returns an entity.
+			for _, p := range products {
+				if p.ExtId == nil {
+					continue
+				}
+				got, gerr := dmService.GetProduct(ctx, dmExtID, *p.ExtId)
+				assert.NoError(t, gerr)
+				assert.NotNil(t, got)
+			}
+		}
+	})
+
 	t.Run("GetPrismCentralVersion", func(t *testing.T) {
 		// Test GetPrismCentralVersion
 		version, err := client.DomainManager.GetPrismCentralVersion(ctx)
@@ -199,4 +236,36 @@ func TestDomainManagerService_ErrorHandling(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "client is not initialized")
 	})
+
+	t.Run("ListProducts_NilClient", func(t *testing.T) {
+		_, err := service.ListProducts(ctx, "dm-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("GetProduct_NilClient", func(t *testing.T) {
+		_, err := service.GetProduct(ctx, "dm-id", "product-id")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+
+	t.Run("IsProductDisabled_NilClient", func(t *testing.T) {
+		_, _, err := service.IsProductDisabled(ctx, "dm-id", managementModels.PRODUCTNAME_NUTANIX_DISASTER_RECOVERY)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "client is not initialized")
+	})
+}
+
+// TestProductNameFilterString documents the exact $filter string used by
+// IsProductDisabled to look up a product by name, matching the API contract:
+// $filter=name eq Prism.Management.ProductName'NUTANIX_DISASTER_RECOVERY'
+func TestProductNameFilterString(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, "NUTANIX_DISASTER_RECOVERY",
+		managementModels.PRODUCTNAME_NUTANIX_DISASTER_RECOVERY.GetName())
+
+	filter := fmt.Sprintf("name eq Prism.Management.ProductName'%s'",
+		managementModels.PRODUCTNAME_NUTANIX_DISASTER_RECOVERY.GetName())
+	assert.Equal(t, "name eq Prism.Management.ProductName'NUTANIX_DISASTER_RECOVERY'", filter)
 }
