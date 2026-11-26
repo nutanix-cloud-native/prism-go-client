@@ -10,6 +10,12 @@ import (
 
 	clusterApi "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/api"
 	clusterClient "github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4/client"
+	datapoliciesApi "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/api"
+	datapoliciesClient "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/client"
+	filesApi "github.com/nutanix/ntnx-api-golang-clients/files-go-client/v4/api"
+	filesClient "github.com/nutanix/ntnx-api-golang-clients/files-go-client/v4/client"
+	iamApi "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/api"
+	iamClient "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/client"
 	monitoringApi "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/api"
 	monitoringClient "github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4/client"
 	multidomainApi "github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4/api"
@@ -20,10 +26,6 @@ import (
 	prismClient "github.com/nutanix/ntnx-api-golang-clients/prism-go-client/v4/client"
 	vmApi "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/api"
 	vmClient "github.com/nutanix/ntnx-api-golang-clients/vmm-go-client/v4/client"
-	datapoliciesApi "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/api"
-	datapoliciesClient "github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4/client"
-	iamApi "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/api"
-	iamClient "github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4/client"
 	volumesApi "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/api"
 	volumesClient "github.com/nutanix/ntnx-api-golang-clients/volumes-go-client/v4/client"
 
@@ -71,7 +73,7 @@ func setAuthHeader(apiClient apiClient, credentials prismgoclient.Credentials) {
 	}
 	apiClient.AddDefaultHeader(
 		authorizationHeader,
-		fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", credentials.Username, credentials.Password)))))
+		fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(credentials.Username+":"+credentials.Password))))
 }
 
 // Client manages the V4 API
@@ -102,6 +104,8 @@ type Client struct {
 	RecoveryPlansApiInstance          *datapoliciesApi.RecoveryPlansApi
 	ProjectsApiInstance               *multidomainApi.ProjectsApi
 	ResourceGroupsApiInstance         *multidomainApi.ResourceGroupsApi
+	filesAPIClient                    *filesClient.ApiClient
+	filesNameServicesAPI              *filesApi.NameServicesApi
 	readTimeout                       time.Duration
 }
 
@@ -190,6 +194,10 @@ func NewV4Client(credentials prismgoclient.Credentials, opts ...types.ClientOpti
 
 	if err := initAlertsServiceApiInstance(v4Client, credentials); err != nil {
 		return nil, fmt.Errorf("failed to create Alerts API instance: %v", err)
+	}
+
+	if err := initFilesAPIClient(v4Client, credentials); err != nil {
+		return nil, fmt.Errorf("failed to create Files API instance: %v", err)
 	}
 
 	return v4Client, nil
@@ -437,6 +445,39 @@ func initAuthorizationPoliciesApiInstance(v4Client *Client, credentials prismgoc
 	setAuthHeader(apiClientInstance, credentials)
 	v4Client.AuthorizationPoliciesApiInstance = iamApi.NewAuthorizationPoliciesServiceApi(apiClientInstance)
 	return nil
+}
+
+func initFilesAPIClient(v4Client *Client, credentials prismgoclient.Credentials) error {
+	ep, err := getEndpointInfo(credentials)
+	if err != nil {
+		return err
+	}
+	apiClientInstance := filesClient.NewApiClient()
+	apiClientInstance.VerifySSL = !credentials.Insecure
+	apiClientInstance.Host = ep.host
+	apiClientInstance.Port = ep.port
+	apiClientInstance.SetUserName(credentials.Username)
+	apiClientInstance.SetPassword(credentials.Password)
+	setFilesAuthHeader(apiClientInstance, credentials)
+	v4Client.filesAPIClient = apiClientInstance
+	v4Client.filesNameServicesAPI = filesApi.NewNameServicesApi(apiClientInstance)
+	// Files SDK v4.0.1-alpha.2 cannot add caller-supplied CA certificates to its transport.
+	// AdditionalTrustBundle is therefore not applied to Files API requests.
+	return nil
+}
+
+func setFilesAuthHeader(apiClient *filesClient.ApiClient, credentials prismgoclient.Credentials) {
+	if credentials.APIKey != "" {
+		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.APIKey)
+		return
+	}
+	if strings.EqualFold(credentials.Username, ntnxAPIKeyHeaderKey) && credentials.Password != "" {
+		apiClient.AddDefaultHeader(ntnxAPIKeyHeaderKey, credentials.Password)
+		return
+	}
+	apiClient.AddDefaultHeader(
+		authorizationHeader,
+		fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(credentials.Username+":"+credentials.Password))))
 }
 
 func getEndpointInfo(credentials prismgoclient.Credentials) (*endpointInfo, error) {

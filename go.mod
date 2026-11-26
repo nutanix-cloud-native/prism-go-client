@@ -22,6 +22,7 @@ require (
 	github.com/keploy/go-sdk v0.9.0
 	github.com/nutanix/ntnx-api-golang-clients/clustermgmt-go-client/v4 v4.3.1
 	github.com/nutanix/ntnx-api-golang-clients/datapolicies-go-client/v4 v4.3.1
+	github.com/nutanix/ntnx-api-golang-clients/files-go-client/v4 v4.0.1-alpha.2
 	github.com/nutanix/ntnx-api-golang-clients/iam-go-client/v4 v4.1.2-beta.3
 	github.com/nutanix/ntnx-api-golang-clients/monitoring-go-client/v4 v4.3.1
 	github.com/nutanix/ntnx-api-golang-clients/multidomain-go-client/v4 v4.4.1-beta.1
